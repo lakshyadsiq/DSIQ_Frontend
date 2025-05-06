@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
-import { FaGoogle } from 'react-icons/fa';  // Import Google icon
+import { FaGoogle } from 'react-icons/fa';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -13,17 +13,11 @@ const SignupPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleRadioChange = (e) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      userType: e.target.value,
-    }));
+    setFormData((prevData) => ({ ...prevData, userType: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -38,9 +32,7 @@ const SignupPage = () => {
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, email, password, userType }),
       });
 
@@ -58,12 +50,21 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 px-4">
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md transition-all duration-300">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">Create an Account</h2>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md transition-transform duration-300 hover:scale-[1.01]"
+      >
+        {/* DSIQ Branding */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-indigo-600">DSIQ</h1>
+          <p className="text-gray-500 text-sm mt-1">Empowering Data-Driven Decisions</p>
+        </div>
 
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Create Your Account</h2>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
           <Input
             type="text"
             placeholder="John Doe"
@@ -74,8 +75,8 @@ const SignupPage = () => {
           />
         </div>
 
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
           <Input
             type="email"
             placeholder="email@example.com"
@@ -86,8 +87,8 @@ const SignupPage = () => {
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <Input
             type="password"
             placeholder="••••••••"
@@ -102,14 +103,21 @@ const SignupPage = () => {
           <p className="text-sm font-medium text-gray-700 mb-2">You are a:</p>
           <div className="flex gap-4">
             {['Agency', 'Brand'].map((type) => (
-              <label key={type} className="flex items-center gap-2 cursor-pointer">
+              <label
+                key={type}
+                className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition ${
+                  formData.userType === type.toLowerCase()
+                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold'
+                    : 'border-gray-300 hover:bg-gray-100'
+                }`}
+              >
                 <input
                   type="radio"
                   name="userType"
                   value={type.toLowerCase()}
                   checked={formData.userType === type.toLowerCase()}
                   onChange={handleRadioChange}
-                  className="form-radio text-indigo-600"
+                  className="form-radio text-indigo-600 hidden"
                 />
                 <span>{type}</span>
               </label>
@@ -117,23 +125,26 @@ const SignupPage = () => {
           </div>
         </div>
 
-        <Button primary={true} type="submit" className="w-full text-white">
+        <Button primary={true} type="submit" className="w-full !text-white !bg-indigo-600 hover:!bg-indigo-700">
           Sign Up
         </Button>
 
-        {/* Google Button with Icon (Static Display) */}
+        {/* Google Sign Up */}
         <div className="mt-4">
           <button
             type="button"
-            className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-center gap-3"
+            className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-3 transition"
           >
             <FaGoogle className="text-lg" />
             <span>Sign up with Google</span>
           </button>
         </div>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Already have an account? <a href="/login" className="text-indigo-600 hover:underline">Log in</a>
+        <p className="mt-5 text-center text-sm text-gray-500">
+          Already have an account?{' '}
+          <a href="/login" className="text-indigo-600 hover:underline">
+            Log in
+          </a>
         </p>
       </form>
     </div>

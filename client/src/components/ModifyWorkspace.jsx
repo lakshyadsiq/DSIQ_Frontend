@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { Input } from "@progress/kendo-react-inputs";
-// import axios from "axios"; // Uncomment for API
 
 const ModifyWorkspace = ({ workspace }) => {
   const [workspaceName, setWorkspaceName] = useState(workspace?.name || "");
@@ -19,72 +18,64 @@ const ModifyWorkspace = ({ workspace }) => {
     ? categories.find(c => c.name === selectedCategory)?.brands || []
     : [];
 
-  /*
-  // 🔄 Submit changes to API (future use)
-  const handleUpdate = async () => {
-    try {
-      const payload = {
-        name: workspaceName,
-        category: selectedCategory,
-        brand: selectedBrand,
-      };
-      const response = await axios.put(`/api/workspaces/${workspace.id}`, payload);
-      console.log("Workspace updated:", response.data);
-      alert("Workspace updated successfully!");
-    } catch (error) {
-      console.error("Failed to update workspace", error);
-      alert("Error updating workspace");
-    }
-  };
-  */
-
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-md shadow-md bg-white">
-      <h2 className="text-xl font-semibold mb-4">Modify Workspace</h2>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-100 to-blue-50 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md transition-transform duration-300 hover:scale-[1.01]">
+        {/* DSIQ Branding */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-indigo-600">DSIQ</h1>
+          <p className="text-gray-500 text-sm mt-1">Update your workspace settings</p>
+        </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Workspace Name</label>
-        <Input
-          value={workspaceName}
-          onChange={(e) => setWorkspaceName(e.value)}
-          placeholder="Enter workspace name"
-        />
-      </div>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Modify Workspace</h2>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Category</label>
-        <DropDownList
-          data={categoryNames}
-          value={selectedCategory}
-          onChange={(e) => {
-            setSelectedCategory(e.value);
-            setSelectedBrand(null); // Reset brand when category changes
-          }}
-          defaultItem="Select Category"
-        />
-      </div>
-
-      {selectedCategory && (
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Brand</label>
-          <DropDownList
-            data={currentBrands}
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.value)}
-            defaultItem="Select Brand"
+          <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
+          <Input
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.value)}
+            placeholder="Enter workspace name"
+            className="w-full"
           />
         </div>
-      )}
 
-      <button
-        // onClick={handleUpdate} // Enable when API is ready
-        onClick={() =>
-          alert(`Updated Workspace: ${workspaceName}, Category: ${selectedCategory}, Brand: ${selectedBrand}`)
-        }
-        className="mt-4 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-      >
-        Update Workspace
-      </button>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <DropDownList
+            data={categoryNames}
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.value);
+              setSelectedBrand(null); // Reset brand
+            }}
+            defaultItem="Select Category"
+            className="w-full"
+          />
+        </div>
+
+        {selectedCategory && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <DropDownList
+              data={currentBrands}
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.value)}
+              defaultItem="Select Brand"
+              className="w-full"
+            />
+          </div>
+        )}
+
+        <button
+          // onClick={handleUpdate} // Use when API is active
+          onClick={() =>
+            alert(`Updated Workspace: ${workspaceName}, Category: ${selectedCategory}, Brand: ${selectedBrand}`)
+          }
+          className="mt-6 w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
+        >
+          Update Workspace
+        </button>
+      </div>
     </div>
   );
 };

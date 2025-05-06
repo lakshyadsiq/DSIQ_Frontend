@@ -1,7 +1,6 @@
-import React, { useState /*, useEffect */ } from "react";
+import React, { useState } from "react";
 import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { Input } from "@progress/kendo-react-inputs";
-// import axios from "axios"; // Uncomment when using API
 
 const WorkspaceForm = () => {
   const [workspaceName, setWorkspaceName] = useState("");
@@ -19,83 +18,63 @@ const WorkspaceForm = () => {
     ? categories.find(c => c.name === selectedCategory)?.brands || []
     : [];
 
-  /*
-  // 🔄 Load categories from API (future use)
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    axios.get("/api/categories")
-      .then(response => setCategories(response.data))
-      .catch(error => console.error("Error fetching categories", error));
-  }, []);
-  */
-
-  /*
-  // 🚀 Submit workspace to API (future use)
-  const handleSubmit = async () => {
-    try {
-      const payload = {
-        workspaceName,
-        category: selectedCategory,
-        brand: selectedBrand,
-      };
-      const response = await axios.post("/api/workspaces", payload);
-      console.log("Workspace created:", response.data);
-      alert("Workspace created successfully!");
-    } catch (error) {
-      console.error("Failed to create workspace", error);
-      alert("Error creating workspace");
-    }
-  };
-  */
-
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-md shadow-md bg-white">
-      <h2 className="text-xl font-semibold mb-4">Create Workspace</h2>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md transition-transform duration-300 hover:scale-[1.01]">
+        {/* DSIQ Branding */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-indigo-600">DSIQ</h1>
+          <p className="text-gray-500 text-sm mt-1">Define your workspace below</p>
+        </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Workspace Name</label>
-        <Input
-          value={workspaceName}
-          onChange={(e) => setWorkspaceName(e.value)}
-          placeholder="Enter workspace name"
-        />
-      </div>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Create Workspace</h2>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Category</label>
-        <DropDownList
-          data={categoryNames}
-          value={selectedCategory}
-          onChange={(e) => {
-            setSelectedCategory(e.value);
-            setSelectedBrand(null); // Reset brand on category change
-          }}
-          defaultItem="Select Category"
-        />
-      </div>
-
-      {selectedCategory && (
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Brand</label>
-          <DropDownList
-            data={currentBrands}
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.value)}
-            defaultItem="Select Brand"
+          <label className="block text-sm font-medium text-gray-700 mb-1">Workspace Name</label>
+          <Input
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.value)}
+            placeholder="Enter workspace name"
+            className="w-full"
           />
         </div>
-      )}
 
-      <button
-        // onClick={handleSubmit} // Use this when enabling API
-        onClick={() =>
-          alert(`Workspace: ${workspaceName}, Category: ${selectedCategory}, Brand: ${selectedBrand}`)
-        }
-        className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-      >
-        Create Workspace
-      </button>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <DropDownList
+            data={categoryNames}
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.value);
+              setSelectedBrand(null);
+            }}
+            defaultItem="Select Category"
+            className="w-full"
+          />
+        </div>
+
+        {selectedCategory && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <DropDownList
+              data={currentBrands}
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.value)}
+              defaultItem="Select Brand"
+              className="w-full"
+            />
+          </div>
+        )}
+
+        <button
+          onClick={() =>
+            alert(`Workspace: ${workspaceName}, Category: ${selectedCategory}, Brand: ${selectedBrand}`)
+          }
+          className="mt-6 w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition"
+        >
+          Create Workspace
+        </button>
+      </div>
     </div>
   );
 };
