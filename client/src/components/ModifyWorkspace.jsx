@@ -1,12 +1,8 @@
-import React, { useState } from "react";
-import { DropDownList } from "@progress/kendo-react-dropdowns";
+import React, { useState, useMemo } from "react";
+import { MultiSelect, DropDownList } from "@progress/kendo-react-dropdowns";
 import { Input } from "@progress/kendo-react-inputs";
 
 const ModifyWorkspace = ({ workspace }) => {
-  const [workspaceName, setWorkspaceName] = useState(workspace?.name || "");
-  const [selectedCategory, setSelectedCategory] = useState(workspace?.category || null);
-  const [selectedBrand, setSelectedBrand] = useState(workspace?.brand || null);
-
   const categories = [
     { name: "Footwear", brands: ["Nike", "Adidas", "Puma"] },
     { name: "Clothing", brands: ["Zara", "H&M", "Uniqlo"] },
@@ -14,9 +10,26 @@ const ModifyWorkspace = ({ workspace }) => {
   ];
 
   const categoryNames = categories.map(c => c.name);
-  const currentBrands = selectedCategory
-    ? categories.find(c => c.name === selectedCategory)?.brands || []
-    : [];
+
+  const [workspaceName, setWorkspaceName] = useState(workspace?.name || "");
+  const [selectedCategories, setSelectedCategories] = useState(
+    workspace?.category ? [workspace.category] : []
+  );
+  const [selectedBrand, setSelectedBrand] = useState(workspace?.brand || null);
+
+  const commonBrands = useMemo(() => {
+    if (selectedCategories.length === 0) return [];
+
+    const selectedCategoryObjects = categories.filter(c =>
+      selectedCategories.includes(c.name)
+    );
+
+    const intersectBrands = selectedCategoryObjects.reduce((acc, curr) => {
+      return acc.filter(brand => curr.brands.includes(brand));
+    }, selectedCategoryObjects[0]?.brands || []);
+
+    return intersectBrands;
+  }, [selectedCategories, categories]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-100 to-blue-50 px-4">
@@ -40,24 +53,24 @@ const ModifyWorkspace = ({ workspace }) => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <DropDownList
+          <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+          <MultiSelect
             data={categoryNames}
-            value={selectedCategory}
+            value={selectedCategories}
             onChange={(e) => {
-              setSelectedCategory(e.value);
-              setSelectedBrand(null); // Reset brand
+              setSelectedCategories(e.value);
+              setSelectedBrand(null); // Reset brand on category change
             }}
-            defaultItem="Select Category"
+            placeholder="Select Categories"
             className="w-full"
           />
         </div>
 
-        {selectedCategory && (
+        {selectedCategories.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
             <DropDownList
-              data={currentBrands}
+              data={commonBrands}
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.value)}
               defaultItem="Select Brand"
@@ -67,9 +80,12 @@ const ModifyWorkspace = ({ workspace }) => {
         )}
 
         <button
-          // onClick={handleUpdate} // Use when API is active
           onClick={() =>
-            alert(`Updated Workspace: ${workspaceName}, Category: ${selectedCategory}, Brand: ${selectedBrand}`)
+            alert(
+              `Updated Workspace: ${workspaceName}, Categories: ${selectedCategories.join(
+                ", "
+              )}, Brand: ${selectedBrand}`
+            )
           }
           className="mt-6 w-full py-2 px-4 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
         >
