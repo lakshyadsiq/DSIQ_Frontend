@@ -9,23 +9,59 @@ const ModifyWorkspace = ({ workspace }) => {
     { name: "Accessories", brands: ["Fossil", "Ray-Ban", "Timex"] },
   ];
 
-  const categoryNames = categories.map(c => c.name);
+  const retailersData = [
+    {
+      name: "Amazon",
+      categories: ["Footwear", "Clothing", "Accessories"],
+      brands: ["Nike", "Adidas", "Ray-Ban"],
+    },
+    {
+      name: "Walmart",
+      categories: ["Clothing", "Accessories"],
+      brands: ["H&M", "Ray-Ban", "Timex"],
+    },
+    {
+      name: "eBay",
+      categories: ["Footwear", "Accessories"],
+      brands: ["Nike", "Puma", "Timex"],
+    },
+  ];
+
+  const categoryNames = categories.map((c) => c.name);
 
   const [workspaceName, setWorkspaceName] = useState(workspace?.name || "");
   const [selectedCategories, setSelectedCategories] = useState(
     workspace?.category ? [workspace.category] : []
   );
   const [selectedBrand, setSelectedBrand] = useState(workspace?.brand || null);
+  const [selectedRetailers, setSelectedRetailers] = useState(workspace?.retailers || []);
 
+  // Get categories based on selected retailers
+  const getFilteredCategories = () => {
+    if (selectedRetailers.length === 0) return [];
+
+    // Find all categories that match the selected retailers
+    const filteredCategories = retailersData
+      .filter((retailer) => selectedRetailers.includes(retailer.name))
+      .map((retailer) => retailer.categories)
+      .flat();
+
+    // Remove duplicate categories by converting to a Set
+    return [...new Set(filteredCategories)];
+  };
+
+  const filteredCategories = getFilteredCategories();
+
+  // Get brands based on selected categories
   const commonBrands = useMemo(() => {
     if (selectedCategories.length === 0) return [];
 
-    const selectedCategoryObjects = categories.filter(c =>
+    const selectedCategoryObjects = categories.filter((c) =>
       selectedCategories.includes(c.name)
     );
 
     const intersectBrands = selectedCategoryObjects.reduce((acc, curr) => {
-      return acc.filter(brand => curr.brands.includes(brand));
+      return acc.filter((brand) => curr.brands.includes(brand));
     }, selectedCategoryObjects[0]?.brands || []);
 
     return intersectBrands;
@@ -34,7 +70,6 @@ const ModifyWorkspace = ({ workspace }) => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-100 to-blue-50 px-4">
       <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md transition-transform duration-300 hover:scale-[1.01]">
-        {/* DSIQ Branding */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-indigo-600">DSIQ</h1>
           <p className="text-gray-500 text-sm mt-1">Update your workspace settings</p>
@@ -52,20 +87,40 @@ const ModifyWorkspace = ({ workspace }) => {
           />
         </div>
 
+        {/* Retailer selection */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Retailers</label>
           <MultiSelect
-            data={categoryNames}
-            value={selectedCategories}
+            data={retailersData.map((r) => r.name)} // Retailer names for selection
+            value={selectedRetailers}
             onChange={(e) => {
-              setSelectedCategories(e.value);
-              setSelectedBrand(null); // Reset brand on category change
+              setSelectedRetailers(e.value);
+              setSelectedCategories([]); // Reset categories on retailer change
+              setSelectedBrand(null); // Reset brand on retailer change
             }}
-            placeholder="Select Categories"
+            placeholder="Select Retailers"
             className="w-full"
           />
         </div>
 
+        {/* Category selection */}
+        {filteredCategories.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+            <MultiSelect
+              data={filteredCategories}
+              value={selectedCategories}
+              onChange={(e) => {
+                setSelectedCategories(e.value);
+                setSelectedBrand(null); // Reset brand on category change
+              }}
+              placeholder="Select Categories"
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Brand selection */}
         {selectedCategories.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
@@ -82,7 +137,9 @@ const ModifyWorkspace = ({ workspace }) => {
         <button
           onClick={() =>
             alert(
-              `Updated Workspace: ${workspaceName}, Categories: ${selectedCategories.join(
+              `Updated Workspace: ${workspaceName}, Retailers: ${selectedRetailers.join(
+                ", "
+              )}, Categories: ${selectedCategories.join(
                 ", "
               )}, Brand: ${selectedBrand}`
             )

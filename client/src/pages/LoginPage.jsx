@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
 import { FaGoogle } from 'react-icons/fa';
 
-const LoginPage = () => {
+const LoginPage = ({onLogin}) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,14 +39,18 @@ const LoginPage = () => {
 
       if (response.ok) {
         localStorage.setItem('authToken', data.token);
-        alert(`Logged in as: ${email}`);
+        //alert(`Logged in as: ${email}`);
         // Redirect or further actions here
       } else {
-        alert(data.message || 'Invalid email or password');
+        // alert(data.message || 'Invalid email or password');
+        navigate('/');
+        onLogin();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('There was an error processing your request. Please try again later.');
+      //alert('There was an error processing your request. Please try again later.');
+      navigate('/');
+      onLogin();
     }
   };
 

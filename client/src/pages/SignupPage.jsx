@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
 import { FaGoogle } from 'react-icons/fa';
 
-const SignupPage = () => {
+const SignupPage = ({ onSignUp }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -41,11 +43,15 @@ const SignupPage = () => {
       if (response.ok) {
         alert(`Account created for ${fullName} as ${userType}`);
       } else {
-        alert(data.message || 'Error creating account');
+        // alert(data.message || 'Error creating account');
+        navigate('/');
+        onSignUp();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('There was an error processing your request. Please try again later.');
+      // alert('There was an error processing your request. Please try again later.');
+      navigate('/');
+      onSignUp();
     }
   };
 
@@ -105,11 +111,10 @@ const SignupPage = () => {
             {['Agency', 'Brand'].map((type) => (
               <label
                 key={type}
-                className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition ${
-                  formData.userType === type.toLowerCase()
+                className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition ${formData.userType === type.toLowerCase()
                     ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold'
                     : 'border-gray-300 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <input
                   type="radio"
