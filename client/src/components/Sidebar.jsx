@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import SidebarMenuItem from './SidebarMenuItem';
-import { BarChart, Briefcase, PiggyBank,Layers, LineChart,LayoutList, PieChart, Keyboard, ChevronDown, ChevronRight } from 'lucide-react';
+import { 
+  BarChart, Briefcase, PiggyBank, Layers, LineChart, 
+  LayoutList, PieChart, Keyboard, ChevronDown, ChevronRight,
+  Settings
+} from 'lucide-react';
 
 const Sidebar = ({ isOpen }) => {
   const [expanded, setExpanded] = useState(['Menu', 'Plans']);
@@ -37,26 +41,31 @@ const Sidebar = ({ isOpen }) => {
     }
   ];
 
+  const bottomMenuItems = [
+    { icon: <Settings size={18} />, label: 'Settings' },
+  ];
+
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-16'} h-full flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300`}>
+    <aside className={`${isOpen ? 'w-64' : 'w-16'} h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300`}>
       {/* Logo Section */}
-<div className="p-4 border-b border-[#4A4561] flex items-center justify-center">
-  {isOpen ? (
-    <img 
-      src="./1.png" 
-      alt="Full Logo" 
-      className="h-20 w-auto" // Adjusted height and maintained aspect ratio
-    />
-  ) : (
-    <img 
-      src="./icon.png" 
-      alt="Logo Icon" 
-      className="h-8 w-8" 
-    />
-  )}
-</div>
-      {/* Menu Sections */}
-      <div className="py-2">
+      <div className="p-4 h-16 border-b border-[#4A4561] flex items-center justify-center relative ">
+        {isOpen ? (
+          <img 
+            src="./1.png" 
+            alt="Full Logo" 
+            className="h-28 w-auto absolute top-8 left-28 transform -translate-x-1/2 -translate-y-1/2"
+          />
+        ) : (
+          <img 
+            src="./icon.png" 
+            alt="Logo Icon" 
+            className="h-8 w-8" 
+          />
+        )}
+      </div>
+
+      {/* Main Menu Sections */}
+      <div className="py-2 flex-grow">
         {menuSections.map((section, index) => (
           <div key={index} className="mb-1">
             {isOpen ? (
@@ -95,6 +104,30 @@ const Sidebar = ({ isOpen }) => {
                   title={section.title}
                 >
                   {section.icon}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Menu Items */}
+      <div className="pb-4 border-t border-[#4A4561] pt-2">
+        {bottomMenuItems.map((item, index) => (
+          <div key={index}>
+            {isOpen ? (
+              <SidebarMenuItem
+                icon={item.icon}
+                label={item.label}
+                isOpen={isOpen}
+              />
+            ) : (
+              <div className="flex flex-col items-center py-1">
+                <div 
+                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  title={item.label}
+                >
+                  {item.icon}
                 </div>
               </div>
             )}
