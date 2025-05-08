@@ -3,21 +3,19 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import WorkspaceForm from './components/WorkspaceForm';
+import WorkspaceForm from './pages/page';
 import ModifyWorkspace from './components/ModifyWorkspace';
 import HomePage from './pages/Home';
-import { ThemeProvider } from './contexts/ThemeContext'
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
-    <ThemeProvider>
       <Router>
         <Routes>
           <Route
             path="/"
             element={
-              isLoggedIn ? <HomePage /> : <WelcomePage />
+              isLoggedIn ? <HomePage isLoggedIn = {isLoggedIn} /> : <WelcomePage isLoggedIn = {isLoggedIn} />
             }
           />
           <Route path="/login" element={<LoginPage onLogin={() => setIsLoggedIn(true)} />} />
@@ -42,7 +40,6 @@ const App = () => {
           />
         </Routes>
       </Router>
-    </ThemeProvider>
   );
 };
 

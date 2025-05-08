@@ -44,14 +44,14 @@ const SignupPage = ({ onSignUp }) => {
         alert(`Account created for ${fullName} as ${userType}`);
       } else {
         // alert(data.message || 'Error creating account');
-        navigate('/');
         onSignUp();
+        navigate('/workspaceCreate');
       }
     } catch (error) {
       console.error('Error:', error);
       // alert('There was an error processing your request. Please try again later.');
-      navigate('/');
       onSignUp();
+      navigate('/workspaceCreate');
     }
   };
 

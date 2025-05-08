@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import SidebarMenuItem from './SidebarMenuItem';
-import { BarChart, Briefcase, Layers, LineChart, PieChart, Keyboard, Box } from 'lucide-react';
+import { BarChart, Briefcase, PiggyBank,Layers, LineChart,LayoutList, PieChart, Keyboard, ChevronDown, ChevronRight } from 'lucide-react';
 
 const Sidebar = ({ isOpen }) => {
-  const [expanded, setExpanded] = useState([]);
+  const [expanded, setExpanded] = useState(['Menu', 'Plans']);
 
   const toggleSection = (section) => {
     setExpanded(prev =>
@@ -16,6 +16,7 @@ const Sidebar = ({ isOpen }) => {
   const menuSections = [
     {
       title: 'Menu',
+      icon: <LayoutList size={20} />,
       items: [
         { icon: <BarChart size={18} />, label: 'Category Analysis' },
         { icon: <Briefcase size={18} />, label: 'Brand Analysis' },
@@ -27,40 +28,76 @@ const Sidebar = ({ isOpen }) => {
     },
     {
       title: 'Plans',
+      icon: <PiggyBank size={20} />,
       items: [
         { icon: <BarChart size={18} />, label: 'Plan 1' },
         { icon: <BarChart size={18} />, label: 'Plan 2' },
-        { icon: <BarChart size={18} />, label: 'plan 3' },
+        { icon: <BarChart size={18} />, label: 'Plan 3' },
       ]
     }
   ];
 
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-0'} h-full flex-shrink-0 bg-gray-600 dark:bg-gray-800 text-white overflow-y-auto transition-all duration-300`}>
-      <div className="p-4 border-b border-gray-500 dark:border-gray-700">
-        <div className="flex items-center space-x-2">
-          <Box size={24} className="text-gray-300" />
-          <span className="text-xl font-semibold text-gray-200">Logo</span>
-        </div>
-      </div>
-      <div className="py-4">
+    <aside className={`${isOpen ? 'w-64' : 'w-16'} h-full flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300`}>
+      {/* Logo Section */}
+<div className="p-4 border-b border-[#4A4561] flex items-center justify-center">
+  {isOpen ? (
+    <img 
+      src="./1.png" 
+      alt="Full Logo" 
+      className="h-20 w-auto" // Adjusted height and maintained aspect ratio
+    />
+  ) : (
+    <img 
+      src="./icon.png" 
+      alt="Logo Icon" 
+      className="h-8 w-8" 
+    />
+  )}
+</div>
+      {/* Menu Sections */}
+      <div className="py-2">
         {menuSections.map((section, index) => (
-          <div key={index} className="mb-6">
-            <div
-              className="px-6 py-2 text-gray-300 font-medium text-sm"
-              onClick={() => toggleSection(section.title)}
-            >
-              {section.title}
-            </div>
-            <div className="mt-2">
-              {section.items.map((item, itemIndex) => (
-                <SidebarMenuItem
-                  key={itemIndex}
-                  icon={item.icon}
-                  label={item.label}
-                />
-              ))}
-            </div>
+          <div key={index} className="mb-1">
+            {isOpen ? (
+              <>
+                <div
+                  className="px-4 py-2 text-[#A3A1B1] font-medium text-sm cursor-pointer flex items-center justify-between hover:bg-[#3D3850] rounded mx-2"
+                  onClick={() => toggleSection(section.title)}
+                >
+                  <div className="flex items-center">
+                    <span className="mr-2">{section.icon}</span>
+                    <span>{section.title}</span>
+                  </div>
+                  {expanded.includes(section.title) ? (
+                    <ChevronDown size={16} />
+                  ) : (
+                    <ChevronRight size={16} />
+                  )}
+                </div>
+                {expanded.includes(section.title) && (
+                  <div className="mt-1">
+                    {section.items.map((item, itemIndex) => (
+                      <SidebarMenuItem
+                        key={itemIndex}
+                        icon={item.icon}
+                        label={item.label}
+                        isOpen={isOpen}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center py-1">
+                <div 
+                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  title={section.title}
+                >
+                  {section.icon}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
