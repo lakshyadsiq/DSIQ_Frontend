@@ -1,11 +1,19 @@
 
 import { useState, useEffect } from "react"
-import { Button } from "@progress/kendo-react-buttons"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Checkbox } from "@progress/kendo-react-inputs"
-import { ProgressBar } from "@progress/kendo-react-progressbars"
 import { Input } from "@progress/kendo-react-inputs"
-import { FiSearch, FiChevronRight, FiChevronLeft, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi"
+import { 
+  FiSearch, 
+  FiChevronDown, 
+  FiChevronUp,
+  FiShoppingCart,
+  FiGrid,
+  FiTag,
+  FiChevronLeft, 
+  FiChevronRight,
+  FiCheck
+} from "react-icons/fi"
 
 export default function WorkspaceCreation() {
   const [step, setStep] = useState(1)
@@ -223,10 +231,49 @@ export default function WorkspaceCreation() {
     alert(`Workspace "${workspaceName}" created successfully!`)
   }
 
-  const getProgressValue = () => {
-    if (step === 1) return 33
-    if (step === 2) return 66
-    return 100
+  const renderProgressBar = () => {
+    const steps = [
+      { number: 1, label: "Retailers", icon: <FiShoppingCart /> },
+      { number: 2, label: "Categories", icon: <FiGrid /> },
+      { number: 3, label: "Brands", icon: <FiTag /> },
+    ]
+
+    return (
+      <div className="relative pb-8">
+        {/* Progress line */}
+        <div className="absolute top-6 w-full ml-1 h-1 bg-gray-200 rounded">
+          <div 
+            className="h-full bg-blue-500 rounded transition-all duration-500 ease-in-out" 
+            style={{ width: `${(step - 1) * 49}%` }}
+          ></div>
+        </div>
+        
+        {/* Steps */}
+        <div className="flex justify-between relative z-10">
+          {steps.map((s) => (
+            <div key={s.number} className="flex flex-col items-center">
+              <div 
+                className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                  step >= s.number 
+                    ? 'bg-blue-500 border-blue-500 text-white' 
+                    : 'bg-white border-gray-300 text-gray-500'
+                }`}
+              >
+                {step > s.number ? <FiCheck className="w-6 h-6" /> : s.icon}
+              </div>
+              <span 
+                className={`mt-2 text-sm font-medium ${
+                  step >= s.number ? 'text-blue-600' : 'text-gray-500'
+                }`}
+              >
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+
   }
 
   const renderRetailerStep = () => {
@@ -237,44 +284,48 @@ export default function WorkspaceCreation() {
     return (
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
+
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Workspace Name
           </label>
           <Input
             placeholder="Enter workspace name..."
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
-            className="w-full py-3 px-4 rounded-xl border shadow-sm focus:ring-2 focus:ring-primary transition-all duration-300"
+
+            className="w-full py-3 px-4 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
         <div className="relative">
-          <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted" />
+          <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
           <Input
             placeholder="Search retailers..."
             value={retailerSearch}
             onChange={(e) => setRetailerSearch(e.target.value)}
-            className="w-full pl-12 py-3 rounded-xl border shadow-sm focus:ring-2 focus:ring-primary transition-all duration-300"
+
+            className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
 
         {filteredRetailers.length === 0 ? (
-          <p className="text-sm text-muted py-2">No retailers found matching your search.</p>
+          <p className="text-sm text-gray-500 py-2">No retailers found matching your search.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredRetailers.map((retailer) => (
               <div
                 key={retailer.id}
-                className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
               >
                 <Checkbox
                   id={retailer.id}
                   checked={selectedRetailers.includes(retailer.id)}
                   onChange={(e) => handleRetailerChange(retailer.id, e.value)}
-                  className="text-primary"
+                  className="k-checkbox-md"
                 />
                 <label
                   htmlFor={retailer.id}
-                  className="text-base font-medium text-foreground cursor-pointer select-none"
+                  className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
                 >
                   {retailer.name}
                 </label>
@@ -288,14 +339,16 @@ export default function WorkspaceCreation() {
 
   const renderCategoryStep = () => {
     if (selectedRetailers.length === 0) {
-      return <p className="text-sm text-muted py-2">Please select at least one retailer to proceed.</p>
+      return <p className="text-sm text-gray-500 py-2">Please select at least one retailer to proceed.</p>
     }
 
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Selected Retailers List with Dropdown */}
-        <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border">
-          <h3 className="font-semibold text-lg text-foreground mb-4">Retailers</h3>
+
+        <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
+          <h3 className="font-semibold text-lg text-gray-800 mb-4">Retailers</h3>
+
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {selectedRetailers.map((retailerId) => {
               const retailer = retailers.find((r) => r.id === retailerId)
@@ -306,18 +359,20 @@ export default function WorkspaceCreation() {
                 <div key={retailerId}>
                   <div
                     className={`flex justify-between items-center p-3 rounded-lg cursor-pointer transition-all duration-300 ${
-                      activeRetailer === retailerId ? "bg-muted" : "hover:bg-muted"
+
+                      activeRetailer === retailerId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
                     }`}
                     onClick={() => {
                       setActiveRetailer(retailerId)
                       toggleRetailerDropdown(retailerId)
                     }}
                   >
-                    <span className="text-foreground font-medium">{retailer?.name}</span>
+
+                    <span className="text-gray-800 font-medium">{retailer?.name}</span>
                     {expandedRetailers[retailerId] ? (
-                      <FiChevronUp className="h-5 w-5 text-muted" />
+                      <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
-                      <FiChevronDown className="h-5 w-5 text-muted" />
+                      <FiChevronDown className="h-5 w-5 text-gray-500" />
                     )}
                   </div>
                   {expandedRetailers[retailerId] && retailerCategories.length > 0 && (
@@ -325,7 +380,8 @@ export default function WorkspaceCreation() {
                       {retailerCategories.map((categoryName, index) => (
                         <div
                           key={index}
-                          className="text-sm text-muted p-2 rounded-lg hover:bg-muted transition-all duration-200"
+
+                          className="text-sm text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
                         >
                           {categoryName}
                         </div>
@@ -342,7 +398,7 @@ export default function WorkspaceCreation() {
         {activeRetailer && (
           <div className="w-2/3">
             <div className="relative mb-6">
-              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted" />
+              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder={`Search ${retailers.find((r) => r.id === activeRetailer)?.name} categories...`}
                 value={categorySearches[activeRetailer] || ""}
@@ -352,7 +408,7 @@ export default function WorkspaceCreation() {
                     [activeRetailer]: e.target.value,
                   })
                 }
-                className="w-full pl-12 py-3 rounded-xl border shadow-sm focus:ring-2 focus:ring-primary transition-all duration-300"
+                className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
@@ -363,17 +419,18 @@ export default function WorkspaceCreation() {
                 .map((category) => (
                   <div
                     key={category.id}
-                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
+
                   >
                     <Checkbox
                       id={`${activeRetailer}-${category.id}`}
                       checked={(selectedCategories[activeRetailer] || []).includes(category.id)}
                       onChange={(e) => handleCategoryChange(activeRetailer, category.id, e.value)}
-                      className="text-primary"
+                      className="k-checkbox-md"
                     />
                     <label
                       htmlFor={`${activeRetailer}-${category.id}`}
-                      className="text-base font-medium text-foreground cursor-pointer select-none"
+                      className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
                     >
                       {category.name}
                     </label>
@@ -398,14 +455,14 @@ export default function WorkspaceCreation() {
     })
 
     if (selectedCategoriesFlat.length === 0) {
-      return <p className="text-sm text-muted py-2">Please select at least one category to proceed.</p>
+      return <p className="text-sm text-gray-500 py-2">Please select at least one category to proceed.</p>
     }
 
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Retailers and Categories in Dropdown Structure */}
-        <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border">
-          <h3 className="font-semibold text-lg text-foreground mb-4">Categories</h3>
+        <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
+          <h3 className="font-semibold text-lg text-gray-800 mb-4">Categories</h3>
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {selectedRetailers.map((retailerId) => {
               const retailer = retailers.find((r) => r.id === retailerId)
@@ -415,14 +472,15 @@ export default function WorkspaceCreation() {
               return (
                 <div key={retailerId}>
                   <div
-                    className="flex justify-between items-center p-3 rounded-lg cursor-pointer hover:bg-muted transition-all duration-300"
+                    className="flex justify-between items-center p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-300 border border-transparent"
                     onClick={() => toggleRetailerDropdown(retailerId)}
                   >
-                    <span className="text-foreground font-medium">{retailer?.name}</span>
+                    <span className="text-gray-800 font-medium">{retailer?.name}</span>
                     {expandedRetailers[retailerId] ? (
-                      <FiChevronUp className="h-5 w-5 text-muted" />
+                      <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
-                      <FiChevronDown className="h-5 w-5 text-muted" />
+                      <FiChevronDown className="h-5 w-5 text-gray-500" />
+
                     )}
                   </div>
                   {expandedRetailers[retailerId] && retailerCategories.length > 0 && (
@@ -431,7 +489,9 @@ export default function WorkspaceCreation() {
                         <div
                           key={category.id}
                           className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                            activeCategory === category.id ? "bg-muted" : "hover:bg-muted"
+
+                            activeCategory === category.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
+
                           }`}
                           onClick={() => setActiveCategory(category.id)}
                         >
@@ -450,7 +510,7 @@ export default function WorkspaceCreation() {
         {activeCategory && (
           <div className="w-2/3">
             <div className="relative mb-6">
-              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted" />
+              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder={`Search ${
                   Object.values(categories).flat().find((c) => c.id === activeCategory)?.name
@@ -462,7 +522,7 @@ export default function WorkspaceCreation() {
                     [activeCategory]: e.target.value,
                   })
                 }
-                className="w-full pl-12 py-3 rounded-xl border shadow-sm focus:ring-2 focus:ring-primary transition-all duration-300"
+                className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
@@ -473,17 +533,17 @@ export default function WorkspaceCreation() {
                 .map((brand) => (
                   <div
                     key={`${activeCategory}-${brand}`}
-                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
                   >
                     <Checkbox
                       id={`${activeCategory}-${brand}`}
                       checked={(selectedBrands[activeCategory] || []).includes(brand)}
                       onChange={(e) => handleBrandChange(activeCategory, brand, e.value)}
-                      className="text-primary"
+                      className="k-checkbox-md"
                     />
                     <label
                       htmlFor={`${activeCategory}-${brand}`}
-                      className="text-base font-medium text-foreground cursor-pointer select-none"
+                      className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
                     >
                       {brand}
                     </label>
@@ -529,7 +589,7 @@ export default function WorkspaceCreation() {
   }
 
   return (
-    <div className="container max-w-4xl py-12 px-6 min-h-screen font-sans">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <style>
         {`
           @keyframes slideDown {
@@ -545,33 +605,7 @@ export default function WorkspaceCreation() {
           .animate-slide-down {
             animation: slideDown 0.3s ease-out;
           }
-          .progress-bar {
-            transition: width 0.5s ease-in-out;
-          }
-          .custom-button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: transform 0.2s ease, box-shadow 0.3s ease;
-          }
-          .custom-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          }
-          .custom-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-          }
-          .custom-outline-button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: transform 0.2s ease, box-shadow 0.3s ease;
-          }
-          .custom-outline-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          }
+
           .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
           }
@@ -585,72 +619,79 @@ export default function WorkspaceCreation() {
           .scrollbar-thin::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
           }
+          .k-checkbox-md:checked {
+            background-color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+          }
+          .k-checkbox-md:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+          }
         `}
       </style>
-      <Card className="w-full bg-white rounded-2xl shadow-lg overflow-hidden">
-        <CardHeader className="p-8 border-b">
-          <CardTitle className="text-3xl font-bold text-foreground">Create Your Workspace</CardTitle>
-          <CardSubtitle className="text-muted mt-2">
+      <Card className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+        <CardHeader className="p-8 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardTitle className="text-4xl text-gray-900">Create Your Workspace</CardTitle>
+          <CardSubtitle className="text-gray-600 mt-2">
             Enter a workspace name and select retailers, categories, and brands
           </CardSubtitle>
-          <div className="mt-6 space-y-3">
-            <ProgressBar
-              value={getProgressValue()}
-              style={{ height: "6px" }}
-              className="progress-bar bg-muted rounded-full"
-            />
-            <div className="flex justify-between text-sm font-medium">
-              <div className={`flex items-center gap-2 ${step >= 1 ? "text-foreground" : "text-muted"}`}>
-                {step >= 1 && <FiCheck className="h-5 w-5" />} Retailers
-              </div>
-              <div className={`flex items-center gap-2 ${step >= 2 ? "text-foreground" : "text-muted"}`}>
-                {step >= 2 && <FiCheck className="h-5 w-5" />} Categories
-              </div>
-              <div className={`flex items-center gap-2 ${step >= 3 ? "text-foreground" : "text-muted"}`}>
-                {step >= 3 && <FiCheck className="h-5 w-5" />} Brands
-              </div>
-            </div>
+          <div className="mt-8">
+            {renderProgressBar()}
+
           </div>
         </CardHeader>
         <CardBody className="p-8">
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-semibold text-foreground mb-6">Select Online Retailers</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Online Retailers</h2>
               {renderRetailerStep()}
             </>
           )}
 
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-semibold text-foreground mb-6">Select Categories</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Categories</h2>
               {renderCategoryStep()}
             </>
           )}
 
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-semibold text-foreground mb-6">Select Brands</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Brands</h2>
+
               {renderBrandStep()}
             </>
           )}
         </CardBody>
-        <CardActions className="flex justify-between p-8 border-t">
+        <CardActions className="flex justify-center gap-4 p-8 border-gray-200 bg-gray-50">
           {step > 1 ? (
-            <Button look="outline" onClick={prevStep} className="custom-outline-button border-2 border-primary text-primary">
+            <button 
+              look="outline" 
+              onClick={prevStep} 
+              className="px-4 py-2 rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all duration-300 font-medium flex items-center"
+            >
               <FiChevronLeft className="mr-2" /> Back
-            </Button>
+            </button>
           ) : (
             <div></div>
           )}
 
           {step < 3 ? (
-            <Button onClick={nextStep} disabled={isNextDisabled()} className="custom-button bg-primary text-white">
-              Next <FiChevronRight className="ml-2" />
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={isSubmitDisabled()} className="custom-button bg-primary text-white">
-              Create Workspace
-            </Button>
+            <button 
+              onClick={nextStep}
+              disabled={isNextDisabled()}
+              className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
+            >
+              Next <FiChevronRight className="ml-2 h-5 w-5" />
+            </button>
+            ) : (
+            <button 
+              onClick={handleSubmit}
+              disabled={isSubmitDisabled()}
+              className="px-4 py-2 rounded-lg bg-green-700 text-white hover:bg-green-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
+            >
+              Create Workspace 
+              <FiCheck className="ml-2 h-5 w-5" />
+            </button>
           )}
         </CardActions>
       </Card>
