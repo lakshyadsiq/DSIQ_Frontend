@@ -50,14 +50,14 @@ const SignupPage = ( {onSignUp} ) => {
         // toast.success(`Account created for ${fullName} as ${userType}`);
       } else {
         // toast.error(data.message || 'Error creating account');
-        navigate('/')
         onSignUp();
+        navigate('/workspaceCreate')
       }
     } catch (error) {
       console.error('Error:', error);
       // toast.error('Something went wrong. Please try again later.');
-      navigate('/')
       onSignUp();
+      navigate('/workspaceCreate')
     }
   };
 

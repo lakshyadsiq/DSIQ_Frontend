@@ -38,14 +38,15 @@ const LoginPage = ({onLogin}) => {
         // toast.success(`Logged in as ${email}`);
       } else {
         // toast.error(data.message || 'Invalid email or password');
-        navigate('/');
         onLogin();
+        navigate('/workspaceCreate');
       }
     } catch (error) {
       console.error('Error:', error);
       // toast.error('Something went wrong. Please try again later.');
-      navigate('/');
+      
       onLogin();
+      navigate('/workspaceCreate');
     }
   };
 
