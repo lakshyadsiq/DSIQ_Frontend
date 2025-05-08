@@ -1,71 +1,33 @@
-import React, { useState } from 'react';
-import SidebarMenuItem from './SidebarMenuItem';
-import { BarChart, Briefcase, Layers, LineChart, PieChart, Keyboard, Box } from 'lucide-react';
+import React from 'react';
+import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 
-const Sidebar = ({ isOpen }) => {
-  const [expanded, setExpanded] = useState([]);
-
-  const toggleSection = (section) => {
-    setExpanded(prev =>
-      prev.includes(section)
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
-    );
-  };
-
-  const menuSections = [
-    {
-      title: 'Menu',
-      items: [
-        { icon: <BarChart size={18} />, label: 'Category Analysis' },
-        { icon: <Briefcase size={18} />, label: 'Brand Analysis' },
-        { icon: <Layers size={18} />, label: 'Item Level Analysis' },
-        { icon: <LineChart size={18} />, label: 'Sponsored AD Tracker' },
-        { icon: <PieChart size={18} />, label: 'Share of Voice' },
-        { icon: <Keyboard size={18} />, label: 'Keyboard' },
-      ]
-    },
-    {
-      title: 'Plans',
-      items: [
-        { icon: <BarChart size={18} />, label: 'Plan 1' },
-        { icon: <BarChart size={18} />, label: 'Plan 2' },
-        { icon: <BarChart size={18} />, label: 'plan 3' },
-      ]
-    }
-  ];
-
+const ProfileDropdown = ({ onClose }) => {
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-0'} h-full flex-shrink-0 bg-gray-600 dark:bg-gray-800 text-white overflow-y-auto transition-all duration-300`}>
-      <div className="p-4 border-b border-gray-500 dark:border-gray-700">
-        <div className="flex items-center space-x-2">
-          <Box size={24} className="text-gray-300" />
-          <span className="text-xl font-semibold text-gray-200">Logo</span>
-        </div>
+    <>
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <p className="text-sm font-medium text-gray-900 dark:text-white">Signed in as</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">user@example.com</p>
       </div>
-      <div className="py-4">
-        {menuSections.map((section, index) => (
-          <div key={index} className="mb-6">
-            <div
-              className="px-6 py-2 text-gray-300 font-medium text-sm"
-              onClick={() => toggleSection(section.title)}
-            >
-              {section.title}
-            </div>
-            <div className="mt-2">
-              {section.items.map((item, itemIndex) => (
-                <SidebarMenuItem
-                  key={itemIndex}
-                  icon={item.icon}
-                  label={item.label}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="py-1">
+        <a
+          href="#"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <User className="mr-3 h-4 w-4" />
+          Your Profile
+        </a>
       </div>
-    </aside>
+      <div className="py-1 border-t border-gray-200 dark:border-gray-700">
+        <a
+          href="#"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
+          Sign out
+        </a>
+      </div>
+    </>
   );
 };
 
-export default Sidebar;
+export default ProfileDropdown;

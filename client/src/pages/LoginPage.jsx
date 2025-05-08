@@ -43,14 +43,14 @@ const LoginPage = ({onLogin}) => {
         // Redirect or further actions here
       } else {
         // alert(data.message || 'Invalid email or password');
-        navigate('/');
         onLogin();
+        navigate('/workspaceCreate');
       }
     } catch (error) {
       console.error('Error:', error);
       //alert('There was an error processing your request. Please try again later.');
-      navigate('/');
       onLogin();
+      navigate('/workspaceCreate');
     }
   };
 
