@@ -3,8 +3,11 @@ import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
+
 
 const LoginPage = ({onLogin}) => {
+  const navigate= useNavigate()
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
