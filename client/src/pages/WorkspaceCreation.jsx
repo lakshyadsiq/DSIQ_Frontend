@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Checkbox } from "@progress/kendo-react-inputs"
 import { Input } from "@progress/kendo-react-inputs"
+import { useNavigate } from "react-router-dom"
 import { 
   FiSearch, 
   FiChevronDown, 
@@ -27,56 +28,56 @@ export default function WorkspaceCreation() {
   const [categorySearches, setCategorySearches] = useState({})
   const [brandSearches, setBrandSearches] = useState({})
   const [workspaceName, setWorkspaceName] = useState("")
+  const navigate = useNavigate()
+
 
   useEffect(() => {
-    const newCategorySearches = { ...categorySearches }
-    let hasChanges = false
-
-    selectedRetailers.forEach((retailerId) => {
-      if (!categorySearches[retailerId]) {
-        newCategorySearches[retailerId] = ""
-        hasChanges = true
-      }
-    })
-
-    if (hasChanges) {
+    // Only update if we have retailers but no category searches for them
+    const needsUpdate = selectedRetailers.some(
+      retailerId => !categorySearches[retailerId]
+    )
+    
+    if (needsUpdate) {
+      const newCategorySearches = { ...categorySearches }
+      selectedRetailers.forEach(retailerId => {
+        if (!newCategorySearches[retailerId]) {
+          newCategorySearches[retailerId] = ""
+        }
+      })
       setCategorySearches(newCategorySearches)
     }
-
+  
+    // Only set active retailer if we don't have one but have retailers
     if (selectedRetailers.length > 0 && !activeRetailer) {
       setActiveRetailer(selectedRetailers[0])
     }
-  }, [selectedRetailers, categorySearches, activeRetailer])
+  }, [selectedRetailers]) // Only depend on selectedRetailers
 
   useEffect(() => {
-    const selectedCategoriesFlat = []
-    let hasChanges = false
-
-    Object.values(selectedCategories).forEach((categoryIds) => {
-      categoryIds.forEach((id) => {
-        if (!selectedCategoriesFlat.includes(id)) {
-          selectedCategoriesFlat.push(id)
+    const selectedCategoriesFlat = Object.values(selectedCategories)
+      .flat()
+      .filter((id, index, self) => self.indexOf(id) === index)
+  
+    // Only update if we have categories but no brand searches for them
+    const needsUpdate = selectedCategoriesFlat.some(
+      categoryId => !brandSearches[categoryId]
+    )
+  
+    if (needsUpdate) {
+      const newBrandSearches = { ...brandSearches }
+      selectedCategoriesFlat.forEach(categoryId => {
+        if (!newBrandSearches[categoryId]) {
+          newBrandSearches[categoryId] = ""
         }
       })
-    })
-
-    const newBrandSearches = { ...brandSearches }
-
-    selectedCategoriesFlat.forEach((categoryId) => {
-      if (!brandSearches[categoryId]) {
-        newBrandSearches[categoryId] = ""
-        hasChanges = true
-      }
-    })
-
-    if (hasChanges) {
       setBrandSearches(newBrandSearches)
     }
-
+  
+    // Only set active category if we don't have one but have categories
     if (selectedCategoriesFlat.length > 0 && !activeCategory) {
       setActiveCategory(selectedCategoriesFlat[0])
     }
-  }, [selectedCategories, brandSearches, activeCategory])
+  }, [selectedCategories]) // Only depend on selectedCategories
 
   const retailers = [
     { id: "amazon", name: "Amazon" },
@@ -228,7 +229,8 @@ export default function WorkspaceCreation() {
       categories: selectedCategories,
       brands: selectedBrands,
     })
-    alert(`Workspace "${workspaceName}" created successfully!`)
+    // alert(`Workspace "${workspaceName}" created successfully!`)
+    navigate('/')
   }
 
   const renderProgressBar = () => {
