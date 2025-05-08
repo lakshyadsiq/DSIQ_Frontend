@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Checkbox } from "@progress/kendo-react-inputs"
@@ -283,6 +284,7 @@ export default function WorkspaceCreation() {
     return (
       <div className="space-y-6">
         <div>
+
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Workspace Name
           </label>
@@ -290,15 +292,18 @@ export default function WorkspaceCreation() {
             placeholder="Enter workspace name..."
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
+
             className="w-full py-3 px-4 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
         <div className="relative">
           <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+
           <Input
             placeholder="Search retailers..."
             value={retailerSearch}
             onChange={(e) => setRetailerSearch(e.target.value)}
+
             className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
@@ -340,8 +345,10 @@ export default function WorkspaceCreation() {
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Selected Retailers List with Dropdown */}
+
         <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
           <h3 className="font-semibold text-lg text-gray-800 mb-4">Retailers</h3>
+
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {selectedRetailers.map((retailerId) => {
               const retailer = retailers.find((r) => r.id === retailerId)
@@ -352,6 +359,7 @@ export default function WorkspaceCreation() {
                 <div key={retailerId}>
                   <div
                     className={`flex justify-between items-center p-3 rounded-lg cursor-pointer transition-all duration-300 ${
+
                       activeRetailer === retailerId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
                     }`}
                     onClick={() => {
@@ -359,6 +367,7 @@ export default function WorkspaceCreation() {
                       toggleRetailerDropdown(retailerId)
                     }}
                   >
+
                     <span className="text-gray-800 font-medium">{retailer?.name}</span>
                     {expandedRetailers[retailerId] ? (
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
@@ -371,6 +380,7 @@ export default function WorkspaceCreation() {
                       {retailerCategories.map((categoryName, index) => (
                         <div
                           key={index}
+
                           className="text-sm text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
                         >
                           {categoryName}
@@ -410,6 +420,7 @@ export default function WorkspaceCreation() {
                   <div
                     key={category.id}
                     className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
+
                   >
                     <Checkbox
                       id={`${activeRetailer}-${category.id}`}
@@ -469,6 +480,7 @@ export default function WorkspaceCreation() {
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
                       <FiChevronDown className="h-5 w-5 text-gray-500" />
+
                     )}
                   </div>
                   {expandedRetailers[retailerId] && retailerCategories.length > 0 && (
@@ -477,7 +489,9 @@ export default function WorkspaceCreation() {
                         <div
                           key={category.id}
                           className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+
                             activeCategory === category.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
+
                           }`}
                           onClick={() => setActiveCategory(category.id)}
                         >
@@ -591,6 +605,7 @@ export default function WorkspaceCreation() {
           .animate-slide-down {
             animation: slideDown 0.3s ease-out;
           }
+
           .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
           }
@@ -621,6 +636,7 @@ export default function WorkspaceCreation() {
           </CardSubtitle>
           <div className="mt-8">
             {renderProgressBar()}
+
           </div>
         </CardHeader>
         <CardBody className="p-8">
@@ -641,6 +657,7 @@ export default function WorkspaceCreation() {
           {step === 3 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Brands</h2>
+
               {renderBrandStep()}
             </>
           )}
