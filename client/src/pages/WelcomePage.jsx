@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@progress/kendo-react-buttons';
+import { Card, CardTitle, CardBody } from '@progress/kendo-react-layout';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import Footer from '../components/Footer'
+
 
 const WelcomePage = () => {
+  const extraContentRef = useRef(null);
+
+  const handleLearnMore = () => {
+    if (extraContentRef.current) {
+      extraContentRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const services = [
     {
       title: "Product & Category Tracking",
@@ -20,123 +31,111 @@ const WelcomePage = () => {
     },
   ];
 
-  const partners = [
-    "Amazon", "eBay", "Walmart", "Target", "BestBuy"
-  ];
+  const partners = ["Amazon", "eBay", "Walmart", "Target", "BestBuy"];
 
+  const location = useLocation();
+
+useEffect(() => {
+  if (location.hash === '#login-panel') {
+    const element = document.getElementById('login-panel');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+}, [location]);
+ 
   return (
-    <div className="bg-gray-50 min-h-screen text-gray-800">
-      <Navbar isLoggedIn={false} /> {/* Pass the isLoggedIn prop as needed */}
+    <div className="bg-[#f9fafb] text-gray-800 font-sans tracking-wide">
 
       {/* Hero Section */}
-      <div className="relative flex flex-col items-center justify-center h-screen text-center px-6 bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">
-        {/* Decorative Background Circles */}
-        <div className="absolute -top-24 -left-20 w-72 h-72 bg-blue-100 rounded-full opacity-30 z-0 blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-green-100 rounded-full opacity-30 z-0 blur-3xl" />
+      <section className="flex flex-col items-center justify-center min-h-screen text-center px-4 bg-gradient-to-b from-white to-gray-100 py-10">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-blue-900 mb-6 leading-tight">
+          Welcome to <span className="text-blue-600">DSIQ</span>
+        </h1>
+        <p className="text-base md:text-lg text-gray-600 max-w-2xl mb-10 leading-relaxed">
+          Decode retail data into strategic insights. Monitor products, analyze reviews, and drive brand performance.
+        </p>
+        <button
+          onClick={handleLearnMore}
+          className="mt-4 text-sm text-blue-600 hover:underline hover:text-blue-800 transition"
+        >
+          Learn more ↓
+        </button>
+      </section>
 
-        <div className="relative z-10 max-w-3xl">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-blue-900 leading-tight drop-shadow-lg">
-            Know Your Market. <br className="hidden md:inline" /> <span className="text-green-600">Know Your Move.</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-700 mt-4 mb-8 italic">
-            Empowering smarter decisions with deep retail intelligence — Welcome to <span className="font-semibold text-blue-700">DSIQ</span>.
-          </p>
-          <p className="text-lg sm:text-xl text-gray-700 mt-6 mb-10">
-            Decode retail data into actionable insights. Monitor trends, track products, and grow smarter.
-          </p>
-        </div>
-      </div>
+      {/* Scroll Content */}
+      <div ref={extraContentRef}>
 
-      {/* Login Options Section */}
-      <div className="bg-white py-16 px-6 md:px-24">
-        <h2 className="text-3xl sm:text-4xl font-semibold text-center text-gray-800 mb-12">Choose Your Portal</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Agency Card */}
-          <div className="bg-gray-50 p-8 rounded-2xl shadow-md text-center hover:shadow-lg transition duration-300 ease-in-out">
-            <div className="text-sm font-semibold uppercase text-blue-500 mb-2">Agency Access</div>
-            <h3 className="text-2xl sm:text-3xl font-semibold mb-4">For <span className="italic text-blue-800">Agencies</span></h3>
-            <p className="text-gray-600 mb-6">
-              Analyze multiple brands, manage clients, and deliver retail intelligence at scale.
+        {/* Login Panels */}
+        <section id="login-panel" className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x bg-white shadow-lg">
+          {/* Agency Login */}
+          <div className="p-10 text-center space-y-4">
+            <p className="uppercase text-xs text-gray-500">Agency Access</p>
+            <h2 className="text-2xl font-bold text-blue-700">For Agencies</h2>
+            <p className="text-gray-600 max-w-md mx-auto">
+              Analyze multiple brands, manage clients, and provide strategic retail intelligence.
             </p>
             <Link to="/login">
-              <Button
-                themeColor="primary"
-                size="large"
-                rounded="full"
-                className="px-6 py-2 shadow hover:shadow-md"
-              >
-                Login
-              </Button>
+              <Button className="rounded-full px-6 bg-gray-800 text-white hover:bg-gray-700">Login</Button>
             </Link>
-            <p className="mt-4 text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-green-600 font-medium hover:underline">Sign up</Link>
+            <p className="text-sm text-gray-500">
+              Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline">Sign up</Link>
             </p>
           </div>
 
-          {/* Brand Card */}
-          <div className="bg-gray-50 p-8 rounded-2xl shadow-md text-center hover:shadow-lg transition duration-300 ease-in-out">
-            <div className="text-sm font-semibold uppercase text-green-500 mb-2">Brand Access</div>
-            <h3 className="text-2xl sm:text-3xl font-semibold mb-4">For <span className="italic text-green-800">Brands</span></h3>
-            <p className="text-gray-600 mb-6">
-              Track performance, monitor reviews, and optimize your retail strategy.
+          {/* Brand Login */}
+          <div className="p-10 text-center space-y-4">
+            <p className="uppercase text-xs text-gray-500">Brand Access</p>
+            <h2 className="text-2xl font-bold text-blue-700">For Brands</h2>
+            <p className="text-gray-600 max-w-md mx-auto">
+              Track your product performance, monitor reviews, and optimize your retail presence.
             </p>
             <Link to="/login">
-              <Button
-                fillMode="outline"
-                size="large"
-                rounded="full"
-                className="px-6 py-2 border-2 border-green-500 text-green-700 hover:bg-green-100 shadow"
-              >
+              <Button className="rounded-full px-6 border border-gray-400 hover:shadow-md">
                 Login
               </Button>
             </Link>
-            <p className="mt-4 text-sm text-gray-600">
-              Don’t have an account?{" "}
-              <Link to="/signup" className="text-green-600 font-medium hover:underline">Sign up</Link>
+            <p className="text-sm text-gray-500">
+              Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline">Sign up</Link>
             </p>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Partner Companies */}
-      <div className="bg-white py-16 px-6 md:px-24">
-        <h2 className="text-3xl sm:text-4xl font-semibold text-center text-gray-800 mb-10">Our Data Partners</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 justify-items-center">
-          {partners.map((partner, idx) => (
-            <div
-              key={idx}
-              className="w-full text-center bg-gray-50 px-4 py-3 rounded-xl shadow hover:shadow-md transition duration-300 ease-in-out"
-            >
-              <span className="text-lg font-semibold text-gray-700">{partner}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Services Section */}
-      <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-16">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center text-blue-800 mb-12">What We Offer</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold">
-                  {service.title.charAt(0)}
-                </div>
-                <h3 className="ml-4 text-xl sm:text-2xl font-semibold text-gray-800">
-                  {service.title}
-                </h3>
+        {/* Partners Section */}
+        <section className="bg-white py-16">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">Our Data Partners</h2>
+          <div className="flex flex-wrap justify-center gap-5 px-4">
+            {partners.map((partner, idx) => (
+              <div
+                key={idx}
+                className="text-gray-800 text-md md:text-lg px-6 py-2 bg-gray-100 rounded-full shadow hover:shadow-md transition"
+              >
+                {partner}
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">{service.description}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Services Section */}
+        <section className="bg-gray-50 py-20">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">What We Offer</h2>
+          <div className="flex flex-wrap justify-center gap-10 px-6">
+            {services.map((service, index) => (
+              <Card
+                key={index}
+                style={{ width: 300 }}
+                className="bg-white border border-gray-200 shadow hover:shadow-xl transition rounded-xl p-6"
+              >
+                <CardBody>
+                  <CardTitle className="text-xl font-semibold text-blue-800 mb-2">{service.title}</CardTitle>
+                  <p className="text-sm text-gray-600">{service.description}</p>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </section>
+        <Footer/>
       </div>
-      <Footer/>
     </div>
   );
 };
