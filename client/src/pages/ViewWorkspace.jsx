@@ -28,6 +28,7 @@ import {
     Pager,
     Tooltip
 } from "@progress/kendo-react-all"
+
 import "@progress/kendo-theme-default/dist/all.css"
 import Navbar from "../components/Navbar"
 import { useNavigate } from "react-router-dom"

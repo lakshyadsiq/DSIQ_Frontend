@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen }) => {
   return (
     <aside className={`${isOpen ? 'w-64' : 'w-16'} h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300`}>
       {/* Logo Section */}
-      <div className="p-4 h-16 border-b border-[#4A4561] flex items-center justify-center relative ">
+      <div className="p-4 h-16 border-b border-[#4A4561] flex items-center justify-center relative">
         {isOpen ? (
           <img 
             src="./1.png" 
@@ -100,7 +100,7 @@ const Sidebar = ({ isOpen }) => {
             ) : (
               <div className="flex flex-col items-center py-1">
                 <div 
-                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  className="p-2 rounded-md hover:bg-[#1E1A2E] hover:text-white cursor-pointer my-1 transition-colors duration-200"
                   title={section.title}
                 >
                   {section.icon}
@@ -117,6 +117,7 @@ const Sidebar = ({ isOpen }) => {
           <div key={index}>
             {isOpen ? (
               <SidebarMenuItem
+                key={index}
                 icon={item.icon}
                 label={item.label}
                 isOpen={isOpen}
@@ -124,7 +125,7 @@ const Sidebar = ({ isOpen }) => {
             ) : (
               <div className="flex flex-col items-center py-1">
                 <div 
-                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  className="p-2 rounded-md hover:bg-[#1E1A2E] hover:text-white cursor-pointer my-1 transition-colors duration-200"
                   title={item.label}
                 >
                   {item.icon}
