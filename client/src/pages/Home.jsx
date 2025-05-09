@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {Routes, Route} from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import Dashboard from '../components/Dashboard';
@@ -22,6 +23,10 @@ function Home({isLoggedIn}) {
           </div>
         </div>
       </footer>
+          <Routes>
+            <Route path='/' element={<Dashboard/>} />
+            <Route path='/viewWorkspace' element={<Dashboard/>} />
+          </Routes>
         </div>
       </div>
   );
