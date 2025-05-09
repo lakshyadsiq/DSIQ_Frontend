@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
-import { Checkbox } from "@progress/kendo-react-inputs"
 import { Input } from "@progress/kendo-react-inputs"
 import { useNavigate } from "react-router-dom"
 import { 
@@ -12,7 +11,8 @@ import {
   FiTag,
   FiChevronLeft, 
   FiChevronRight,
-  FiCheck
+  FiCheck,
+  FiX
 } from "react-icons/fi"
 
 export default function WorkspaceCreation() {
@@ -28,7 +28,6 @@ export default function WorkspaceCreation() {
   const [brandSearches, setBrandSearches] = useState({})
   const [workspaceName, setWorkspaceName] = useState("")
   const navigate = useNavigate()
-
 
   useEffect(() => {
     // Only update if we have retailers but no category searches for them
@@ -137,8 +136,11 @@ export default function WorkspaceCreation() {
     food: ["Whole Foods", "Trader Joe's", "Godiva", "Ghirardelli", "Lindt"],
   }
 
-  const handleRetailerChange = (retailerId, checked) => {
-    if (checked) {
+  // Modified to toggle selection on click
+  const handleRetailerChange = (retailerId) => {
+    const isSelected = selectedRetailers.includes(retailerId);
+    
+    if (!isSelected) {
       setSelectedRetailers([...selectedRetailers, retailerId])
     } else {
       setSelectedRetailers(selectedRetailers.filter((id) => id !== retailerId))
@@ -158,10 +160,17 @@ export default function WorkspaceCreation() {
     }
   }
 
-  const handleCategoryChange = (retailerId, categoryId, checked) => {
-    const currentCategories = selectedCategories[retailerId] || []
+  // Remove a retailer tag from the search bar
+  const removeRetailerTag = (retailerId) => {
+    handleRetailerChange(retailerId);
+  }
 
-    if (checked) {
+  // Modified to toggle selection on click
+  const handleCategoryChange = (retailerId, categoryId) => {
+    const currentCategories = selectedCategories[retailerId] || []
+    const isSelected = currentCategories.includes(categoryId);
+
+    if (!isSelected) {
       setSelectedCategories({
         ...selectedCategories,
         [retailerId]: [...currentCategories, categoryId],
@@ -190,10 +199,17 @@ export default function WorkspaceCreation() {
     }
   }
 
-  const handleBrandChange = (categoryId, brand, checked) => {
-    const currentBrands = selectedBrands[categoryId] || []
+  // Remove a category tag from the search bar
+  const removeCategoryTag = (retailerId, categoryId) => {
+    handleCategoryChange(retailerId, categoryId);
+  }
 
-    if (checked) {
+  // Modified to toggle selection on click
+  const handleBrandChange = (categoryId, brand) => {
+    const currentBrands = selectedBrands[categoryId] || []
+    const isSelected = currentBrands.includes(brand);
+
+    if (!isSelected) {
       setSelectedBrands({
         ...selectedBrands,
         [categoryId]: [...currentBrands, brand],
@@ -204,6 +220,11 @@ export default function WorkspaceCreation() {
         [categoryId]: currentBrands.filter((b) => b !== brand),
       })
     }
+  }
+
+  // Remove a brand tag from the search bar
+  const removeBrandTag = (categoryId, brand) => {
+    handleBrandChange(categoryId, brand);
   }
 
   const toggleRetailerDropdown = (retailerId) => {
@@ -274,8 +295,21 @@ export default function WorkspaceCreation() {
         </div>
       </div>
     )
-
   }
+
+  // Tag component for selected items
+  const SelectionTag = ({ label, onRemove }) => (
+    <div className="flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-1 mr-2 mb-2 text-sm">
+      <span className="mr-1">{label}</span>
+      <button 
+        className="ml-1 text-blue-500 hover:text-blue-700 focus:outline-none" 
+        onClick={onRemove}
+        aria-label={`Remove ${label}`}
+      >
+        <FiX className="w-4 h-4" />
+      </button>
+    </div>
+  );
 
   const renderRetailerStep = () => {
     const filteredRetailers = retailers.filter((retailer) =>
@@ -299,14 +333,27 @@ export default function WorkspaceCreation() {
             className="flex-1 py-2 px-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
+        
+        {/* Selected retailers tags */}
+        <div className="flex flex-wrap mb-2">
+          {selectedRetailers.map(retailerId => {
+            const retailer = retailers.find(r => r.id === retailerId);
+            return (
+              <SelectionTag 
+                key={retailerId}
+                label={retailer.name}
+                onRemove={() => removeRetailerTag(retailerId)}
+              />
+            );
+          })}
+        </div>
+        
         <div className="relative">
           <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-
           <Input
             placeholder="Search retailers..."
             value={retailerSearch}
             onChange={(e) => setRetailerSearch(e.target.value)}
-
             className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
@@ -315,25 +362,24 @@ export default function WorkspaceCreation() {
           <p className="text-sm text-gray-500 py-2">No retailers found matching your search.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredRetailers.map((retailer) => (
-              <div
-                key={retailer.id}
-                className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
-              >
-                <Checkbox
-                  id={retailer.id}
-                  checked={selectedRetailers.includes(retailer.id)}
-                  onChange={(e) => handleRetailerChange(retailer.id, e.value)}
-                  className="k-checkbox-md"
-                />
-                <label
-                  htmlFor={retailer.id}
-                  className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
+            {filteredRetailers.map((retailer) => {
+              const isSelected = selectedRetailers.includes(retailer.id);
+              return (
+                <div
+                  key={retailer.id}
+                  onClick={() => handleRetailerChange(retailer.id)}
+                  className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
+                    isSelected 
+                      ? 'bg-blue-100 border border-blue-300' 
+                      : 'bg-white border border-gray-100 hover:bg-gray-50'
+                  }`}
                 >
-                  {retailer.name}
-                </label>
-              </div>
-            ))}
+                  <span className="text-base font-medium text-gray-800 select-none flex-grow">
+                    {retailer.name}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -348,7 +394,6 @@ export default function WorkspaceCreation() {
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Selected Retailers List with Dropdown */}
-
         <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
           <h3 className="font-semibold text-lg text-gray-800 mb-4">Retailers</h3>
 
@@ -362,7 +407,6 @@ export default function WorkspaceCreation() {
                 <div key={retailerId}>
                   <div
                     className={`flex justify-between items-center p-3 rounded-lg cursor-pointer transition-all duration-300 ${
-
                       activeRetailer === retailerId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
                     }`}
                     onClick={() => {
@@ -370,7 +414,6 @@ export default function WorkspaceCreation() {
                       toggleRetailerDropdown(retailerId)
                     }}
                   >
-
                     <span className="text-gray-800 font-medium">{retailer?.name}</span>
                     {expandedRetailers[retailerId] ? (
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
@@ -383,7 +426,6 @@ export default function WorkspaceCreation() {
                       {retailerCategories.map((categoryName, index) => (
                         <div
                           key={index}
-
                           className="text-sm text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200"
                         >
                           {categoryName}
@@ -400,6 +442,20 @@ export default function WorkspaceCreation() {
         {/* Right Panel: Categories for Active Retailer */}
         {activeRetailer && (
           <div className="w-2/3">
+            {/* Selected categories tags */}
+            <div className="flex flex-wrap mb-4">
+              {(selectedCategories[activeRetailer] || []).map(categoryId => {
+                const category = categories[activeRetailer].find(c => c.id === categoryId);
+                return (
+                  <SelectionTag 
+                    key={categoryId}
+                    label={category.name}
+                    onRemove={() => removeCategoryTag(activeRetailer, categoryId)}
+                  />
+                );
+              })}
+            </div>
+            
             <div className="relative mb-6">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -419,26 +475,24 @@ export default function WorkspaceCreation() {
                 .filter((category) =>
                   category.name.toLowerCase().includes((categorySearches[activeRetailer] || "").toLowerCase()),
                 )
-                .map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
-
-                  >
-                    <Checkbox
-                      id={`${activeRetailer}-${category.id}`}
-                      checked={(selectedCategories[activeRetailer] || []).includes(category.id)}
-                      onChange={(e) => handleCategoryChange(activeRetailer, category.id, e.value)}
-                      className="k-checkbox-md"
-                    />
-                    <label
-                      htmlFor={`${activeRetailer}-${category.id}`}
-                      className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
+                .map((category) => {
+                  const isSelected = (selectedCategories[activeRetailer] || []).includes(category.id);
+                  return (
+                    <div
+                      key={category.id}
+                      onClick={() => handleCategoryChange(activeRetailer, category.id)}
+                      className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
+                        isSelected 
+                          ? 'bg-blue-100 border border-blue-300' 
+                          : 'bg-white border border-gray-100 hover:bg-gray-50'
+                      }`}
                     >
-                      {category.name}
-                    </label>
-                  </div>
-                ))}
+                      <span className="text-base font-medium text-gray-800 select-none flex-grow">
+                        {category.name}
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -483,7 +537,6 @@ export default function WorkspaceCreation() {
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
                       <FiChevronDown className="h-5 w-5 text-gray-500" />
-
                     )}
                   </div>
                   {expandedRetailers[retailerId] && retailerCategories.length > 0 && (
@@ -492,9 +545,7 @@ export default function WorkspaceCreation() {
                         <div
                           key={category.id}
                           className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-
                             activeCategory === category.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
-
                           }`}
                           onClick={() => setActiveCategory(category.id)}
                         >
@@ -512,6 +563,17 @@ export default function WorkspaceCreation() {
         {/* Right Panel: Brands for Active Category */}
         {activeCategory && (
           <div className="w-2/3">
+            {/* Selected brands tags */}
+            <div className="flex flex-wrap mb-4">
+              {(selectedBrands[activeCategory] || []).map(brand => (
+                <SelectionTag 
+                  key={brand}
+                  label={brand}
+                  onRemove={() => removeBrandTag(activeCategory, brand)}
+                />
+              ))}
+            </div>
+            
             <div className="relative mb-6">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -533,25 +595,24 @@ export default function WorkspaceCreation() {
                 .filter((brand) =>
                   brand.toLowerCase().includes((brandSearches[activeCategory] || "").toLowerCase()),
                 )
-                .map((brand) => (
-                  <div
-                    key={`${activeCategory}-${brand}`}
-                    className="flex items-center space-x-3 p-4 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border border-gray-100"
-                  >
-                    <Checkbox
-                      id={`${activeCategory}-${brand}`}
-                      checked={(selectedBrands[activeCategory] || []).includes(brand)}
-                      onChange={(e) => handleBrandChange(activeCategory, brand, e.value)}
-                      className="k-checkbox-md"
-                    />
-                    <label
-                      htmlFor={`${activeCategory}-${brand}`}
-                      className="text-base font-medium text-gray-800 cursor-pointer select-none flex-grow"
+                .map((brand) => {
+                  const isSelected = (selectedBrands[activeCategory] || []).includes(brand);
+                  return (
+                    <div
+                      key={`${activeCategory}-${brand}`}
+                      onClick={() => handleBrandChange(activeCategory, brand)}
+                      className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
+                        isSelected 
+                          ? 'bg-blue-100 border border-blue-300' 
+                          : 'bg-white border border-gray-100 hover:bg-gray-50'
+                      }`}
                     >
-                      {brand}
-                    </label>
-                  </div>
-                ))}
+                      <span className="text-base font-medium text-gray-800 select-none flex-grow">
+                        {brand}
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -621,13 +682,6 @@ export default function WorkspaceCreation() {
           }
           .scrollbar-thin::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
-          }
-          .k-checkbox-md:checked {
-            background-color: #3b82f6 !important;
-            border-color: #3b82f6 !important;
-          }
-          .k-checkbox-md:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
           }
         `}
       </style>

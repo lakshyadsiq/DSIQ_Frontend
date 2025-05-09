@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import Dashboard from '../components/Dashboard';
+import Footer from '../components/Footer';
 
 function Home({ isLoggedIn }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

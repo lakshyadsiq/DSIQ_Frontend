@@ -100,7 +100,7 @@ const Sidebar = ({ isOpen }) => {
             ) : (
               <div className="flex flex-col items-center py-1">
                 <div 
-                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  className="p-2 rounded-md hover:bg-[#1E1A2E] hover:text-white cursor-pointer my-1 transition-colors duration-200"
                   title={section.title}
                 >
                   {section.icon}
@@ -117,6 +117,7 @@ const Sidebar = ({ isOpen }) => {
           <div key={index}>
             {isOpen ? (
               <SidebarMenuItem
+                key={index}
                 icon={item.icon}
                 label={item.label}
                 isOpen={isOpen}
@@ -124,7 +125,7 @@ const Sidebar = ({ isOpen }) => {
             ) : (
               <div className="flex flex-col items-center py-1">
                 <div 
-                  className="p-2 rounded-md hover:bg-[#3D3850] cursor-pointer my-1"
+                  className="p-2 rounded-md hover:bg-[#1E1A2E] hover:text-white cursor-pointer my-1 transition-colors duration-200"
                   title={item.label}
                 >
                   {item.icon}

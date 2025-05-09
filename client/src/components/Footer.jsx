@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Linkedin, Twitter, Github } from 'lucide-react';
 
-export default function Footer() {
+export default function Footer({ isLoggedIn }) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -14,6 +14,23 @@ export default function Footer() {
     }
   };
 
+  // Simple footer for logged in users
+  if (isLoggedIn) {
+    return (
+      <footer className="w-full bg-gray-800 text-gray-400 py-6 px-6 mt-8 shadow-inner">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm">© {new Date().getFullYear()} DSIQ Inc. All rights reserved.</p>
+          <div className="flex gap-4 mt-4 md:mt-0">
+            <a href="#" className="text-sm hover:underline">Privacy Policy</a>
+            <a href="#" className="text-sm hover:underline">Terms of Service</a>
+            <a href="#" className="text-sm hover:underline">Help Center</a>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  // Detailed footer for non-logged in users
   return (
     <footer className="relative bg-slate-950 text-white pt-16 mt-20 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
