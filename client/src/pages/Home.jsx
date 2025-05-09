@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {Routes, Route} from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import Dashboard from '../components/Dashboard';
@@ -11,7 +12,10 @@ function Home({isLoggedIn}) {
         <Sidebar isOpen={isSidebarOpen} />
         <div className="flex flex-col flex-1 overflow-hidden">
           <Navbar isSidebarOpen={isSidebarOpen} isLoggedIn={isLoggedIn} setIsSidebarOpen={setIsSidebarOpen}/>
-          <Dashboard />
+          <Routes>
+            <Route path='/' element={<Dashboard/>} />
+            <Route path='/viewWorkspace' element={<Dashboard/>} />
+          </Routes>
         </div>
       </div>
   );

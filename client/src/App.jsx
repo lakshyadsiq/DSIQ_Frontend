@@ -7,6 +7,7 @@ import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
 import HomePage from './pages/Home';
 import { useAuth } from './contexts/AuthContext';
+import ViewWorkspacesPage from './pages/ViewWorkspace';
 
 const App = () => {
   const { isLoggedIn, login } = useAuth();
@@ -35,6 +36,7 @@ const App = () => {
             )
           }
         />
+        <Route path="/viewWorkspace" element={isLoggedIn ? <ViewWorkspacesPage isLoggedIn = {isLoggedIn} /> : <Navigate to="/login"/>} />
       </Routes>
     </Router>
   );
