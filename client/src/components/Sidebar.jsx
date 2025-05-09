@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen }) => {
   return (
     <aside className={`${isOpen ? 'w-64' : 'w-16'} h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300`}>
       {/* Logo Section */}
-      <div className="p-4 h-16 border-b border-[#4A4561] flex items-center justify-center relative ">
+      <div className="p-4 h-[64px] border-b border-[#4A4561] flex items-center justify-center relative ">
         {isOpen ? (
           <img 
             src="./1.png" 

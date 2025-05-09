@@ -5,11 +5,12 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
-import HomePage from './pages/Home';
+import Home from './pages/Home'; // Renamed from HomePage
 import { useAuth } from './contexts/AuthContext';
 import HelpPage from './pages/HelpPage';
 import Profile from './components/Profile';
 import ViewWorkspacesPage from './pages/ViewWorkspace';
+import Dashboard from './components/Dashboard';
 
 const App = () => {
   const { isLoggedIn, login } = useAuth();
@@ -17,7 +18,19 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={isLoggedIn ? <HomePage isLoggedIn = {isLoggedIn}  /> : <WelcomePage isLoggedIn = {isLoggedIn} />} />
+        {/* 🔽 Nest routes under Home layout */}
+        <Route
+          path="/"
+          element={isLoggedIn ? <Home isLoggedIn={isLoggedIn} /> : <WelcomePage isLoggedIn={isLoggedIn} />}
+        >
+          {isLoggedIn && (
+            <>
+              <Route index element={<Dashboard />} />
+              <Route path="viewWorkspace" element={<ViewWorkspacesPage />} />
+            </>
+          )}
+        </Route>
+
         <Route path="/login" element={<LoginPage onLogin={login} />} />
         <Route path="/signup" element={<SignupPage onSignUp={login} />} />
         <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm /> : <Navigate to="/login" />} />
@@ -40,7 +53,6 @@ const App = () => {
         />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/viewWorkspace" element={isLoggedIn ? <ViewWorkspacesPage isLoggedIn = {isLoggedIn} /> : <Navigate to="/login"/>} />
       </Routes>
     </Router>
   );
