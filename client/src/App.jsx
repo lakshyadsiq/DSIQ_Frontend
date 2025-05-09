@@ -7,6 +7,8 @@ import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
 import HomePage from './pages/Home';
 import { useAuth } from './contexts/AuthContext';
+import HelpPage from './pages/HelpPage';
+import Profile from './components/Profile';
 import ViewWorkspacesPage from './pages/ViewWorkspace';
 
 const App = () => {
@@ -36,6 +38,8 @@ const App = () => {
             )
           }
         />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/viewWorkspace" element={isLoggedIn ? <ViewWorkspacesPage isLoggedIn = {isLoggedIn} /> : <Navigate to="/login"/>} />
       </Routes>
     </Router>

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Checkbox } from "@progress/kendo-react-inputs"
 import { Input } from "@progress/kendo-react-inputs"
@@ -285,17 +284,19 @@ export default function WorkspaceCreation() {
 
     return (
       <div className="space-y-6">
-        <div>
-
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="flex items-center gap-x-3 mb-4">
+          <label
+            htmlFor="workspaceName"
+            className="text-sm font-medium text-gray-700 whitespace-nowrap"
+          >
             Workspace Name
           </label>
           <Input
+            id="workspaceName"
             placeholder="Enter workspace name..."
             value={workspaceName}
             onChange={(e) => setWorkspaceName(e.target.value)}
-
-            className="w-full py-3 px-4 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+            className="flex-1 py-2 px-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
         <div className="relative">
@@ -632,8 +633,8 @@ export default function WorkspaceCreation() {
       </style>
       <Card className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         <CardHeader className="p-8 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardTitle className="text-4xl text-gray-900">Create Your Workspace</CardTitle>
-          <CardSubtitle className="text-gray-600 mt-2">
+          <CardTitle className="!text-3xl !font-bold text-blue-700">Create Your Workspace</CardTitle>
+          <CardSubtitle className="!text-gray-600 !text-sm mt-2">
             Enter a workspace name and select retailers, categories, and brands
           </CardSubtitle>
           <div className="mt-8">
@@ -664,7 +665,7 @@ export default function WorkspaceCreation() {
             </>
           )}
         </CardBody>
-        <CardActions className="flex justify-center gap-4 p-8 border-gray-200 bg-gray-50">
+        <CardActions className="flex !justify-between gap-4 p-8 border-gray-200 bg-gray-50">
           {step > 1 ? (
             <button 
               look="outline" 
