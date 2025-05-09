@@ -1,13 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext'; // Import the useAuth hook
 
 const ProfileDropdown = ({ onClose }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth(); // Get the logout function from AuthContext
 
   const handleProfileClick = () => {
-    onClose();           // Close the dropdown
-    navigate('/profile'); // Navigate to the profile page
+    onClose();
+    navigate('/profile');
+  };
+
+  const handleSignOut = () => {
+    // Call the logout function from AuthContext
+    logout();
+    onClose();
+    navigate('/login');
   };
 
   return (
@@ -29,10 +38,7 @@ const ProfileDropdown = ({ onClose }) => {
 
       <div className="py-1 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={() => {
-            onClose();
-            navigate('/login'); 
-          }}
+          onClick={handleSignOut}
           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <LogOut className="mr-3 h-4 w-4" />
