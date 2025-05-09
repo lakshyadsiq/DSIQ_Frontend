@@ -71,8 +71,18 @@ const LoginPage = ({onLogin}) => {
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-100 to-white px-4">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div className="bg-white rounded-xl shadow-lg p-10 w-full max-w-md transition-all duration-300 hover:shadow-xl">
-        <div className="mb-6 text-center">
-        <h2 className="text-3xl font-bold text-gray-800">Welcome to DSIQ</h2>
+        <div className="flex flex-col items-center mb-8">
+          {/* Logo placement - using the favicon.ai or icon.png from public folder */}
+          <img 
+            src="/icon.png" 
+            alt="DSIQ Logo" 
+            className="h-16 w-auto mx-auto mb-4"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/icon.png";
+            }}
+          />
+          <h2 className="text-3xl font-bold text-gray-800">Welcome to DSIQ</h2>
           <p className="text-gray-600 mt-2">
             {showReset ? 'Reset your password' : 'Sign in to your account'}
           </p>
