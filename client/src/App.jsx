@@ -7,6 +7,8 @@ import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
 import HomePage from './pages/Home';
 import { useAuth } from './contexts/AuthContext';
+import HelpPage from './pages/HelpPage';
+import Profile from './components/Profile';
 
 const App = () => {
   const { isLoggedIn, login } = useAuth();
@@ -35,6 +37,8 @@ const App = () => {
             )
           }
         />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );
