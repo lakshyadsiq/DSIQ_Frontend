@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
   Search,
@@ -159,7 +157,8 @@ export default function WorkspacesPage(isLoggedIn) {
 
   // Handle workspace actions
   const handleEdit = (id) => {
-    console.log(`Editing workspace ${id}`)
+    // console.log(`Editing workspace ${id}`)
+    navigate(`/ModifyWorkspace`)
   }
 
   const handleDelete = (id) => {
@@ -172,7 +171,7 @@ export default function WorkspacesPage(isLoggedIn) {
 
   const handleCreateWorkspace = () => {
     console.log("Creating new workspace")
-    navigate("/workspaceCreate")
+    navigate(`/ModifyWorkspace/${id}`)
   }
 
   const formatDate = (dateString) => {
