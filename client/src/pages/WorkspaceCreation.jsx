@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Input } from "@progress/kendo-react-inputs"
 import { useNavigate } from "react-router-dom"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { 
   FiSearch, 
   FiChevronDown, 
@@ -13,7 +15,6 @@ import {
   FiChevronRight,
   FiCheck,
   FiX,
-  FiEdit3
 } from "react-icons/fi"
 import clsx from "clsx"
 
@@ -31,6 +32,13 @@ export default function WorkspaceCreation() {
   const [categorySearches, setCategorySearches] = useState({})
   const [brandSearches, setBrandSearches] = useState({})
   const [workspaceName, setWorkspaceName] = useState("")
+  const [workspaceNameError, setWorkspaceNameError] = useState("")
+
+  const existingWorkspaces = [
+    "Marketing Research",
+    "E-commerce Analysis",
+    "Retail Insights"
+  ]
   
   const navigate = useNavigate()
 
@@ -260,14 +268,30 @@ export default function WorkspaceCreation() {
   }
 
   const handleSubmit = () => {
-    console.log("Workspace created with:", {
+    const workspaceDetails = {
       name: workspaceName,
       retailers: selectedRetailers,
       categories: selectedCategories,
       brands: selectedBrands,
+    }
+    
+    console.log("Workspace created with:", workspaceDetails)
+    
+    // Show success toast
+    toast.success(`Workspace "${workspaceName}" created successfully!`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
     })
-    // alert(`Workspace "${workspaceName}" created successfully!`)
-    navigate('/')
+
+    // Navigate after a short delay to allow toast to be seen
+    setTimeout(() => {
+      navigate('/')
+    }, 3000)
   }
 
   const renderProgressBar = () => {
@@ -662,8 +686,44 @@ export default function WorkspaceCreation() {
     )
   }
 
+
+  const validateWorkspaceName = (name) => {
+    // Trim the name and check for emptiness
+    const trimmedName = name.trim();
+    
+    if (!trimmedName) {
+      setWorkspaceNameError("Workspace name cannot be empty.");
+      return false;
+    }
+
+    // Check if name already exists (case-insensitive)
+    if (existingWorkspaces.some(ws => ws.toLowerCase() === trimmedName.toLowerCase())) {
+      setWorkspaceNameError("A workspace with this name already exists. Please choose a different name.");
+      return false;
+    }
+
+    // Clear any previous errors
+    setWorkspaceNameError("");
+    return true;
+  }
+
+  const handleWorkspaceNameChange = (e) => {
+    const newName = e.target.value;
+    setWorkspaceName(newName);
+    
+    // Validate name as user types
+    validateWorkspaceName(newName);
+  }
+
+
   const isNextDisabled = () => {
-    if (step === 1) return selectedRetailers.length === 0 || !workspaceName
+    if (step === 1) {
+      return (
+        selectedRetailers.length === 0 || 
+        !workspaceName || 
+        workspaceNameError !== ""
+      );
+    }
     if (step === 2) {
       return (
         Object.keys(selectedCategories).length === 0 ||
@@ -688,11 +748,13 @@ export default function WorkspaceCreation() {
 
     return (
       !workspaceName ||
+      workspaceNameError !== "" ||
       selectedCategoriesFlat.some(
         (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0,
       )
     )
   }
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -727,6 +789,7 @@ export default function WorkspaceCreation() {
           }
         `}
       </style>
+      <ToastContainer />
       <Card className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         <CardHeader className="p-8 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardTitle className="!text-3xl !font-bold text-blue-700">Create Your Workspace</CardTitle>
@@ -737,31 +800,44 @@ export default function WorkspaceCreation() {
             {renderProgressBar()}
           </div>
         </CardHeader>
-        <div className="flex items-center gap-x-3 mb-4 mt-4 px-3">
+        <div className="flex flex-col gap-y-2 mb-4 mt-4 px-6">
           <label
             htmlFor="workspaceName"
             className="text-sm font-medium text-gray-700 whitespace-nowrap"
           >
-            Workspace Name
+            <div className="flex gap-x-1">
+              Workspace Name<p className="text-red-600 mt-0.5">*</p> 
+            </div>   
           </label>
-          <input
-            id="workspaceName"
-            placeholder="Enter workspace name..."
-            value={workspaceName}
-            onChange={(e) => setWorkspaceName(e.target.value)}
-            className={clsx(
-              "flex-1 py-2 px-3 rounded-lg border shadow-sm outline-none transition-all duration-300",
-              {
-                "border-red-600 animate-pulse": workspaceName === "", // red blinking by default
-                "border-green-500": workspaceName !== "",             // green when user types
-              }
+          <div>
+            <input
+              id="workspaceName"
+              placeholder="Enter workspace name..."
+              value={workspaceName}
+              onChange={handleWorkspaceNameChange}
+              className={clsx(
+                "w-full py-1.5 px-3 rounded-lg border shadow-sm outline-none transition-all duration-300",
+                {
+                  "border-red-600": workspaceNameError !== "",
+                  "border-green-500": workspaceName !== "" && workspaceNameError === "",
+                  "border-gray-300": workspaceName === "",
+                }
+              )}
+            />
+            {workspaceNameError && (
+              <p className="text-xs text-red-600 mt-1 animate-pulse">
+                {workspaceNameError}
+              </p>
             )}
-          />
+          </div>
         </div>
         <CardBody className="p-8">
-          {step === 1 && (
+        {step === 1 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
+              {(selectedRetailers.length === 0 || !workspaceName) && (
+                <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
+              )}
               {renderRetailerStep()}
             </>
           )}
@@ -769,6 +845,12 @@ export default function WorkspaceCreation() {
           {step === 2 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
+              {(Object.keys(selectedCategories).length === 0 ||
+                selectedRetailers.some(
+                  (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0
+                )) && (
+                <p className="text-sm text-red-500">**You must select at least one category from each selected retailer.**</p>
+              )}
               {renderCategoryStep()}
             </>
           )}
@@ -776,7 +858,24 @@ export default function WorkspaceCreation() {
           {step === 3 && (
             <>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
+              {(() => {
+                const selectedCategoriesFlat = []
+                Object.values(selectedCategories).forEach((categoryIds) => {
+                  categoryIds.forEach((id) => {
+                    if (!selectedCategoriesFlat.includes(id)) {
+                      selectedCategoriesFlat.push(id)
+                    }
+                  })
+                })
 
+                const missingBrands = selectedCategoriesFlat.some(
+                  (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
+                )
+
+                return missingBrands && (
+                  <p className="text-sm text-red-500">**You must select at least one brand from each category for each retailer.**</p>
+                )
+              })()}
               {renderBrandStep()}
             </>
           )}

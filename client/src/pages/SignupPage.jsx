@@ -1,11 +1,12 @@
-import React, { useState , useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
-import toast from 'react-hot-toast';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { ComboBox } from '@progress/kendo-react-dropdowns';
 
-const countries = [
+const countries = [ 
   { id: 'af', name: 'Afghanistan', flag: '🇦🇫' },
   { id: 'al', name: 'Albania', flag: '🇦🇱' },
   { id: 'dz', name: 'Algeria', flag: '🇩🇿' },
@@ -215,10 +216,10 @@ const SignupPage = ( {onSignUp} ) => {
     userType: '',
   });
 
-   // State for filtered countries
-   const [filteredCountries, setFilteredCountries] = useState(countries);
-   // State for search term
-   const [searchTerm, setSearchTerm] = useState('');
+  // State for filtered countries
+  const [filteredCountries, setFilteredCountries] = useState(countries);
+  // State for search term
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setFormData(prevData => ({ ...prevData, countryId: 'us' }));
@@ -241,15 +242,52 @@ const SignupPage = ( {onSignUp} ) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { fullName, email, countryId, password,confirmPassword, userType } = formData;
+    const { fullName, email, countryId, password, confirmPassword, userType } = formData;
 
-    if (!fullName || !email || !countryId || !password || !confirmPassword || !userType) {
-      toast.error('Please fill in all fields.');
+    // Validation checks with toast notifications
+    if (!fullName) {
+      toast.error('Please enter your full name');
       return;
     }
-    
+
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    if (!countryId) {
+      toast.error('Please select a country');
+      return;
+    }
+
+    if (!password) {
+      toast.error('Please enter a password');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!confirmPassword) {
+      toast.error('Please confirm your password');
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
+      return;
+    }
+
+    if (!userType) {
+      toast.error('Please select your role');
       return;
     }
 
@@ -257,22 +295,20 @@ const SignupPage = ( {onSignUp} ) => {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email,countryId, password, userType }),
+        body: JSON.stringify({ fullName, email, countryId, password, userType }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        // toast.success(`Account created for ${fullName} as ${userType}`);
-      } else {
-        // toast.error(data.message || 'Error creating account');
+        toast.success(`Account created for ${fullName} as ${userType}`);
         onSignUp();
-        navigate('/workspaceCreate')
+        navigate('/workspaceCreate');
+      } else {
+        toast.error(data.message || 'Error creating account');
       }
     } catch (error) {
       console.error('Error:', error);
-      // toast.error('Something went wrong. Please try again later.');
-      onSignUp();
-      navigate('/workspaceCreate')
+      toast.error('Something went wrong. Please try again later.');
     }
   };
 
@@ -480,7 +516,6 @@ const SignupPage = ( {onSignUp} ) => {
           </button>
         </div>
 
-
         <p className="mt-5 text-center text-sm text-gray-500">
           Already have an account?{' '}
           <a href="/login" className="text-indigo-600 font-medium hover:underline">
@@ -488,6 +523,20 @@ const SignupPage = ( {onSignUp} ) => {
           </a>
         </p>
       </form>
+
+      {/* Add ToastContainer */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Pencil, Save, X, Camera, Calendar, MapPin, Briefcase, Mail, Phone, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Camera, Calendar, MapPin, Briefcase, Mail, Phone, ArrowLeft } from 'lucide-react';
 
 const initialProfile = {
   name: 'Jane Doe',
@@ -14,45 +13,163 @@ const initialProfile = {
   profileImage: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600'
 };
 
-const Profile = () => {
-  const [profile, setProfile] = useState(initialProfile);
-  const [editMode, setEditMode] = useState(false);
-  const [tempProfile, setTempProfile] = useState(profile);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const navigate = useNavigate();
+const EditableField = ({ 
+  value, 
+  onSave, 
+  type = 'text', 
+  placeholder = '', 
+  className = '',
+  multiline = false 
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
 
-  const handleChange = (field, value) => {
-    setTempProfile({ ...tempProfile, [field]: value });
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (value !== localValue) {
+      onSave(localValue);
+    }
   };
 
-  const handleImageChange = (e) => {
-    setTempProfile({
-      ...tempProfile,
-      profileImage: '/api/placeholder/400/400'
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  };
+
+  // Update local state if value prop changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  if (isEditing) {
+    return multiline ? (
+      <textarea
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className={`w-full bg-gray-700 text-white border border-gray-600 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${className}`}
+        placeholder={placeholder}
+        autoFocus
+      />
+    ) : (
+      <input
+        type={type}
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className={`w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${className}`}
+        placeholder={placeholder}
+        autoFocus
+      />
+    );
+  }
+
+  return (
+    <div 
+      onClick={() => setIsEditing(true)} 
+      className="cursor-text hover:bg-gray-700 rounded-lg p-1 transition"
+    >
+      {value || placeholder}
+    </div>
+  );
+};
+
+const Profile = () => {
+  // Load profile from localStorage or use initial profile
+  const [profile, setProfile] = useState(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    return savedProfile ? JSON.parse(savedProfile) : initialProfile;
+  });
+
+  // Load profile image from localStorage or use initial image
+  const [profileImage, setProfileImage] = useState(() => {
+    const savedImage = localStorage.getItem('userProfileImage');
+    return savedImage || initialProfile.profileImage;
+  });
+
+  // Save profile to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('userProfile', JSON.stringify(profile));
+  }, [profile]);
+
+  // Save profile image to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('userProfileImage', profileImage);
+  }, [profileImage]);
+
+  const handleGoBack = () => {
+    // Simple placeholder for navigation. In a real app, 
+    // this would use react-router or another navigation method
+    window.history.back();
+  };
+
+  const handleSaveField = (field, value) => {
+    setProfile(prev => {
+      const updatedProfile = {
+        ...prev,
+        [field]: value
+      };
+      // Automatically save to localStorage
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      return updatedProfile;
     });
   };
 
-  const handleSave = () => {
-    if (newPassword && newPassword !== confirmPassword) {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newImage = reader.result;
+        setProfileImage(newImage);
+        // Automatically save to localStorage
+        localStorage.setItem('userProfileImage', newImage);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Password change handling
+  const [passwords, setPasswords] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    isVerified: false
+  });
+  
+  const handlePasswordChange = (field, value) => {
+    setPasswords(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  const handlePasswordChangeCombined = () => {
+    const { currentPassword, newPassword, confirmPassword } = passwords;
+  
+    const mockCorrectPassword = 'password123'; // Replace this with actual verification logic
+  
+    if (currentPassword !== mockCorrectPassword) {
+      alert('Current password is incorrect');
+      return;
+    }
+  
+    if (!newPassword || newPassword !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    setProfile(tempProfile);
-    setEditMode(false);
-    setNewPassword('');
-    setConfirmPassword('');
-  };
-
-  const handleCancel = () => {
-    setTempProfile(profile);
-    setEditMode(false);
-    setNewPassword('');
-    setConfirmPassword('');
-  };
   
-  const handleGoBack = () => {
-    navigate(-1);
+    alert('Password successfully changed!');
+  
+    setPasswords({
+      currentPassword: newPassword,
+      newPassword: '',
+      confirmPassword: '',
+      isVerified: false
+    });
   };
 
   return (
@@ -68,70 +185,50 @@ const Profile = () => {
           </button>
         </div>
         
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Your Profile</h1>
-          {editMode ? (
-            <div className="flex gap-3">
-              <button
-                onClick={handleSave}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm"
-              >
-                <Save size={16} /> Save
-              </button>
-              <button
-                onClick={handleCancel}
-                className="bg-gray-700 text-gray-200 px-4 py-2 rounded-lg hover:opacity-80 transition flex items-center gap-2 text-sm"
-              >
-                <X size={16} /> Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setEditMode(true)}
-              className="text-blue-400 hover:opacity-80 flex items-center gap-2 text-sm font-medium"
-            >
-              <Pencil size={16} /> Edit Profile
-            </button>
-          )}
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col items-center lg:border-r lg:border-gray-700 pr-0 lg:pr-6">
             <div className="relative mb-4">
               <img
-                src={editMode ? tempProfile.profileImage : profile.profileImage}
+                src={profileImage}
                 alt="Profile"
                 className="w-40 h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg"
               />
-              {editMode && (
-                <label className="absolute bottom-2 right-2 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700 text-white shadow-lg">
-                  <Camera size={18} />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
+              <label className="absolute bottom-2 right-2 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700 text-white shadow-lg">
+                <Camera size={18} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
             </div>
-            <h2 className="text-xl font-bold mt-2">{editMode ? tempProfile.name : profile.name}</h2>
-            <p className="text-gray-400 mb-4">{editMode ? tempProfile.role : profile.role}</p>
+            <h2 className="text-xl font-bold mt-2">
+              <EditableField
+                value={profile.name}
+                onSave={(value) => handleSaveField('name', value)}
+                className="text-center"
+              />
+            </h2>
+            <p className="text-gray-400 mb-4">
+              <EditableField
+                value={profile.role}
+                onSave={(value) => handleSaveField('role', value)}
+                className="text-center"
+              />
+            </p>
           </div>
 
           <div className="col-span-1 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <h3 className="text-lg font-semibold mb-2 text-gray-200">Bio</h3>
-              {editMode ? (
-                <textarea
-                  value={tempProfile.bio || ''}
-                  onChange={(e) => handleChange('bio', e.target.value)}
-                  className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition h-24"
-                  placeholder="Tell us about yourself..."
-                />
-              ) : (
-                <p className="text-gray-300">{profile.bio || 'No bio available.'}</p>
-              )}
+              <EditableField
+                value={profile.bio}
+                onSave={(value) => handleSaveField('bio', value)}
+                multiline
+                placeholder="Tell us about yourself..."
+                className="h-24"
+              />
             </div>
 
             <div>
@@ -139,52 +236,37 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Mail size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Email</p>
-                    {editMode ? (
-                      <input
-                        type="email"
-                        value={tempProfile.email}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.email}</p>
-                    )}
+                    <EditableField
+                      value={profile.email}
+                      onSave={(value) => handleSaveField('email', value)}
+                      type="email"
+                    />
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <Phone size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Phone</p>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfile.phone || ''}
-                        onChange={(e) => handleChange('phone', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.phone || 'Not provided'}</p>
-                    )}
+                    <EditableField
+                      value={profile.phone}
+                      onSave={(value) => handleSaveField('phone', value)}
+                      placeholder="Enter phone number"
+                    />
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <MapPin size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Location</p>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfile.location || ''}
-                        onChange={(e) => handleChange('location', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.location || 'Not provided'}</p>
-                    )}
+                    <EditableField
+                      value={profile.location}
+                      onSave={(value) => handleSaveField('location', value)}
+                      placeholder="Enter location"
+                    />
                   </div>
                 </div>
               </div>
@@ -195,84 +277,88 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Briefcase size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Company</p>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfile.company}
-                        onChange={(e) => handleChange('company', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.company}</p>
-                    )}
+                    <EditableField
+                      value={profile.company}
+                      onSave={(value) => handleSaveField('company', value)}
+                      placeholder="Enter company name"
+                    />
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <Briefcase size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Role</p>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfile.role}
-                        onChange={(e) => handleChange('role', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.role}</p>
-                    )}
+                    <EditableField
+                      value={profile.role}
+                      onSave={(value) => handleSaveField('role', value)}
+                      placeholder="Enter job role"
+                    />
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <Calendar size={18} className="mt-0.5 text-gray-400" />
-                  <div>
+                  <div className="w-full">
                     <p className="text-sm text-gray-400">Birthday</p>
-                    {editMode ? (
-                      <input
-                        type="text"
-                        value={tempProfile.birthday || ''}
-                        onChange={(e) => handleChange('birthday', e.target.value)}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      />
-                    ) : (
-                      <p>{profile.birthday || 'Not provided'}</p>
-                    )}
+                    <EditableField
+                      value={profile.birthday}
+                      onSave={(value) => handleSaveField('birthday', value)}
+                      placeholder="Enter birthday"
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            {editMode && (
-              <div className="md:col-span-2 mt-4">
-                <h3 className="text-lg font-semibold mb-3 text-gray-200">Change Password</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">New Password</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      placeholder="Enter new password"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
-                      placeholder="Confirm new password"
-                    />
-                  </div>
+            <div className="md:col-span-2 mt-4">
+              {/* Row with 3 inputs */}
+              <div className="flex flex-wrap mb-3 gap-4">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-gray-400 mb-1">Current Password</label>
+                  <input
+                    type="password"
+                    value={passwords.currentPassword}
+                    onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    placeholder="Enter current password"
+                  />
+                </div>            
+
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-gray-400 mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={passwords.newPassword}
+                    onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    placeholder="Change password"
+                  />
+                </div>            
+
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={passwords.confirmPassword}
+                    onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                    className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    placeholder="Confirm new password"
+                  />
                 </div>
+              </div>            
+              {/* Button on the next row */}
+              <div>
+                <button
+                  onClick={handlePasswordChangeCombined}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Change Password
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
