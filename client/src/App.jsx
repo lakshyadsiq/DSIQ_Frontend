@@ -25,7 +25,7 @@ const App = () => {
         >
           {isLoggedIn && (
             <>
-              <Route index element={<Dashboard />} />
+              <Route index element={<Dashboard isLoggedIn={isLoggedIn}/>} />
               <Route path="viewWorkspace" element={<ViewWorkspacesPage />} />
             </>
           )}

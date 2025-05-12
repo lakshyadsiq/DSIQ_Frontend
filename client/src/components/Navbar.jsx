@@ -137,7 +137,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
   const displayApp = selectedApp || pinnedApp || { name: "Apps" };
 
   return (
-    <nav className="flex !h-[64px] items-center justify-between px-4 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 transition-colors duration-300">
+    <nav className="flex !h-[69px] items-center justify-between px-4 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 transition-colors duration-300">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
         {isLoggedIn ? (
