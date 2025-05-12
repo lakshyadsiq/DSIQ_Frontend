@@ -5,8 +5,6 @@ import {
   Grid,
   List,
   Edit,
-  Trash,
-  Share2,
   DollarSign,
   LineChart,
   Megaphone,
@@ -19,15 +17,11 @@ import {
   Tag,
   ArrowLeft,
 } from "lucide-react"
-
+import { MdArchive } from "react-icons/md"
+import toast from 'react-hot-toast';
 import {
-    Button,
-    DropDownButton,
-    DropDownButtonItem,
-    Input,
-    DropDownList,
-    Pager,
-    Tooltip
+  DropDownList,
+  Tooltip
 } from "@progress/kendo-react-all"
 import "@progress/kendo-theme-default/dist/all.css"
 import { useNavigate } from "react-router-dom"
@@ -43,6 +37,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Samsung", "LG"],
       retailer: "Electronics Hub",
       modified: "2025-05-02",
+      archived: false,
     },
     {
       id: "2",
@@ -52,6 +47,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Nike", "Adidas"],
       retailer: "SportsDirect",
       modified: "2025-05-05",
+      archived: false,
     },
     {
       id: "3",
@@ -61,6 +57,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Apple"],
       retailer: "BestBuy",
       modified: "2025-05-01",
+      archived: false,
     },
     {
       id: "4",
@@ -70,6 +67,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Chase", "Wells Fargo"],
       retailer: "Banking Services",
       modified: "2025-04-30",
+      archived: false,
     },
     {
       id: "5",
@@ -79,6 +77,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Zara", "H&M"],
       retailer: "Mall of America",
       modified: "2025-04-28",
+      archived: false,
     },
     {
       id: "6",
@@ -88,6 +87,7 @@ export default function WorkspacesPage(isLoggedIn) {
       brands: ["Microsoft"],
       retailer: "Microsoft Store",
       modified: "2025-05-06",
+      archived: false,
     },
   ]
 
@@ -100,8 +100,25 @@ export default function WorkspacesPage(isLoggedIn) {
   const [viewMode, setViewMode] = useState("grid")
   const [currentPage, setCurrentPage] = useState(1)
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
+  const [showArchived, setShowArchived] = useState(false)
   const itemsPerPage = 6
   const navigate = useNavigate()
+  
+  // fetchWorkspaces
+  useEffect(() => {
+    const fetchWorkspaces = async () => {
+      try {
+        const response = await axios.get('/api/workspaces'); // Replace with your real endpoint
+        setWorkspaces(response.data);
+        console.log("Fetched workspaces:", response.data);
+      } catch (error) {
+        toast.error("Failed to load workspaces.");
+        console.error("Error fetching workspaces:", error);
+      }
+    };
+
+    fetchWorkspaces();
+  }, []);
 
   // Get all unique categories
   const categories = ["all", ...Array.from(new Set(workspaces.map((w) => w.category.toLowerCase())))]
@@ -119,6 +136,11 @@ export default function WorkspacesPage(isLoggedIn) {
   // Filter and sort workspaces
   useEffect(() => {
     let result = [...workspaces]
+
+    // Apply archive filter
+    if (!showArchived) {
+      result = result.filter(workspace => !workspace.archived)
+    }
 
     // Apply search filter
     if (searchQuery) {
@@ -148,21 +170,41 @@ export default function WorkspacesPage(isLoggedIn) {
     })
 
     setFilteredWorkspaces(result)
-  }, [workspaces, searchQuery, sortBy, category])
+    setCurrentPage(1) // Reset to first page on filter change
+  }, [workspaces, searchQuery, sortBy, category, showArchived])
 
-  // Pagination
+  // PAGINATION LOGIC: define paginatedWorkspaces here!
+  const startIdx = (currentPage - 1) * itemsPerPage
+  const endIdx = startIdx + itemsPerPage
+  const paginatedWorkspaces = filteredWorkspaces.slice(startIdx, endIdx)
   const totalPages = Math.ceil(filteredWorkspaces.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedWorkspaces = filteredWorkspaces.slice(startIndex, startIndex + itemsPerPage)
 
   // Handle workspace actions
   const handleEdit = (id) => {
-    // console.log(`Editing workspace ${id}`)
-    navigate(`/ModifyWorkspace`)
+    console.log(`Editing workspace ${id}`)
   }
 
-  const handleDelete = (id) => {
-    setWorkspaces(workspaces.filter((workspace) => workspace.id !== id))
+  const handleArchive = (id) => {
+    setWorkspaces(workspaces.map(workspace =>
+      workspace.id === id ? { ...workspace, archived: true } : workspace
+    ));
+
+    toast.success('Workspace archived successfully!', {
+      icon: <MdArchive className="text-blue-500" />,
+      position: 'top-center',
+      duration: 3000,
+    });
+  };
+
+  const handleRestore = (id) => {
+    setWorkspaces(workspaces.map(workspace =>
+      workspace.id === id ? { ...workspace, archived: false } : workspace
+    ))
+    toast.success('Workspace restored successfully!', {
+      position: 'top-center',
+      duration: 3000,
+      icon: <Package className="text-green-500" />,
+    })
   }
 
   const handleShare = (id) => {
@@ -171,7 +213,7 @@ export default function WorkspacesPage(isLoggedIn) {
 
   const handleCreateWorkspace = () => {
     console.log("Creating new workspace")
-    navigate(`/ModifyWorkspace/${id}`)
+    navigate("/workspaceCreate")
   }
 
   const formatDate = (dateString) => {
@@ -192,12 +234,11 @@ export default function WorkspacesPage(isLoggedIn) {
       Sales: "bg-rose-600",
       Design: "bg-violet-600",
     }
-
     return colors[category] || "bg-gray-600"
   }
 
-  const handlePageChange = (event) => {
-    setCurrentPage(event.page)
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
   }
 
   const toggleFilters = () => {
@@ -227,8 +268,7 @@ export default function WorkspacesPage(isLoggedIn) {
             </div>
             <button
               onClick={handleCreateWorkspace}
-              className="!flex  !items-center !justify-center !gap-2 !bg-white !text-purple-700 !font-medium !px-4 !py-2.5 !rounded-lg !shadow-sm !hover:bg-purple-50 !transition-colors !duration-200 !border !border-purple-200 !text-sm
-"
+              className="!flex  !items-center !justify-center !gap-2 !bg-white !text-purple-700 !font-medium !px-4 !py-2.5 !rounded-lg !shadow-sm !hover:bg-purple-50 !transition-colors !duration-200 !border !border-purple-200 !text-sm"
             >
               <Plus className="h-4 w-4" />
               <span>Create New Workspace</span>
@@ -242,6 +282,7 @@ export default function WorkspacesPage(isLoggedIn) {
         {/* Search and filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Search Input */}
             <div className="relative w-full max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
@@ -255,10 +296,10 @@ export default function WorkspacesPage(isLoggedIn) {
               />
             </div>
 
+            {/* Filters + View Modes */}
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button
-                look="outline"
-                className="!flex !flex-row !items-center !gap-2 !border-gray-300 !text-gray-700 !px-4 !py-2.5 !rounded-lg !hover:bg-gray-50 !transition-colors !duration-200"
+                className="flex flex-row items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 onClick={toggleFilters}
               >
                 <Filter className="h-4 w-4" />
@@ -269,7 +310,7 @@ export default function WorkspacesPage(isLoggedIn) {
               <div className="flex border border-gray-300 rounded-lg overflow-hidden shadow-sm">
                 <Tooltip content="Grid view" position="top">
                   <button
-                    className={`!p-2.5 ${viewMode === "grid" ? "!bg-purple-100 !text-purple-700" : "!bg-white !text-gray-500 !hover:bg-gray-50"}`}
+                    className={`p-2.5 ${viewMode === "grid" ? "bg-purple-100 text-purple-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                     onClick={() => setViewMode("grid")}
                   >
                     <Grid className="h-4 w-4" />
@@ -277,7 +318,7 @@ export default function WorkspacesPage(isLoggedIn) {
                 </Tooltip>
                 <Tooltip content="List view" position="top">
                   <button
-                    className={`!p-2.5 ${viewMode === "list" ? "!bg-purple-100 !text-purple-700" : "!bg-white !text-gray-500 !hover:bg-gray-50"}`}
+                    className={`p-2.5 ${viewMode === "list" ? "bg-purple-100 text-purple-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}
                     onClick={() => setViewMode("list")}
                   >
                     <List className="h-4 w-4" />
@@ -317,13 +358,40 @@ export default function WorkspacesPage(isLoggedIn) {
               </div>
             </div>
           )}
-        </div>
 
+          {/* Archived Workspaces Toggle */}
+          <div className="pt-4 mt-4 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Archived Workspaces</label>
+                <p className="text-xs text-gray-500 italic mt-1">
+                  {showArchived
+                    ? 'Showing archived workspaces in the list.'
+                    : 'Archived workspaces are currently hidden.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowArchived(!showArchived)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition
+          ${showArchived
+                    ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}
+          focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1`}
+              >
+                <MdArchive className={`h-5 w-5 ${showArchived ? 'text-purple-600' : 'text-gray-400'}`} />
+                {showArchived ? 'Hide Archived' : 'Show Archived'}
+              </button>
+            </div>
+          </div>
+        </div>
         {/* Summary stats */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
             {filteredWorkspaces.length} {filteredWorkspaces.length === 1 ? "Workspace" : "Workspaces"}
             {category !== "all" && ` in ${category.charAt(0).toUpperCase() + category.slice(1)}`}
+            {showArchived && " (Including Archived)"}
           </h2>
 
           {sortBy && (
@@ -341,32 +409,28 @@ export default function WorkspacesPage(isLoggedIn) {
           {paginatedWorkspaces.map((workspace) => (
             <div
               key={workspace.id}
-              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
-                viewMode === "list" ? "flex justify-between items-center" : ""
-              }`}
+              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${viewMode === "list" ? "flex justify-between items-center" : ""
+                } ${workspace.archived ? "opacity-75 border-dashed" : ""}`}
             >
               <div className={`${viewMode === "list" ? "flex items-center gap-4 flex-1 p-4" : "p-5"}`}>
                 <div className={`flex items-center gap-4 ${viewMode === "grid" ? "mb-4" : ""}`}>
                   <div
-                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center`}
+                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center ${workspace.archived ? "opacity-80" : ""
+                      }`}
                   >
                     {workspace.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-lg text-gray-900 truncate">{workspace.title}</h3>
-
-                      {/* we can add country flag */}
-
-                      {/* <DropDownButton
-                                                icon="more-vertical"
-                                                iconClass="k-icon k-i-more-vertical"
-                                                className="!k-button-md !k-button-flat !k-button-flat-base !-mr-2 !-mt-1"
-                                            >
-                                                <DropDownButtonItem text="Edit" icon="edit" onClick={() => handleEdit(workspace.id)} />
-                                                <DropDownButtonItem text="Share" icon="share" onClick={() => handleShare(workspace.id)} />
-                                                <DropDownButtonItem text="Delete" icon="trash" onClick={() => handleDelete(workspace.id)} />
-                                            </DropDownButton> */}
+                      <h3 className={`font-semibold text-lg text-gray-900 truncate ${workspace.archived ? "line-through" : ""
+                        }`}>
+                        {workspace.title}
+                        {workspace.archived && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
+                            Archived
+                          </span>
+                        )}
+                      </h3>
                     </div>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mt-1">
                       {workspace.category}
@@ -388,100 +452,118 @@ export default function WorkspacesPage(isLoggedIn) {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Clock className="h-4 w-4 text-gray-400" />
-                      <span>Modified:</span>
+                      <span>Last Modified:</span>
                       <span className="font-medium">{formatDate(workspace.modified)}</span>
                     </div>
                   </div>
                 )}
-
-                {viewMode === "list" && (
-                  <div className="flex gap-6 ml-12 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Tag className="h-3 w-3 text-gray-400" />
-                      <span className="text-gray-600">{workspace.brands.join(", ")}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Briefcase className="h-3 w-3 text-gray-400" />
-                      <span className="text-gray-600">{workspace.retailer}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-gray-600">{formatDate(workspace.modified)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
+              {/* Actions */}
+              <div className="flex flex-row items-center align-middle justify-center gap-2 p-2">
+                <Tooltip
+                  content={workspace.archived ? "Cannot Edit Archived Workspace" : "Modify Workspace Details"}
+                  position="top"
+                >
+                  <div>
+                    <button
+                      className="p-2 rounded hover:bg-purple-50 flex items-center justify-center"
+                      onClick={() => handleEdit(workspace.id)}
+                      disabled={workspace.archived}
+                    >
+                      <Edit className={`h-4 w-4 ${workspace.archived ? 'text-gray-400' : 'text-gray-500'}`} />
+                    </button>
+                  </div>
+                </Tooltip>
 
-              <div className={`flex ${viewMode === "grid" ? "justify-end px-5 pb-4" : "pr-4"}`}>
-                <Tooltip content="Edit" position="top">
-                  <Button
-                    look="flat"
-                    onClick={() => handleEdit(workspace.id)}
-                    className="!k-button-md !text-gray-600 !hover:text-purple-700 !hover:bg-purple-50"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                <Tooltip
+                  content={workspace.archived ? "Restore Workspace from Archive" : "Move Workspace to Archive"}
+                  position="top"
+                >
+                  <div>
+                    <button
+                      className="p-2 rounded hover:bg-purple-50 flex items-center justify-center"
+                      onClick={() =>
+                        workspace.archived ? handleRestore(workspace.id) : handleArchive(workspace.id)
+                      }
+                    >
+                      {workspace.archived ? (
+                        <Package className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <MdArchive className="h-4 w-4 text-blue-500" />
+                      )}
+                    </button>
+                  </div>
                 </Tooltip>
-                <Tooltip content="Share" position="top">
-                  <Button
-                    look="flat"
-                    onClick={() => handleShare(workspace.id)}
-                    className="!k-button-md !text-gray-600 !hover:text-purple-700 !hover:bg-purple-50"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </Tooltip>
-                <Tooltip content="Delete" position="top">
-                  <Button
-                    look="flat"
-                    onClick={() => handleDelete(workspace.id)}
-                    className="!k-button-md !text-gray-600 !hover:text-red-600 !hover:bg-red-50"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </Tooltip>
+
               </div>
             </div>
           ))}
         </div>
 
-        {/* Empty state */}
-        {filteredWorkspaces.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Search className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No workspaces found</h3>
-            <p className="text-gray-500 max-w-md mx-auto">
-              We couldn't find any workspaces matching your search criteria. Try adjusting your filters or create a new
-              workspace.
-            </p>
-            <Button
-              themeColor="primary"
-              className="!mt-6 !bg-purple-600 !hover:bg-purple-700"
-              onClick={handleCreateWorkspace}
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-8 space-x-2">
+            {/* First */}
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Workspace
-            </Button>
-          </div>
-        )}
+              First
+            </button>
 
-        {/* Pagination */}
-        {filteredWorkspaces.length > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <p className="text-sm text-gray-500 mb-4 sm:mb-0">
-              Showing {startIndex + 1} of {filteredWorkspaces.length} workspaces
-            </p>
-            <Pager
-              total={filteredWorkspaces.length}
-              skip={(currentPage - 1) * itemsPerPage}
-              take={itemsPerPage}
-              onPageChange={handlePageChange}
-              buttonCount={5}
-              info={false}
-              className="!k-pager-md"
-            />
+            {/* Previous */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              Prev
+            </button>
+
+            {/* Page numbers */}
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((num) => (
+              <button
+                key={num}
+                onClick={() => handlePageChange(num)}
+                className={`px-3 py-1 border rounded-md text-sm font-medium ${currentPage === num
+                  ? "bg-purple-600 text-white border-purple-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                  }`}
+              >
+                {num}
+              </button>
+            ))}
+
+            {/* Next */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              Next
+            </button>
+
+            {/* Last */}
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              Last
+            </button>
           </div>
         )}
       </main>
