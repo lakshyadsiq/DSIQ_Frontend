@@ -7,7 +7,7 @@ import { useLocation } from 'react-router-dom';
 import Footer from '../components/Footer'
 
 
-const WelcomePage = () => {
+const WelcomePage = ({ isLoggedIn }) => {
   const extraContentRef = useRef(null);
 
   const handleLearnMore = () => {
@@ -134,7 +134,7 @@ useEffect(() => {
             ))}
           </div>
         </section>
-        <Footer/>
+        <Footer isLoggedIn={isLoggedIn} />
       </div>
     </div>
   );

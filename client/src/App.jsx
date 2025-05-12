@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
-import Home from './pages/Home'; // Renamed from HomePage
+import Home from './pages/Home';
 import { useAuth } from './contexts/AuthContext';
 import HelpPage from './pages/HelpPage';
 import Profile from './components/Profile';
@@ -51,8 +51,8 @@ const App = () => {
             )
           }
         />
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/help" element={isLoggedIn ? <HelpPage/> : <Navigate to="/login" />} />
+        <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );

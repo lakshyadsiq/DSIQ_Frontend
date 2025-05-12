@@ -17,7 +17,7 @@ export default function Footer({ isLoggedIn }) {
   // Simple footer for logged in users
   if (isLoggedIn) {
     return (
-      <footer className="w-full bg-gray-800 text-gray-400 py-6 px-6 mt-8 shadow-inner">
+      <footer className="w-full bg-gray-800 text-gray-400 py-2  shadow-inner">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm">© {new Date().getFullYear()} DSIQ Inc. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
@@ -32,7 +32,7 @@ export default function Footer({ isLoggedIn }) {
 
   // Detailed footer for non-logged in users
   return (
-    <footer className="relative bg-slate-950 text-white pt-16 mt-20 border-t border-slate-800">
+    <footer className="relative bg-slate-950 text-white pt-8 mt-6 border-slate-800">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* Top Section */}
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
@@ -79,7 +79,7 @@ export default function Footer({ isLoggedIn }) {
         </div>
 
         {/* Newsletter */}
-        <div className="mt-16 bg-gradient-to-r from-blue-800/20 to-cyan-800/20 backdrop-blur-md p-6 rounded-xl border border-slate-700">
+        <div className="mt-10 bg-gradient-to-r from-blue-800/20 to-cyan-800/20 backdrop-blur-md p-3 rounded-xl border border-slate-700">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold mb-1">Join Our Newsletter</h3>

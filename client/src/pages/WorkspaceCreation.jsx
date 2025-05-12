@@ -12,21 +12,26 @@ import {
   FiChevronLeft, 
   FiChevronRight,
   FiCheck,
-  FiX
+  FiX,
+  FiEdit3
 } from "react-icons/fi"
+import clsx from "clsx"
 
 export default function WorkspaceCreation() {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1) 
   const [selectedRetailers, setSelectedRetailers] = useState([])
   const [selectedCategories, setSelectedCategories] = useState({})
   const [selectedBrands, setSelectedBrands] = useState({})
   const [activeRetailer, setActiveRetailer] = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
+  const [activeBrandCategory, setActiveBrandCategory] = useState(null)
   const [expandedRetailers, setExpandedRetailers] = useState({})
+  const [expandedCategories, setExpandedCategories] = useState({})
   const [retailerSearch, setRetailerSearch] = useState("")
   const [categorySearches, setCategorySearches] = useState({})
   const [brandSearches, setBrandSearches] = useState({})
   const [workspaceName, setWorkspaceName] = useState("")
+  
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -74,6 +79,11 @@ export default function WorkspaceCreation() {
     // Only set active category if we don't have one but have categories
     if (selectedCategoriesFlat.length > 0 && !activeCategory) {
       setActiveCategory(selectedCategoriesFlat[0])
+    }
+
+    // Set the active brand category if we don't have one but have categories
+    if (selectedCategoriesFlat.length > 0 && !activeBrandCategory) {
+      setActiveBrandCategory(selectedCategoriesFlat[0])
     }
   }, [selectedCategories]) // Only depend on selectedCategories
 
@@ -234,6 +244,13 @@ export default function WorkspaceCreation() {
     })
   }
 
+  const toggleCategoryDropdown = (categoryId) => {
+    setExpandedCategories({
+      ...expandedCategories,
+      [categoryId]: !expandedCategories[categoryId],
+    })
+  }
+
   const nextStep = () => {
     setStep(step + 1)
   }
@@ -311,6 +328,7 @@ export default function WorkspaceCreation() {
     </div>
   );
 
+
   const renderRetailerStep = () => {
     const filteredRetailers = retailers.filter((retailer) =>
       retailer.name.toLowerCase().includes(retailerSearch.toLowerCase()),
@@ -318,22 +336,6 @@ export default function WorkspaceCreation() {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-x-3 mb-4">
-          <label
-            htmlFor="workspaceName"
-            className="text-sm font-medium text-gray-700 whitespace-nowrap"
-          >
-            Workspace Name
-          </label>
-          <Input
-            id="workspaceName"
-            placeholder="Enter workspace name..."
-            value={workspaceName}
-            onChange={(e) => setWorkspaceName(e.target.value)}
-            className="flex-1 py-2 px-3 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-          />
-        </div>
-        
         {/* Selected retailers tags */}
         <div className="flex flex-wrap mb-2">
           {selectedRetailers.map(retailerId => {
@@ -514,18 +516,25 @@ export default function WorkspaceCreation() {
     if (selectedCategoriesFlat.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one category to proceed.</p>
     }
+    // Get all categories that have brands
+    const categoriesWithBrands = selectedCategoriesFlat.filter(id => brands[id] && brands[id].length > 0);
+    // Group categories by retailer for the left panel
+    const categoriesByRetailer = {};
+    selectedRetailers.forEach(retailerId => {
+      const retailerCategoryIds = selectedCategories[retailerId] || [];
+      if (retailerCategoryIds.length > 0) {
+        categoriesByRetailer[retailerId] = retailerCategoryIds;
+      }
+    });
 
     return (
       <div className="flex space-x-8">
-        {/* Left Panel: Retailers and Categories in Dropdown Structure */}
+        {/* Left Panel: Retailers and Categories with Selected Brands */}
         <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
-          <h3 className="font-semibold text-lg text-gray-800 mb-4">Categories</h3>
+          <h3 className="font-semibold text-lg text-gray-800 mb-4">Selection Summary</h3>
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
-            {selectedRetailers.map((retailerId) => {
-              const retailer = retailers.find((r) => r.id === retailerId)
-              const retailerCategories = (selectedCategories[retailerId] || []).map((categoryId) =>
-                categories[retailerId].find((c) => c.id === categoryId),
-              )
+            {Object.entries(categoriesByRetailer).map(([retailerId, categoryIds]) => {
+              const retailer = retailers.find((r) => r.id === retailerId);
               return (
                 <div key={retailerId}>
                   <div
@@ -539,37 +548,70 @@ export default function WorkspaceCreation() {
                       <FiChevronDown className="h-5 w-5 text-gray-500" />
                     )}
                   </div>
-                  {expandedRetailers[retailerId] && retailerCategories.length > 0 && (
+                  {expandedRetailers[retailerId] && categoryIds.length > 0 && (
                     <div className="pl-5 mt-2 space-y-2 animate-slide-down">
-                      {retailerCategories.map((category) => (
-                        <div
-                          key={category.id}
-                          className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                            activeCategory === category.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
-                          }`}
-                          onClick={() => setActiveCategory(category.id)}
-                        >
-                          {category.name}
-                        </div>
-                      ))}
+                      {categoryIds.map((categoryId) => {
+                        const category = categories[retailerId].find(c => c.id === categoryId);
+                        const selectedBrandsList = selectedBrands[categoryId] || [];
+                        
+                        return (
+                          <div key={categoryId}>
+                            <div
+                              className={`flex justify-between items-center p-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                                activeBrandCategory === categoryId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
+                              }`}
+                              onClick={() => {
+                                setActiveBrandCategory(categoryId);
+                                toggleCategoryDropdown(categoryId);
+                              }}
+                            >
+                              <span className="text-gray-700">{category?.name}</span>
+                              {expandedCategories[categoryId] ? (
+                                <FiChevronUp className="h-4 w-4 text-gray-500" />
+                              ) : (
+                                <FiChevronDown className="h-4 w-4 text-gray-500" />
+                              )}
+                            </div>
+                            {expandedCategories[categoryId] && selectedBrandsList.length > 0 && (
+                              <div className="pl-4 mt-1 space-y-1 animate-slide-down">
+                                {selectedBrandsList.map((brand, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="text-xs text-gray-600 p-1 pl-2 rounded"
+                                  >
+                                    {brand}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              )
+              );
             })}
           </div>
         </div>
 
         {/* Right Panel: Brands for Active Category */}
-        {activeCategory && (
+        {activeBrandCategory && (
           <div className="w-2/3">
+            {/* Header for the current category */}
+            <div className="mb-4">
+              <h4 className="text-lg font-medium text-gray-700">
+                Select brands for {Object.values(categories).flat().find((c) => c.id === activeBrandCategory)?.name}
+              </h4>
+            </div>
+            
             {/* Selected brands tags */}
             <div className="flex flex-wrap mb-4">
-              {(selectedBrands[activeCategory] || []).map(brand => (
+              {(selectedBrands[activeBrandCategory] || []).map(brand => (
                 <SelectionTag 
                   key={brand}
                   label={brand}
-                  onRemove={() => removeBrandTag(activeCategory, brand)}
+                  onRemove={() => removeBrandTag(activeBrandCategory, brand)}
                 />
               ))}
             </div>
@@ -578,29 +620,29 @@ export default function WorkspaceCreation() {
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder={`Search ${
-                  Object.values(categories).flat().find((c) => c.id === activeCategory)?.name
+                  Object.values(categories).flat().find((c) => c.id === activeBrandCategory)?.name
                 } brands...`}
-                value={brandSearches[activeCategory] || ""}
+                value={brandSearches[activeBrandCategory] || ""}
                 onChange={(e) =>
                   setBrandSearches({
                     ...brandSearches,
-                    [activeCategory]: e.target.value,
+                    [activeBrandCategory]: e.target.value,
                   })
                 }
                 className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
-              {(brands[activeCategory] || [])
+              {(brands[activeBrandCategory] || [])
                 .filter((brand) =>
-                  brand.toLowerCase().includes((brandSearches[activeCategory] || "").toLowerCase()),
+                  brand.toLowerCase().includes((brandSearches[activeBrandCategory] || "").toLowerCase()),
                 )
                 .map((brand) => {
-                  const isSelected = (selectedBrands[activeCategory] || []).includes(brand);
+                  const isSelected = (selectedBrands[activeBrandCategory] || []).includes(brand);
                   return (
                     <div
-                      key={`${activeCategory}-${brand}`}
-                      onClick={() => handleBrandChange(activeCategory, brand)}
+                      key={`${activeBrandCategory}-${brand}`}
+                      onClick={() => handleBrandChange(activeBrandCategory, brand)}
                       className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
                         isSelected 
                           ? 'bg-blue-100 border border-blue-300' 
@@ -693,27 +735,47 @@ export default function WorkspaceCreation() {
           </CardSubtitle>
           <div className="mt-8">
             {renderProgressBar()}
-
           </div>
         </CardHeader>
+        <div className="flex items-center gap-x-3 mb-4 mt-4 px-3">
+          <label
+            htmlFor="workspaceName"
+            className="text-sm font-medium text-gray-700 whitespace-nowrap"
+          >
+            Workspace Name
+          </label>
+          <input
+            id="workspaceName"
+            placeholder="Enter workspace name..."
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            className={clsx(
+              "flex-1 py-2 px-3 rounded-lg border shadow-sm outline-none transition-all duration-300",
+              {
+                "border-red-600 animate-pulse": workspaceName === "", // red blinking by default
+                "border-green-500": workspaceName !== "",             // green when user types
+              }
+            )}
+          />
+        </div>
         <CardBody className="p-8">
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Online Retailers</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
               {renderRetailerStep()}
             </>
           )}
 
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Categories</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
               {renderCategoryStep()}
             </>
           )}
 
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Select Brands</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
 
               {renderBrandStep()}
             </>
