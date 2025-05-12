@@ -1,6 +1,6 @@
-// src/pages/HelpPage.jsx
 import React from 'react';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import { HelpCircle, ChevronDown, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const helpTopics = [
   {
@@ -8,7 +8,7 @@ const helpTopics = [
     description: 'Learn how to set up your account and start exploring insights.',
     faqs: [
       { question: 'How do I set up my DSIQ account?', answer: 'Go to your profile settings and fill out the required information.' },
-      { question: 'What is the DSIQ dashboard?', answer: 'It’s your central hub for viewing and analyzing business insights.' },
+      { question: 'What is the DSIQ dashboard?', answer: 'Its your central hub for viewing and analyzing business insights.' },
     ],
   },
   {
@@ -46,13 +46,28 @@ const helpTopics = [
 ];
 
 const HelpPage = () => {
+  const navigate = useNavigate();
+  
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+      <div className="mb-6 flex space-x-170">
+        <button 
+          onClick={handleGoBack}
+          className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+        >
+          <ArrowLeft size={20} className="mr-1" />
+          <span>Back</span>
+        </button>
+        <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
         <HelpCircle size={28} /> Help & Support
       </h1>
+      </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {helpTopics.map((topic, index) => (
           <div key={index} className="p-6 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-sm">
             <h2 className="text-xl font-semibold mb-1">{topic.title}</h2>

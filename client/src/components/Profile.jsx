@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pencil, Save, X, Camera, Calendar, MapPin, Briefcase, Mail, Phone } from 'lucide-react';
+import { Pencil, Save, X, Camera, Calendar, MapPin, Briefcase, Mail, Phone, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const initialProfile = {
   name: 'Jane Doe',
@@ -19,6 +20,7 @@ const Profile = () => {
   const [tempProfile, setTempProfile] = useState(profile);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (field, value) => {
     setTempProfile({ ...tempProfile, [field]: value });
@@ -48,10 +50,24 @@ const Profile = () => {
     setNewPassword('');
     setConfirmPassword('');
   };
+  
+  const handleGoBack = () => {
+    navigate(-1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <button 
+            onClick={handleGoBack}
+            className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            <ArrowLeft size={20} className="mr-1" />
+            <span>Back</span>
+          </button>
+        </div>
+        
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white">Your Profile</h1>
           {editMode ? (

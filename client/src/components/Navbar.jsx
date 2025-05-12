@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './navbar.css'; 
 import {
   TableOfContents,
   Bell,
@@ -8,16 +9,19 @@ import {
   ArrowRightFromLine,
   ChevronDown,
   Search,
-  X
+  X,
+  Pin,
+  PinOff
 } from 'lucide-react';
 import ProfileDropdown from './ProfileDropdown';
 import { useNavigate } from 'react-router-dom';
 
-const apps = [
-  { name: 'Digital Shelf iQ', icon: '📊', description: 'Product visibility analytics' },
-  { name: 'Shopper iQ', icon: '🛒', description: 'Consumer behavior insights' },
-  { name: 'Promotion iQ', icon: '💰', description: 'Promotional performance tracking' },
-  { name: 'Channel AMP', icon: '📈', description: 'Amplify your channel strategy' },
+// Now we'll define apps outside the component to maintain original reference
+const initialApps = [
+  { id: 1, name: 'Digital Shelf iQ', icon: '📊', description: 'Product visibility analytics' },
+  { id: 2, name: 'Shopper iQ', icon: '🛒', description: 'Consumer behavior insights' },
+  { id: 3, name: 'Promotion iQ', icon: '💰', description: 'Promotional performance tracking' },
+  { id: 4, name: 'Channel AMP', icon: '📈', description: 'Amplify your channel strategy' },
 ];
 
 const mockWorkspaces = [
@@ -28,6 +32,7 @@ const mockWorkspaces = [
   { id: 5, name: "Executive Dashboard" },
   { id: 6, name: "Q4 2024 Campaign" },
   { id: 7, name: "European Markets" },
+  { id: 8, name: "Asia Pacific Region" },
 ];
 
 const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
@@ -35,11 +40,48 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const [isAppDropdownOpen, setIsAppDropdownOpen] = useState(false);
   const [workspaceSearch, setWorkspaceSearch] = useState('');
-  const [currentWorkspace, setCurrentWorkspace] = useState({ id: 1, name: "workspaces" });
-
+  const [currentWorkspace, setCurrentWorkspace] = useState({ id: 1, name: "Marketing Team" });
+  const [pinnedApp, setPinnedApp] = useState(null);
+  const [apps, setApps] = useState([...initialApps]);
   const workspaceDropdownRef = useRef(null);
   const appDropdownRef = useRef(null);
+  const [selectedApp, setSelectedApp] = useState(null);
+
   const navigate = useNavigate();
+
+  // Load pinnedApp and selectedApp from localStorage on mount
+  useEffect(() => {
+    const storedPinnedApp = localStorage.getItem('pinnedApp');
+    const storedSelectedApp = localStorage.getItem('selectedApp');
+
+    if (storedPinnedApp) {
+      const parsed = JSON.parse(storedPinnedApp);
+      setPinnedApp(parsed);
+      reorderApps(parsed);
+    }
+
+    if (storedSelectedApp) {
+      setSelectedApp(JSON.parse(storedSelectedApp));
+    } else {
+      setSelectedApp(initialApps[0]);
+    }
+  }, []);
+
+  // Save selectedApp to localStorage
+  useEffect(() => {
+    if (selectedApp) {
+      localStorage.setItem('selectedApp', JSON.stringify(selectedApp));
+    }
+  }, [selectedApp]);
+
+  // Save pinnedApp to localStorage
+  useEffect(() => {
+    if (pinnedApp) {
+      localStorage.setItem('pinnedApp', JSON.stringify(pinnedApp));
+    } else {
+      localStorage.removeItem('pinnedApp');
+    }
+  }, [pinnedApp]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -58,14 +100,41 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
     workspace.name.toLowerCase().includes(workspaceSearch.toLowerCase())
   );
 
-  const displayWorkspaces = filteredWorkspaces.slice(0, 6);
-  const hasMoreWorkspaces = filteredWorkspaces.length > 6;
-
   const selectWorkspace = (workspace) => {
     setCurrentWorkspace(workspace);
     setIsWorkspaceDropdownOpen(false);
   };
 
+  const selectApp = (app) => {
+    setSelectedApp(app);
+    setIsAppDropdownOpen(false);
+  };
+
+  const reorderApps = (pinned) => {
+    const updated = [...initialApps];
+    const index = updated.findIndex(a => a.id === pinned.id);
+    if (index > -1) {
+      const [app] = updated.splice(index, 1);
+      updated.unshift(app);
+    }
+    setApps(updated);
+  };
+
+  const togglePinApp = (app, e) => {
+    e.stopPropagation();
+
+    const isCurrentlyPinned = pinnedApp && pinnedApp.id === app.id;
+
+    if (isCurrentlyPinned) {
+      setPinnedApp(null);
+      setApps([...initialApps]); // Reset to original order
+    } else {
+      setPinnedApp(app);
+      reorderApps(app);
+    }
+  };
+
+  const displayApp = selectedApp || pinnedApp || { name: "Apps" };
 
   return (
     <nav className="flex !h-[64px] items-center justify-between px-4 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 transition-colors duration-300">
@@ -87,24 +156,43 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
                 onClick={() => setIsAppDropdownOpen(!isAppDropdownOpen)}
                 className="px-4 py-1.5 bg-gray-300 dark:bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-800 dark:text-gray-200"
               >
-                <span>Apps</span>
+                <div className="flex items-center space-x-2">
+                  {displayApp.icon && <span>{displayApp.icon}</span>}
+                  <span>{displayApp.name}</span>
+                </div>
                 <ChevronDown size={16} className="ml-2" />
               </button>
 
               {isAppDropdownOpen && (
-                <div className="absolute left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700">
-                  {apps.map((app, index) => (
+                <div className="absolute left-0 mt-1 w-72 bg-gray-900 rounded-md shadow-lg py-2 z-50 border border-gray-700">
+                  {apps.map((app) => {
+                    const isPinned = pinnedApp && pinnedApp.id === app.id;
+                    return (
                     <div
-                      key={index}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-start space-x-2 cursor-pointer"
+                      key={app.id}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
+                        isPinned ? 'bg-gray-800' : ''
+                      }`}
+                      onClick={() => selectApp(app)}
                     >
                       <span className="text-xl">{app.icon}</span>
-                      <div>
-                        <div className="font-medium text-gray-800 dark:text-gray-200">{app.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{app.description}</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-200">{app.name}</div>
+                        <div className="text-xs text-gray-400">{app.description}</div>
                       </div>
+                      <button 
+                        onClick={(e) => togglePinApp(app, e)}
+                        className="p-1 text-gray-400 hover:text-gray-300"
+                        title={isPinned ? "Unpin app" : "Pin app"}
+                      >
+                        {isPinned ? 
+                          <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
+                          <PinOff size={16} />
+                        }
+                      </button>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>
@@ -139,25 +227,22 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
                 </div>
               </div>
 
-
               {isWorkspaceDropdownOpen && (
-                <div className="absolute left-0 mt-10 w-72 bg-white dark:bg-gray-800 rounded-md shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700">
-                  <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                <div className="absolute left-0 mt-10 w-72 bg-gray-900 rounded-md shadow-lg z-50 border border-gray-700 flex flex-col">
+                  <div className="px-3 py-2 border-b border-gray-700">
                     <div className="relative">
-                      <Search size={16} className="absolute left-2 top-2.5 text-gray-500" />
+                      <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
                       <input
                         type="text"
                         placeholder="Search workspaces..."
                         value={workspaceSearch}
                         onChange={(e) => setWorkspaceSearch(e.target.value)}
-                        className={`pl-8 pr-8 py-2 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          workspaceSearch ? 'text-white' : 'text-gray-800 dark:text-gray-200'
-                        }`}
+                        className="pl-8 pr-8 py-2 w-full bg-gray-800 border border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
                       />
                       {workspaceSearch && (
                         <button
                           onClick={() => setWorkspaceSearch('')}
-                          className="absolute right-2 top-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-300"
                         >
                           <X size={16} />
                         </button>
@@ -165,36 +250,37 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
                     </div>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto">
-                    {displayWorkspaces.length > 0 ? (
-                      displayWorkspaces.map(workspace => (
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                    {filteredWorkspaces.length > 0 ? (
+                      filteredWorkspaces.map(workspace => (
                         <button
                           key={workspace.id}
                           onClick={() => selectWorkspace(workspace)}
-                          className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center ${
-                            currentWorkspace.id === workspace.id ? 'bg-gray-100 dark:bg-gray-700' : ''
+                          className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center ${
+                            currentWorkspace.id === workspace.id ? 'bg-gray-800' : ''
                           }`}
                         >
-                          <span className="text-gray-800 dark:text-gray-200">{workspace.name}</span>
+                          <span className="text-gray-200">{workspace.name}</span>
                         </button>
                       ))
                     ) : (
-                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400 text-center">
+                      <div className="px-4 py-2 text-gray-400 text-center">
                         No workspaces found
                       </div>
                     )}
                   </div>
 
-                  {hasMoreWorkspaces && (
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1 px-3">
-                      <button
-                        onClick={() => navigate('/viewWorkspace')}
-                        className="w-full text-center py-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                      >
-                        See all workspaces
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-auto border-t border-gray-700">
+                  <button
+                    onClick={() => {
+                      setIsWorkspaceDropdownOpen(false); // Close dropdown first
+                      navigate('/viewWorkspace');
+                    }}
+                    className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
+                  >
+                    See all workspaces
+                  </button>
+                  </div>
                 </div>
               )}
             </div>
