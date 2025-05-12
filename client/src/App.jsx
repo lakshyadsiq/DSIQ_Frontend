@@ -11,6 +11,8 @@ import HelpPage from './pages/HelpPage';
 import Profile from './components/Profile';
 import ViewWorkspacesPage from './pages/ViewWorkspace';
 import Dashboard from './components/Dashboard';
+import ResetPassword from './pages/ResetPassword';
+import { Toaster } from 'react-hot-toast';
 
 const App = () => {
   const { isLoggedIn, login } = useAuth();
@@ -32,6 +34,7 @@ const App = () => {
         </Route>
 
         <Route path="/login" element={<LoginPage onLogin={login} />} />
+        <Route path="/resetPassword" element={<ResetPassword/>} />
         <Route path="/signup" element={<SignupPage onSignUp={login} />} />
         <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm /> : <Navigate to="/login" />} />
         <Route
@@ -54,6 +57,7 @@ const App = () => {
         <Route path="/help" element={isLoggedIn ? <HelpPage/> : <Navigate to="/login" />} />
         <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" />} />
       </Routes>
+      <Toaster position="bottom-right" />
     </Router>
   );
 };
