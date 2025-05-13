@@ -182,6 +182,7 @@ export default function WorkspacesPage(isLoggedIn) {
   // Handle workspace actions
   const handleEdit = (id) => {
     console.log(`Editing workspace ${id}`)
+    navigate(`/ModifyWorkspace/${id}`)
   }
 
   const handleArchive = (id) => {
@@ -206,11 +207,7 @@ export default function WorkspacesPage(isLoggedIn) {
       icon: <Package className="text-green-500" />,
     })
   }
-
-  const handleShare = (id) => {
-    console.log(`Sharing workspace ${id}`)
-  }
-
+  
   const handleCreateWorkspace = () => {
     console.log("Creating new workspace")
     navigate("/workspaceCreate")

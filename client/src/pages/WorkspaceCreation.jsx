@@ -291,7 +291,7 @@ export default function WorkspaceCreation() {
     // Navigate after a short delay to allow toast to be seen
     setTimeout(() => {
       navigate('/')
-    }, 3000)
+    }, 1500)
   }
 
   const renderProgressBar = () => {
@@ -823,96 +823,96 @@ export default function WorkspaceCreation() {
                   "border-gray-300": workspaceName === "",
                 }
               )}
-            />
-            {workspaceNameError && (
-              <p className="text-xs text-red-600 mt-1 animate-pulse">
-                {workspaceNameError}
-              </p>
-            )}
+              />
+              {workspaceNameError && (
+                <p className="text-xs text-red-600 mt-1 animate-pulse">
+                  {workspaceNameError}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-        <CardBody className="p-8">
-        {step === 1 && (
-            <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
-              {(selectedRetailers.length === 0 || !workspaceName) && (
-                <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
-              )}
-              {renderRetailerStep()}
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
-              {(Object.keys(selectedCategories).length === 0 ||
-                selectedRetailers.some(
-                  (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0
-                )) && (
-                <p className="text-sm text-red-500">**You must select at least one category from each selected retailer.**</p>
-              )}
-              {renderCategoryStep()}
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
-              {(() => {
-                const selectedCategoriesFlat = []
-                Object.values(selectedCategories).forEach((categoryIds) => {
-                  categoryIds.forEach((id) => {
-                    if (!selectedCategoriesFlat.includes(id)) {
-                      selectedCategoriesFlat.push(id)
-                    }
+          <CardBody className="p-8">
+          {step === 1 && (
+              <>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
+                {(selectedRetailers.length === 0 || !workspaceName) && (
+                  <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
+                )}
+                {renderRetailerStep()}
+              </>
+            )}
+  
+            {step === 2 && (
+              <>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
+                {(Object.keys(selectedCategories).length === 0 ||
+                  selectedRetailers.some(
+                    (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0
+                  )) && (
+                  <p className="text-sm text-red-500">**You must select at least one category from each selected retailer.**</p>
+                )}
+                {renderCategoryStep()}
+              </>
+            )}
+  
+            {step === 3 && (
+              <>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
+                {(() => {
+                  const selectedCategoriesFlat = []
+                  Object.values(selectedCategories).forEach((categoryIds) => {
+                    categoryIds.forEach((id) => {
+                      if (!selectedCategoriesFlat.includes(id)) {
+                        selectedCategoriesFlat.push(id)
+                      }
+                    })
                   })
-                })
-
-                const missingBrands = selectedCategoriesFlat.some(
-                  (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
-                )
-
-                return missingBrands && (
-                  <p className="text-sm text-red-500">**You must select at least one brand from each category for each retailer.**</p>
-                )
-              })()}
-              {renderBrandStep()}
-            </>
-          )}
-        </CardBody>
-        <CardActions className="flex !justify-between gap-4 p-8 border-gray-200 bg-gray-50">
-          {step > 1 ? (
-            <button 
-              look="outline" 
-              onClick={prevStep} 
-              className="px-4 py-2 rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all duration-300 font-medium flex items-center"
-            >
-              <FiChevronLeft className="mr-2" /> Back
-            </button>
-          ) : (
-            <div></div>
-          )}
-
-          {step < 3 ? (
-            <button 
-              onClick={nextStep}
-              disabled={isNextDisabled()}
-              className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
-            >
-              Next <FiChevronRight className="ml-2 h-5 w-5" />
-            </button>
+  
+                  const missingBrands = selectedCategoriesFlat.some(
+                    (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
+                  )
+  
+                  return missingBrands && (
+                    <p className="text-sm text-red-500">**You must select at least one brand from each category for each retailer.**</p>
+                  )
+                })()}
+                {renderBrandStep()}
+              </>
+            )}
+          </CardBody>
+          <CardActions className="flex !justify-between gap-4 p-8 border-gray-200 bg-gray-50">
+            {step > 1 ? (
+              <button 
+                look="outline" 
+                onClick={prevStep} 
+                className="px-4 py-2 rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all duration-300 font-medium flex items-center"
+              >
+                <FiChevronLeft className="mr-2" /> Back
+              </button>
             ) : (
-            <button 
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled()}
-              className="px-4 py-2 rounded-lg bg-green-700 text-white hover:bg-green-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
-            >
-              Create Workspace 
-              <FiCheck className="ml-2 h-5 w-5" />
-            </button>
-          )}
-        </CardActions>
-      </Card>
-    </div>
-  )
-}
+              <div></div>
+            )}
+  
+            {step < 3 ? (
+              <button 
+                onClick={nextStep}
+                disabled={isNextDisabled()}
+                className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
+              >
+                Next <FiChevronRight className="ml-2 h-5 w-5" />
+              </button>
+              ) : (
+              <button 
+                onClick={handleSubmit}
+                disabled={isSubmitDisabled()}
+                className="px-4 py-2 rounded-lg bg-green-700 text-white hover:bg-green-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
+              >
+                Create Workspace 
+                <FiCheck className="ml-2 h-5 w-5" />
+              </button>
+            )}
+          </CardActions>
+        </Card>
+      </div>
+    )
+  }
