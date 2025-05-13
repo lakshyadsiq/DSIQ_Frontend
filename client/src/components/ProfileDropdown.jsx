@@ -1,11 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext'; // Import the useAuth hook
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../redux/slices/authSlice';
 
 const ProfileDropdown = ({ onClose }) => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { logout } = useAuth(); // Get the logout function from AuthContext
+
+  // Optional: fetch user email from Redux if stored
+  // const userEmail = useSelector((state) => state.auth.user?.email || "user@example.com");
+  const userEmail = "user@example.com"; // fallback if not stored
 
   const handleProfileClick = () => {
     onClose();
@@ -13,8 +18,7 @@ const ProfileDropdown = ({ onClose }) => {
   };
 
   const handleSignOut = () => {
-    // Call the logout function from AuthContext
-    logout();
+    dispatch(logout()); 
     onClose();
     navigate('/login');
   };
@@ -23,7 +27,7 @@ const ProfileDropdown = ({ onClose }) => {
     <>
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
         <p className="text-sm font-medium text-gray-900 dark:text-white">Signed in as</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">user@example.com</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{userEmail}</p>
       </div>
 
       <div className="py-1">
