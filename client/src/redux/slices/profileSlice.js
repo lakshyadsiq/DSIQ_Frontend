@@ -1,5 +1,4 @@
 //Update your Redux Slice to use createAsyncThunk
-
 // redux/slices/profileSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '../../api/axios'; // use default Axios if no instance
