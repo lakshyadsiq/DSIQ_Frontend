@@ -14,12 +14,25 @@ export const fetchWorkspaces = createAsyncThunk(
   }
 );
 
+// Async thunk for creating a new workspace
+export const createWorkspace = createAsyncThunk(
+  'workspaceView/createWorkspace',
+  async (workspaceData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/api/workspaces', workspaceData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to create workspace');
+    }
+  }
+);
+
 // Async thunk for archiving a workspace
 export const archiveWorkspace = createAsyncThunk(
   'workspaceView/archiveWorkspace',
   async (workspaceId, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(`/api/workspaces/${workspaceId}/archive`, { archived: true });
+      const response = await axios.post(`/api/workspaces/${workspaceId}/archive`, { archived: true });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to archive workspace');
@@ -32,7 +45,7 @@ export const restoreWorkspace = createAsyncThunk(
   'workspaceView/restoreWorkspace',
   async (workspaceId, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(`/api/workspaces/${workspaceId}/archive`, { archived: false });
+      const response = await axios.post(`/api/workspaces/${workspaceId}/archive`, { archived: false });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to restore workspace');
@@ -49,7 +62,9 @@ const initialState = {
   // Filters
   searchQuery: '',
   sortBy: 'name',
-  category: 'all',
+  retailerFilter: 'all',
+  categoryFilter: 'all',
+  brandFilter: 'all',
   showArchived: false,
   
   // View settings
@@ -73,8 +88,21 @@ const workspaceViewSlice = createSlice({
       state.sortBy = action.payload;
       state.currentPage = 1; // Reset to first page on filter change
     },
-    setCategory: (state, action) => {
-      state.category = action.payload;
+    setRetailerFilter: (state, action) => {
+      state.retailerFilter = action.payload;
+      // When retailer changes, reset category and brand filters
+      state.categoryFilter = 'all';
+      state.brandFilter = 'all';
+      state.currentPage = 1; // Reset to first page on filter change
+    },
+    setCategoryFilter: (state, action) => {
+      state.categoryFilter = action.payload;
+      // When category changes, reset brand filter
+      state.brandFilter = 'all';
+      state.currentPage = 1; // Reset to first page on filter change
+    },
+    setBrandFilter: (state, action) => {
+      state.brandFilter = action.payload;
       state.currentPage = 1; // Reset to first page on filter change
     },
     setViewMode: (state, action) => {
@@ -114,28 +142,64 @@ const workspaceViewSlice = createSlice({
       // Apply search filter
       if (state.searchQuery) {
         const query = state.searchQuery.toLowerCase();
+        result = result.filter(workspace => {
+          // Check workspace name
+          if (workspace.name.toLowerCase().includes(query)) return true;
+          
+          // Check retailers
+          if (workspace.retailers.some(retailer => retailer.toLowerCase().includes(query))) return true;
+          
+          // Check categories and brands
+          for (const [categoryKey, brands] of Object.entries(workspace.brands)) {
+            if (categoryKey.toLowerCase().includes(query)) return true;
+            if (brands && brands.some(brand => brand.toLowerCase().includes(query))) return true;
+          }
+          
+          return false;
+        });
+      }
+
+      // Apply retailer filter
+      if (state.retailerFilter !== 'all') {
         result = result.filter(workspace => 
-          workspace.title.toLowerCase().includes(query) ||
-          workspace.brands.some(brand => brand.toLowerCase().includes(query)) ||
-          workspace.retailer.toLowerCase().includes(query)
+          workspace.retailers.includes(state.retailerFilter)
         );
       }
 
       // Apply category filter
-      if (state.category !== 'all') {
-        result = result.filter(workspace => 
-          workspace.category.toLowerCase() === state.category.toLowerCase()
-        );
+      if (state.categoryFilter !== 'all') {
+        result = result.filter(workspace => {
+          // Check if the category exists for any retailer
+          for (const retailer in workspace.categories) {
+            if (workspace.categories[retailer].includes(state.categoryFilter)) {
+              return true;
+            }
+          }
+          return false;
+        });
+      }
+
+      // Apply brand filter
+      if (state.brandFilter !== 'all') {
+        result = result.filter(workspace => {
+          // Check if the brand exists in any category
+          for (const category in workspace.brands) {
+            if (workspace.brands[category].includes(state.brandFilter)) {
+              return true;
+            }
+          }
+          return false;
+        });
       }
 
       // Apply sorting
       result.sort((a, b) => {
         if (state.sortBy === 'name') {
-          return a.title.localeCompare(b.title);
+          return a.name.localeCompare(b.name);
         } else if (state.sortBy === 'date') {
           return new Date(b.modified).getTime() - new Date(a.modified).getTime();
-        } else if (state.sortBy === 'category') {
-          return a.category.localeCompare(b.category);
+        } else if (state.sortBy === 'retailer') {
+          return a.retailers[0].localeCompare(b.retailers[0]);  // Sort by first retailer
         }
         return 0;
       });
@@ -157,6 +221,17 @@ const workspaceViewSlice = createSlice({
       .addCase(fetchWorkspaces.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || 'Failed to fetch workspaces';
+      })
+      
+      // Handle createWorkspace
+      .addCase(createWorkspace.pending, (state) => {
+        // Set specific loading state if needed
+      })
+      .addCase(createWorkspace.fulfilled, (state, action) => {
+        state.workspaces.push(action.payload);
+      })
+      .addCase(createWorkspace.rejected, (state, action) => {
+        state.error = action.payload || 'Failed to create workspace';
       })
       
       // Handle archiveWorkspace
@@ -195,7 +270,9 @@ const workspaceViewSlice = createSlice({
 export const {
   setSearchQuery,
   setSortBy,
-  setCategory,
+  setRetailerFilter,
+  setCategoryFilter,
+  setBrandFilter,
   setViewMode,
   toggleFilters,
   toggleShowArchived,
@@ -212,7 +289,9 @@ export const selectWorkspaceViewStatus = state => state.workspaceView.status;
 export const selectWorkspaceViewError = state => state.workspaceView.error;
 export const selectSearchQuery = state => state.workspaceView.searchQuery;
 export const selectSortBy = state => state.workspaceView.sortBy;
-export const selectCategory = state => state.workspaceView.category;
+export const selectRetailerFilter = state => state.workspaceView.retailerFilter;
+export const selectCategoryFilter = state => state.workspaceView.categoryFilter;
+export const selectBrandFilter = state => state.workspaceView.brandFilter;
 export const selectViewMode = state => state.workspaceView.viewMode;
 export const selectIsFiltersOpen = state => state.workspaceView.isFiltersOpen;
 export const selectShowArchived = state => state.workspaceView.showArchived;
@@ -233,15 +312,79 @@ export const selectTotalPages = state => {
   return Math.ceil(filteredWorkspaces.length / itemsPerPage);
 };
 
-// Create a selector for unique categories from workspaces
-export const selectCategories = state => {
-  const categories = ["all", ...Array.from(new Set(
-    state.workspaceView.workspaces.map(w => w.category.toLowerCase())
-  ))];
+// Create selectors for filter options based on available data
+
+// Get all unique retailers from workspaces
+export const selectRetailers = state => {
+  const retailers = ["all", ...new Set(
+    state.workspaceView.workspaces.flatMap(w => w.retailers)
+  )];
   
-  return categories.map(cat => ({
-    text: cat === "all" ? "All Categories" : cat.charAt(0).toUpperCase() + cat.slice(1),
-    value: cat,
+  return retailers.map(retailer => ({
+    text: retailer === "all" ? "All Retailers" : retailer,
+    value: retailer,
+  }));
+};
+
+// Get categories for the selected retailer
+export const selectCategories = state => {
+  const { workspaces, retailerFilter } = state.workspaceView;
+  
+  let categories = ["all"];
+  
+  if (retailerFilter === 'all') {
+    // Collect all categories from all retailers
+    workspaces.forEach(workspace => {
+      for (const retailer in workspace.categories) {
+        categories = [...categories, ...workspace.categories[retailer]];
+      }
+    });
+  } else {
+    // Only collect categories for the selected retailer
+    workspaces.forEach(workspace => {
+      if (workspace.categories[retailerFilter]) {
+        categories = [...categories, ...workspace.categories[retailerFilter]];
+      }
+    });
+  }
+  
+  // Remove duplicates
+  categories = [...new Set(categories)];
+  
+  return categories.map(category => ({
+    text: category === "all" ? "All Categories" : category,
+    value: category,
+  }));
+};
+
+// Get brands for the selected category
+export const selectBrands = state => {
+  const { workspaces, categoryFilter } = state.workspaceView;
+  
+  let brands = ["all"];
+  
+  if (categoryFilter === 'all') {
+    // Collect all brands from all categories
+    workspaces.forEach(workspace => {
+      for (const category in workspace.brands) {
+        brands = [...brands, ...workspace.brands[category]];
+      }
+    });
+  } else {
+    // Only collect brands for the selected category
+    workspaces.forEach(workspace => {
+      if (workspace.brands[categoryFilter]) {
+        brands = [...brands, ...workspace.brands[categoryFilter]];
+      }
+    });
+  }
+  
+  // Remove duplicates
+  brands = [...new Set(brands)];
+  
+  return brands.map(brand => ({
+    text: brand === "all" ? "All Brands" : brand,
+    value: brand,
   }));
 };
 
