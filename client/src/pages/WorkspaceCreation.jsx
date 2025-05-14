@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from "@progress/kendo-react-layout"
 import { Input } from "@progress/kendo-react-inputs"
 import { useNavigate } from "react-router-dom"
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useSelector, useDispatch } from "react-redux"
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import { 
   FiSearch, 
   FiChevronDown, 
@@ -18,280 +19,202 @@ import {
 } from "react-icons/fi"
 import clsx from "clsx"
 
-export default function WorkspaceCreation() {
-  const [step, setStep] = useState(1) 
-  const [selectedRetailers, setSelectedRetailers] = useState([])
-  const [selectedCategories, setSelectedCategories] = useState({})
-  const [selectedBrands, setSelectedBrands] = useState({})
-  const [activeRetailer, setActiveRetailer] = useState(null)
-  const [activeCategory, setActiveCategory] = useState(null)
-  const [activeBrandCategory, setActiveBrandCategory] = useState(null)
-  const [expandedRetailers, setExpandedRetailers] = useState({})
-  const [expandedCategories, setExpandedCategories] = useState({})
-  const [retailerSearch, setRetailerSearch] = useState("")
-  const [categorySearches, setCategorySearches] = useState({})
-  const [brandSearches, setBrandSearches] = useState({})
-  const [workspaceName, setWorkspaceName] = useState("")
-  const [workspaceNameError, setWorkspaceNameError] = useState("")
+// Import Redux actions and selectors
+import {
+  fetchRetailers,
+  fetchCategories,
+  fetchBrands,
+  createWorkspace,
+  nextStep as nextStepAction,
+  prevStep as prevStepAction,
+  setWorkspaceName,
+  toggleRetailerSelection,
+  toggleCategorySelection,
+  toggleBrandSelection,
+  setActiveRetailer,
+  setActiveCategory,
+  setActiveBrandCategory,
+  toggleRetailerDropdown,
+  toggleCategoryDropdown,
+  setRetailerSearch,
+  setCategorySearch,
+  setBrandSearch,
+  resetWorkspaceForm,
+  // Selectors
+  selectRetailers,
+  selectAllCategories,
+  selectAllBrands,
+  selectStep,
+  selectWorkspaceName,
+  selectWorkspaceNameError,
+  selectSelectedRetailers,
+  selectSelectedCategories,
+  selectSelectedBrands,
+  selectActiveRetailer,
+  selectActiveCategory,
+  selectActiveBrandCategory,
+  selectExpandedRetailers,
+  selectExpandedCategories,
+  selectRetailerSearch,
+  selectCategorySearches,
+  selectBrandSearches,
+  selectIsNextDisabled,
+  selectIsSubmitDisabled,
+  selectIsCreatingWorkspace,
+  selectCreateWorkspaceError,
+  selectCategoriesByRetailer,
+  selectAllSelectedCategoriesFlat
+} from "../redux/slices/workspaceSlice" 
 
-  const existingWorkspaces = [
-    "Marketing Research",
-    "E-commerce Analysis",
-    "Retail Insights"
-  ]
-  
+export default function WorkspaceCreation() {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
 
+  // Redux state selectors
+  const retailers = useSelector(selectRetailers) || [] // Provide default empty array
+  const allCategories = useSelector(selectAllCategories) || []
+  const allBrands = useSelector(selectAllBrands) || []
+  const step = useSelector(selectStep)
+  const workspaceName = useSelector(selectWorkspaceName)
+  const workspaceNameError = useSelector(selectWorkspaceNameError)
+  const selectedRetailers = useSelector(selectSelectedRetailers) || []
+  const selectedCategories = useSelector(selectSelectedCategories) || {}
+  const selectedBrands = useSelector(selectSelectedBrands) || {}
+  const activeRetailer = useSelector(selectActiveRetailer)
+  const activeCategory = useSelector(selectActiveCategory)
+  const activeBrandCategory = useSelector(selectActiveBrandCategory)
+  const expandedRetailers = useSelector(selectExpandedRetailers) || {}
+  const expandedCategories = useSelector(selectExpandedCategories) || {}
+  const retailerSearch = useSelector(selectRetailerSearch) || ""
+  const categorySearches = useSelector(selectCategorySearches) || {}
+  const brandSearches = useSelector(selectBrandSearches) || {}
+  const isNextDisabled = useSelector(selectIsNextDisabled)
+  const isSubmitDisabled = useSelector(selectIsSubmitDisabled)
+  const isCreatingWorkspace = useSelector(selectIsCreatingWorkspace)
+  const createWorkspaceError = useSelector(selectCreateWorkspaceError)
+  const selectedCategoriesFlat = useSelector(selectAllSelectedCategoriesFlat) || []
+
+  // Fetch data on component mount
   useEffect(() => {
-    // Only update if we have retailers but no category searches for them
-    const needsUpdate = selectedRetailers.some(
-      retailerId => !categorySearches[retailerId]
-    )
-    
-    if (needsUpdate) {
-      const newCategorySearches = { ...categorySearches }
-      selectedRetailers.forEach(retailerId => {
-        if (!newCategorySearches[retailerId]) {
-          newCategorySearches[retailerId] = ""
-        }
-      })
-      setCategorySearches(newCategorySearches)
-    }
-  
-    // Only set active retailer if we don't have one but have retailers
-    if (selectedRetailers.length > 0 && !activeRetailer) {
-      setActiveRetailer(selectedRetailers[0])
-    }
-  }, [selectedRetailers]) // Only depend on selectedRetailers
+    dispatch(fetchRetailers())
+    dispatch(fetchCategories())
+    dispatch(fetchBrands())
+  }, [dispatch])
 
-  useEffect(() => {
-    const selectedCategoriesFlat = Object.values(selectedCategories)
-      .flat()
-      .filter((id, index, self) => self.indexOf(id) === index)
-  
-    // Only update if we have categories but no brand searches for them
-    const needsUpdate = selectedCategoriesFlat.some(
-      categoryId => !brandSearches[categoryId]
-    )
-  
-    if (needsUpdate) {
-      const newBrandSearches = { ...brandSearches }
-      selectedCategoriesFlat.forEach(categoryId => {
-        if (!newBrandSearches[categoryId]) {
-          newBrandSearches[categoryId] = ""
-        }
-      })
-      setBrandSearches(newBrandSearches)
-    }
-  
-    // Only set active category if we don't have one but have categories
-    if (selectedCategoriesFlat.length > 0 && !activeCategory) {
-      setActiveCategory(selectedCategoriesFlat[0])
-    }
-
-    // Set the active brand category if we don't have one but have categories
-    if (selectedCategoriesFlat.length > 0 && !activeBrandCategory) {
-      setActiveBrandCategory(selectedCategoriesFlat[0])
-    }
-  }, [selectedCategories]) // Only depend on selectedCategories
-
-  const retailers = [
-    { id: "amazon", name: "Amazon" },
-    { id: "walmart", name: "Walmart" },
-    { id: "ebay", name: "eBay" },
-    { id: "etsy", name: "Etsy" },
-    { id: "shopify", name: "Shopify" },
-  ]
-
-  const categories = {
-    amazon: [
-      { id: "electronics", name: "Electronics" },
-      { id: "clothing", name: "Clothing" },
-      { id: "home", name: "Home & Kitchen" },
-      { id: "books", name: "Books" },
-    ],
-    walmart: [
-      { id: "grocery", name: "Grocery" },
-      { id: "clothing", name: "Clothing" },
-      { id: "electronics", name: "Electronics" },
-      { id: "furniture", name: "Furniture" },
-    ],
-    ebay: [
-      { id: "collectibles", name: "Collectibles" },
-      { id: "electronics", name: "Electronics" },
-      { id: "fashion", name: "Fashion" },
-      { id: "auto", name: "Auto Parts" },
-    ],
-    etsy: [
-      { id: "handmade", name: "Handmade" },
-      { id: "vintage", name: "Vintage" },
-      { id: "craft", name: "Craft Supplies" },
-      { id: "jewelry", name: "Jewelry" },
-    ],
-    shopify: [
-      { id: "fashion", name: "Fashion" },
-      { id: "beauty", name: "Beauty" },
-      { id: "home", name: "Home Decor" },
-      { id: "food", name: "Food & Drink" },
-    ],
+  // Next/Prev steps
+  const handleNextStep = () => {
+    dispatch(nextStepAction())
   }
 
-  const brands = {
-    electronics: ["Apple", "Samsung", "Sony", "LG", "Dell"],
-    clothing: ["Nike", "Adidas", "H&M", "Zara", "Levi's"],
-    home: ["IKEA", "Crate & Barrel", "Wayfair", "West Elm", "Pottery Barn"],
-    books: ["Penguin", "HarperCollins", "Simon & Schuster", "Macmillan", "Random House"],
-    grocery: ["Kraft", "Nestle", "General Mills", "Kellogg's", "P&G"],
-    furniture: ["Ashley", "La-Z-Boy", "Restoration Hardware", "Ethan Allen", "Steelcase"],
-    collectibles: ["Funko", "Hasbro", "Mattel", "LEGO", "Hot Wheels"],
-    fashion: ["Gucci", "Louis Vuitton", "Prada", "Chanel", "Versace"],
-    auto: ["Toyota", "Ford", "BMW", "Honda", "Mercedes-Benz"],
-    handmade: ["Local Artisans", "Independent Crafters", "Small Batch Makers"],
-    vintage: ["Antique Collections", "Retro Finds", "Heritage Pieces"],
-    craft: ["Michaels", "Joann", "Hobby Lobby", "Cricut", "Fiskars"],
-    jewelry: ["Tiffany & Co.", "Pandora", "Swarovski", "Cartier", "David Yurman"],
-    beauty: ["Sephora", "MAC", "Fenty Beauty", "L'Oreal", "Estée Lauder"],
-    food: ["Whole Foods", "Trader Joe's", "Godiva", "Ghirardelli", "Lindt"],
+  const handlePrevStep = () => {
+    dispatch(prevStepAction())
   }
 
-  // Modified to toggle selection on click
+  // Handle workspace name change
+  const handleWorkspaceNameChange = (e) => {
+    dispatch(setWorkspaceName(e.target.value))
+  }
+
+  // Handle retailer change
   const handleRetailerChange = (retailerId) => {
-    const isSelected = selectedRetailers.includes(retailerId);
-    
-    if (!isSelected) {
-      setSelectedRetailers([...selectedRetailers, retailerId])
-    } else {
-      setSelectedRetailers(selectedRetailers.filter((id) => id !== retailerId))
-      const newSelectedCategories = { ...selectedCategories }
-      delete newSelectedCategories[retailerId]
-      setSelectedCategories(newSelectedCategories)
-
-      const newSelectedBrands = { ...selectedBrands }
-      categories[retailerId]?.forEach((category) => {
-        delete newSelectedBrands[category.id]
-      })
-      setSelectedBrands(newSelectedBrands)
-
-      if (activeRetailer === retailerId) {
-        setActiveRetailer(selectedRetailers.length > 1 ? selectedRetailers[0] : null)
-      }
-    }
+    dispatch(toggleRetailerSelection(retailerId))
   }
 
-  // Remove a retailer tag from the search bar
+  // Remove a retailer tag
   const removeRetailerTag = (retailerId) => {
-    handleRetailerChange(retailerId);
+    dispatch(toggleRetailerSelection(retailerId))
   }
 
-  // Modified to toggle selection on click
+  // Handle category change
   const handleCategoryChange = (retailerId, categoryId) => {
-    const currentCategories = selectedCategories[retailerId] || []
-    const isSelected = currentCategories.includes(categoryId);
-
-    if (!isSelected) {
-      setSelectedCategories({
-        ...selectedCategories,
-        [retailerId]: [...currentCategories, categoryId],
-      })
-    } else {
-      setSelectedCategories({
-        ...selectedCategories,
-        [retailerId]: currentCategories.filter((id) => id !== categoryId),
-      })
-
-      const newSelectedBrands = { ...selectedBrands }
-      delete newSelectedBrands[categoryId]
-      setSelectedBrands(newSelectedBrands)
-
-      const selectedCategoriesFlat = []
-      Object.values(selectedCategories).forEach((categoryIds) => {
-        categoryIds.forEach((id) => {
-          if (!selectedCategoriesFlat.includes(id)) {
-            selectedCategoriesFlat.push(id)
-          }
-        })
-      })
-      if (!selectedCategoriesFlat.includes(activeCategory)) {
-        setActiveCategory(selectedCategoriesFlat.length > 0 ? selectedCategoriesFlat[0] : null)
-      }
-    }
+    dispatch(toggleCategorySelection({ retailerId, categoryId }))
   }
 
-  // Remove a category tag from the search bar
+  // Remove a category tag
   const removeCategoryTag = (retailerId, categoryId) => {
-    handleCategoryChange(retailerId, categoryId);
+    dispatch(toggleCategorySelection({ retailerId, categoryId }))
   }
 
-  // Modified to toggle selection on click
+  // Handle brand change
   const handleBrandChange = (categoryId, brand) => {
-    const currentBrands = selectedBrands[categoryId] || []
-    const isSelected = currentBrands.includes(brand);
-
-    if (!isSelected) {
-      setSelectedBrands({
-        ...selectedBrands,
-        [categoryId]: [...currentBrands, brand],
-      })
-    } else {
-      setSelectedBrands({
-        ...selectedBrands,
-        [categoryId]: currentBrands.filter((b) => b !== brand),
-      })
-    }
+    dispatch(toggleBrandSelection({ categoryId, brand }))
   }
 
-  // Remove a brand tag from the search bar
+  // Remove a brand tag
   const removeBrandTag = (categoryId, brand) => {
-    handleBrandChange(categoryId, brand);
+    dispatch(toggleBrandSelection({ categoryId, brand }))
   }
 
-  const toggleRetailerDropdown = (retailerId) => {
-    setExpandedRetailers({
-      ...expandedRetailers,
-      [retailerId]: !expandedRetailers[retailerId],
-    })
+  // Handle retailer dropdown toggle
+  const handleToggleRetailerDropdown = (retailerId) => {
+    dispatch(toggleRetailerDropdown(retailerId))
   }
 
-  const toggleCategoryDropdown = (categoryId) => {
-    setExpandedCategories({
-      ...expandedCategories,
-      [categoryId]: !expandedCategories[categoryId],
-    })
+  // Handle category dropdown toggle
+  const handleToggleCategoryDropdown = (categoryId) => {
+    dispatch(toggleCategoryDropdown(categoryId))
   }
 
-  const nextStep = () => {
-    setStep(step + 1)
+  // Handle active retailer, category, and brand selection
+  const handleSetActiveRetailer = (retailerId) => {
+    dispatch(setActiveRetailer(retailerId))
   }
 
-  const prevStep = () => {
-    setStep(step - 1)
+  const handleSetActiveCategory = (categoryId) => {
+    dispatch(setActiveCategory(categoryId))
   }
 
+  const handleSetActiveBrandCategory = (categoryId) => {
+    dispatch(setActiveBrandCategory(categoryId))
+  }
+
+  // Handle search updates
+  const handleRetailerSearch = (e) => {
+    dispatch(setRetailerSearch(e.target.value))
+  }
+
+  const handleCategorySearch = (retailerId, searchTerm) => {
+    dispatch(setCategorySearch({ retailerId, searchTerm }))
+  }
+
+  const handleBrandSearch = (categoryId, searchTerm) => {
+    dispatch(setBrandSearch({ categoryId, searchTerm }))
+  }
+
+  // Handle form submission
   const handleSubmit = () => {
-    const workspaceDetails = {
+    const workspaceData = {
       name: workspaceName,
       retailers: selectedRetailers,
       categories: selectedCategories,
       brands: selectedBrands,
     }
     
-    console.log("Workspace created with:", workspaceDetails)
-    
-    // Show success toast
-    toast.success(`Workspace "${workspaceName}" created successfully!`, {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    })
+    dispatch(createWorkspace(workspaceData))
+      .unwrap()
+      .then(() => {
+        // Show success toast
+        toast.success(`Workspace "${workspaceName}" created successfully!`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        })
 
-    // Navigate after a short delay to allow toast to be seen
-    setTimeout(() => {
-      navigate('/')
-    }, 1500)
+        // Navigate after a short delay to allow toast to be seen
+        setTimeout(() => {
+          navigate('/')
+        }, 1500)
+      })
+      .catch((error) => {
+        toast.error(`Failed to create workspace: ${error}`, {
+          position: "top-right",
+          autoClose: 5000,
+        })
+      })
   }
 
   const renderProgressBar = () => {
@@ -352,22 +275,24 @@ export default function WorkspaceCreation() {
     </div>
   );
 
-
   const renderRetailerStep = () => {
-    const filteredRetailers = retailers.filter((retailer) =>
-      retailer.name.toLowerCase().includes(retailerSearch.toLowerCase()),
-    )
+    // Ensure retailers is an array before applying filter
+    const filteredRetailers = Array.isArray(retailers) 
+      ? retailers.filter((retailer) =>
+          retailer.name.toLowerCase().includes(retailerSearch.toLowerCase())
+        )
+      : [];
 
     return (
       <div className="space-y-6">
         {/* Selected retailers tags */}
         <div className="flex flex-wrap mb-2">
           {selectedRetailers.map(retailerId => {
-            const retailer = retailers.find(r => r.id === retailerId);
+            const retailer = Array.isArray(retailers) ? retailers.find(r => r.id === retailerId) : null;
             return (
               <SelectionTag 
                 key={retailerId}
-                label={retailer.name}
+                label={retailer?.name || retailerId}
                 onRemove={() => removeRetailerTag(retailerId)}
               />
             );
@@ -379,7 +304,7 @@ export default function WorkspaceCreation() {
           <Input
             placeholder="Search retailers..."
             value={retailerSearch}
-            onChange={(e) => setRetailerSearch(e.target.value)}
+            onChange={handleRetailerSearch}
             className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           />
         </div>
@@ -425,10 +350,13 @@ export default function WorkspaceCreation() {
 
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {selectedRetailers.map((retailerId) => {
-              const retailer = retailers.find((r) => r.id === retailerId)
-              const retailerCategories = (selectedCategories[retailerId] || []).map((categoryId) =>
-                categories[retailerId].find((c) => c.id === categoryId)?.name,
-              )
+              const retailer = Array.isArray(retailers) ? retailers.find((r) => r.id === retailerId) : null;
+              const retailerCategories = (selectedCategories[retailerId] || []).map((categoryId) => {
+                const category = Array.isArray(allCategories) ? 
+                  allCategories.find(c => c.id === categoryId && c.retailerId === retailerId) : null;
+                return category?.name;
+              }).filter(Boolean);
+              
               return (
                 <div key={retailerId}>
                   <div
@@ -436,11 +364,11 @@ export default function WorkspaceCreation() {
                       activeRetailer === retailerId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
                     }`}
                     onClick={() => {
-                      setActiveRetailer(retailerId)
-                      toggleRetailerDropdown(retailerId)
+                      handleSetActiveRetailer(retailerId)
+                      handleToggleRetailerDropdown(retailerId)
                     }}
                   >
-                    <span className="text-gray-800 font-medium">{retailer?.name}</span>
+                    <span className="text-gray-800 font-medium">{retailer?.name || retailerId}</span>
                     {expandedRetailers[retailerId] ? (
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
@@ -471,11 +399,12 @@ export default function WorkspaceCreation() {
             {/* Selected categories tags */}
             <div className="flex flex-wrap mb-4">
               {(selectedCategories[activeRetailer] || []).map(categoryId => {
-                const category = categories[activeRetailer].find(c => c.id === categoryId);
+                const category = Array.isArray(allCategories) ? 
+                  allCategories.find(c => c.id === categoryId && c.retailerId === activeRetailer) : null;
                 return (
                   <SelectionTag 
                     key={categoryId}
-                    label={category.name}
+                    label={category?.name || categoryId}
                     onRemove={() => removeCategoryTag(activeRetailer, categoryId)}
                   />
                 );
@@ -485,40 +414,40 @@ export default function WorkspaceCreation() {
             <div className="relative mb-6">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
-                placeholder={`Search ${retailers.find((r) => r.id === activeRetailer)?.name} categories...`}
+                placeholder={`Search ${Array.isArray(retailers) ? 
+                  retailers.find((r) => r.id === activeRetailer)?.name || "retailer" : "retailer"} categories...`}
                 value={categorySearches[activeRetailer] || ""}
-                onChange={(e) =>
-                  setCategorySearches({
-                    ...categorySearches,
-                    [activeRetailer]: e.target.value,
-                  })
-                }
+                onChange={(e) => handleCategorySearch(activeRetailer, e.target.value)}
                 className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
-              {(categories[activeRetailer] || [])
-                .filter((category) =>
-                  category.name.toLowerCase().includes((categorySearches[activeRetailer] || "").toLowerCase()),
-                )
-                .map((category) => {
-                  const isSelected = (selectedCategories[activeRetailer] || []).includes(category.id);
-                  return (
-                    <div
-                      key={category.id}
-                      onClick={() => handleCategoryChange(activeRetailer, category.id)}
-                      className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
-                        isSelected 
-                          ? 'bg-blue-100 border border-blue-300' 
-                          : 'bg-white border border-gray-100 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="text-base font-medium text-gray-800 select-none flex-grow">
-                        {category.name}
-                      </span>
-                    </div>
-                  );
-                })}
+              {Array.isArray(allCategories) ?
+                allCategories
+                  .filter(category => category.retailerId === activeRetailer)
+                  .filter((category) =>
+                    category.name.toLowerCase().includes((categorySearches[activeRetailer] || "").toLowerCase()),
+                  )
+                  .map((category) => {
+                    const isSelected = (selectedCategories[activeRetailer] || []).includes(category.id);
+                    return (
+                      <div
+                        key={category.id}
+                        onClick={() => handleCategoryChange(activeRetailer, category.id)}
+                        className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
+                          isSelected 
+                            ? 'bg-blue-100 border border-blue-300' 
+                            : 'bg-white border border-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-base font-medium text-gray-800 select-none flex-grow">
+                          {category.name}
+                        </span>
+                      </div>
+                    );
+                  })
+                : <p>Loading categories...</p>
+              }
             </div>
           </div>
         )}
@@ -527,21 +456,18 @@ export default function WorkspaceCreation() {
   }
 
   const renderBrandStep = () => {
-    const selectedCategoriesFlat = []
-
-    Object.values(selectedCategories).forEach((categoryIds) => {
-      categoryIds.forEach((id) => {
-        if (!selectedCategoriesFlat.includes(id)) {
-          selectedCategoriesFlat.push(id)
-        }
-      })
-    })
-
     if (selectedCategoriesFlat.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one category to proceed.</p>
     }
+
     // Get all categories that have brands
-    const categoriesWithBrands = selectedCategoriesFlat.filter(id => brands[id] && brands[id].length > 0);
+    const categoriesWithBrands = Array.isArray(selectedCategoriesFlat) ? 
+      selectedCategoriesFlat.filter(id => {
+        const brands = Array.isArray(allBrands) ? 
+          allBrands.filter(brand => brand.categoryId === id) : [];
+        return brands && brands.length > 0;
+      }) : [];
+    
     // Group categories by retailer for the left panel
     const categoriesByRetailer = {};
     selectedRetailers.forEach(retailerId => {
@@ -558,14 +484,15 @@ export default function WorkspaceCreation() {
           <h3 className="font-semibold text-lg text-gray-800 mb-4">Selection Summary</h3>
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {Object.entries(categoriesByRetailer).map(([retailerId, categoryIds]) => {
-              const retailer = retailers.find((r) => r.id === retailerId);
+              const retailer = Array.isArray(retailers) ? 
+                retailers.find((r) => r.id === retailerId) : null;
               return (
                 <div key={retailerId}>
                   <div
                     className="flex justify-between items-center p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-300 border border-transparent"
-                    onClick={() => toggleRetailerDropdown(retailerId)}
+                    onClick={() => handleToggleRetailerDropdown(retailerId)}
                   >
-                    <span className="text-gray-800 font-medium">{retailer?.name}</span>
+                    <span className="text-gray-800 font-medium">{retailer?.name || retailerId}</span>
                     {expandedRetailers[retailerId] ? (
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
@@ -575,7 +502,8 @@ export default function WorkspaceCreation() {
                   {expandedRetailers[retailerId] && categoryIds.length > 0 && (
                     <div className="pl-5 mt-2 space-y-2 animate-slide-down">
                       {categoryIds.map((categoryId) => {
-                        const category = categories[retailerId].find(c => c.id === categoryId);
+                        const category = Array.isArray(allCategories) ? 
+                          allCategories.find(c => c.id === categoryId && c.retailerId === retailerId) : null;
                         const selectedBrandsList = selectedBrands[categoryId] || [];
                         
                         return (
@@ -585,11 +513,11 @@ export default function WorkspaceCreation() {
                                 activeBrandCategory === categoryId ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"
                               }`}
                               onClick={() => {
-                                setActiveBrandCategory(categoryId);
-                                toggleCategoryDropdown(categoryId);
+                                handleSetActiveBrandCategory(categoryId);
+                                handleToggleCategoryDropdown(categoryId);
                               }}
                             >
-                              <span className="text-gray-700">{category?.name}</span>
+                              <span className="text-gray-700">{category?.name || categoryId}</span>
                               {expandedCategories[categoryId] ? (
                                 <FiChevronUp className="h-4 w-4 text-gray-500" />
                               ) : (
@@ -625,7 +553,8 @@ export default function WorkspaceCreation() {
             {/* Header for the current category */}
             <div className="mb-4">
               <h4 className="text-lg font-medium text-gray-700">
-                Select brands for {Object.values(categories).flat().find((c) => c.id === activeBrandCategory)?.name}
+                Select brands for {Array.isArray(allCategories) ? 
+                  allCategories.find((c) => c.id === activeBrandCategory)?.name || "category" : "category"}
               </h4>
             </div>
             
@@ -644,41 +573,41 @@ export default function WorkspaceCreation() {
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder={`Search ${
-                  Object.values(categories).flat().find((c) => c.id === activeBrandCategory)?.name
+                  Array.isArray(allCategories) ? 
+                    allCategories.find((c) => c.id === activeBrandCategory)?.name || "category" : "category"
                 } brands...`}
                 value={brandSearches[activeBrandCategory] || ""}
-                onChange={(e) =>
-                  setBrandSearches({
-                    ...brandSearches,
-                    [activeBrandCategory]: e.target.value,
-                  })
-                }
+                onChange={(e) => handleBrandSearch(activeBrandCategory, e.target.value)}
                 className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
-              {(brands[activeBrandCategory] || [])
-                .filter((brand) =>
-                  brand.toLowerCase().includes((brandSearches[activeBrandCategory] || "").toLowerCase()),
-                )
-                .map((brand) => {
-                  const isSelected = (selectedBrands[activeBrandCategory] || []).includes(brand);
-                  return (
-                    <div
-                      key={`${activeBrandCategory}-${brand}`}
-                      onClick={() => handleBrandChange(activeBrandCategory, brand)}
-                      className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
-                        isSelected 
-                          ? 'bg-blue-100 border border-blue-300' 
-                          : 'bg-white border border-gray-100 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="text-base font-medium text-gray-800 select-none flex-grow">
-                        {brand}
-                      </span>
-                    </div>
-                  );
-                })}
+              {Array.isArray(allBrands) ?
+                allBrands
+                  .filter(brand => brand.categoryId === activeBrandCategory)
+                  .filter((brand) =>
+                    brand.name.toLowerCase().includes((brandSearches[activeBrandCategory] || "").toLowerCase()),
+                  )
+                  .map((brand) => {
+                    const isSelected = (selectedBrands[activeBrandCategory] || []).includes(brand.name);
+                    return (
+                      <div
+                        key={`${activeBrandCategory}-${brand.name}`}
+                        onClick={() => handleBrandChange(activeBrandCategory, brand.name)}
+                        className={`flex items-center space-x-3 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${
+                          isSelected 
+                            ? 'bg-blue-100 border border-blue-300' 
+                            : 'bg-white border border-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-base font-medium text-gray-800 select-none flex-grow">
+                          {brand.name}
+                        </span>
+                      </div>
+                    );
+                  })
+                : <p>Loading brands...</p>
+              }
             </div>
           </div>
         )}
@@ -686,78 +615,8 @@ export default function WorkspaceCreation() {
     )
   }
 
-
-  const validateWorkspaceName = (name) => {
-    // Trim the name and check for emptiness
-    const trimmedName = name.trim();
-    
-    if (!trimmedName) {
-      setWorkspaceNameError("Workspace name cannot be empty.");
-      return false;
-    }
-
-    // Check if name already exists (case-insensitive)
-    if (existingWorkspaces.some(ws => ws.toLowerCase() === trimmedName.toLowerCase())) {
-      setWorkspaceNameError("A workspace with this name already exists. Please choose a different name.");
-      return false;
-    }
-
-    // Clear any previous errors
-    setWorkspaceNameError("");
-    return true;
-  }
-
-  const handleWorkspaceNameChange = (e) => {
-    const newName = e.target.value;
-    setWorkspaceName(newName);
-    
-    // Validate name as user types
-    validateWorkspaceName(newName);
-  }
-
-
-  const isNextDisabled = () => {
-    if (step === 1) {
-      return (
-        selectedRetailers.length === 0 || 
-        !workspaceName || 
-        workspaceNameError !== ""
-      );
-    }
-    if (step === 2) {
-      return (
-        Object.keys(selectedCategories).length === 0 ||
-        selectedRetailers.some(
-          (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0,
-        )
-      )
-    }
-    return false
-  }
-
-  const isSubmitDisabled = () => {
-    const selectedCategoriesFlat = []
-
-    Object.values(selectedCategories).forEach((categoryIds) => {
-      categoryIds.forEach((id) => {
-        if (!selectedCategoriesFlat.includes(id)) {
-          selectedCategoriesFlat.push(id)
-        }
-      })
-    })
-
-    return (
-      !workspaceName ||
-      workspaceNameError !== "" ||
-      selectedCategoriesFlat.some(
-        (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0,
-      )
-    )
-  }
-
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="flex items-center justify-center h-[100vh] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <style>
         {`
           @keyframes slideDown {
@@ -831,60 +690,47 @@ export default function WorkspaceCreation() {
               )}
             </div>
           </div>
-          <CardBody className="p-8">
+        <CardBody className="p-8">
           {step === 1 && (
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
-                {(selectedRetailers.length === 0 || !workspaceName) && (
-                  <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
-                )}
-                {renderRetailerStep()}
-              </>
-            )}
-  
-            {step === 2 && (
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
-                {(Object.keys(selectedCategories).length === 0 ||
-                  selectedRetailers.some(
-                    (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0
-                  )) && (
-                  <p className="text-sm text-red-500">**You must select at least one category from each selected retailer.**</p>
-                )}
-                {renderCategoryStep()}
-              </>
-            )}
-  
-            {step === 3 && (
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
-                {(() => {
-                  const selectedCategoriesFlat = []
-                  Object.values(selectedCategories).forEach((categoryIds) => {
-                    categoryIds.forEach((id) => {
-                      if (!selectedCategoriesFlat.includes(id)) {
-                        selectedCategoriesFlat.push(id)
-                      }
-                    })
-                  })
-  
-                  const missingBrands = selectedCategoriesFlat.some(
-                    (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
-                  )
-  
-                  return missingBrands && (
-                    <p className="text-sm text-red-500">**You must select at least one brand from each category for each retailer.**</p>
-                  )
-                })()}
-                {renderBrandStep()}
-              </>
-            )}
-          </CardBody>
+            <>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
+              {(selectedRetailers.length === 0 || !workspaceName) && (
+                <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
+              )}
+              {renderRetailerStep()}
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
+              {(Object.keys(selectedCategories).length === 0 ||
+                selectedRetailers.some(
+                  (retailerId) => !selectedCategories[retailerId] || selectedCategories[retailerId].length === 0
+                )) && (
+                <p className="text-sm text-red-500">**You must select at least one category from each selected retailer.**</p>
+              )}
+              {renderCategoryStep()}
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
+              {selectedCategoriesFlat.some(
+                (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
+              ) && (
+                <p className="text-sm text-red-500">**You must select at least one brand from each category for each retailer.**</p>
+              )}
+              {renderBrandStep()}
+            </>
+          )}
+        </CardBody>
           <CardActions className="flex !justify-between gap-4 p-8 border-gray-200 bg-gray-50">
             {step > 1 ? (
               <button 
                 look="outline" 
-                onClick={prevStep} 
+                onClick={handlePrevStep} 
                 className="px-4 py-2 rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-all duration-300 font-medium flex items-center"
               >
                 <FiChevronLeft className="mr-2" /> Back
@@ -895,8 +741,8 @@ export default function WorkspaceCreation() {
   
             {step < 3 ? (
               <button 
-                onClick={nextStep}
-                disabled={isNextDisabled()}
+                onClick={handleNextStep}
+                disabled={isNextDisabled}
                 className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
               >
                 Next <FiChevronRight className="ml-2 h-5 w-5" />
@@ -904,7 +750,7 @@ export default function WorkspaceCreation() {
               ) : (
               <button 
                 onClick={handleSubmit}
-                disabled={isSubmitDisabled()}
+                disabled={isSubmitDisabled}
                 className="px-4 py-2 rounded-lg bg-green-700 text-white hover:bg-green-600 transition-all duration-300 font-medium flex items-center disabled:opacity-50   disabled:cursor-not-allowed"
               >
                 Create Workspace 

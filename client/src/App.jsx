@@ -36,7 +36,8 @@ const App = () => {
           {isLoggedIn && (
             <>
               <Route index element={<Dashboard isLoggedIn={isLoggedIn} />} />
-              <Route path="viewWorkspace" element={<ViewWorkspacesPage />} />
+              <Route path="viewWorkspace" element={<ViewWorkspacesPage isLoggedIn={isLoggedIn}/>} />
+              <Route path="workspaceCreate" element={<WorkspaceForm/>}/>
             </>
           )}
         </Route>

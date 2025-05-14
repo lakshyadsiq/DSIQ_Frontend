@@ -1,6 +1,96 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+// DUMMY DATA FOR DEVELOPMENT/TESTING
+const USE_DUMMY_DATA = true; // flase for testing with API
+
+// Mock data for development/testing
+const DUMMY_DATA = {
+  retailers: [
+    { id: "ret1", name: "Walmart", logo: "https://placeholder.com/150" },
+    { id: "ret2", name: "Target", logo: "https://placeholder.com/150" },
+    { id: "ret3", name: "Amazon", logo: "https://placeholder.com/150" },
+    { id: "ret4", name: "Best Buy", logo: "https://placeholder.com/150" },
+    { id: "ret5", name: "Costco", logo: "https://placeholder.com/150" }
+  ],
+  categories: [
+    // Walmart Categories
+    { id: "cat1", name: "Electronics", retailerId: "ret1" },
+    { id: "cat2", name: "Grocery", retailerId: "ret1" },
+    { id: "cat3", name: "Apparel", retailerId: "ret1" },
+    { id: "cat4", name: "Home & Garden", retailerId: "ret1" },
+    
+    // Target Categories
+    { id: "cat5", name: "Electronics", retailerId: "ret2" },
+    { id: "cat6", name: "Home Decor", retailerId: "ret2" },
+    { id: "cat7", name: "Beauty", retailerId: "ret2" },
+    { id: "cat8", name: "Kids", retailerId: "ret2" },
+    
+    // Amazon Categories
+    { id: "cat9", name: "Books", retailerId: "ret3" },
+    { id: "cat10", name: "Electronics", retailerId: "ret3" },
+    { id: "cat11", name: "Home & Kitchen", retailerId: "ret3" },
+    { id: "cat12", name: "Fashion", retailerId: "ret3" },
+    
+    // Best Buy Categories
+    { id: "cat13", name: "Computers", retailerId: "ret4" },
+    { id: "cat14", name: "TV & Home Theater", retailerId: "ret4" },
+    { id: "cat15", name: "Cell Phones", retailerId: "ret4" },
+    { id: "cat16", name: "Audio", retailerId: "ret4" },
+    
+    // Costco Categories
+    { id: "cat17", name: "Appliances", retailerId: "ret5" },
+    { id: "cat18", name: "Grocery & Food", retailerId: "ret5" },
+    { id: "cat19", name: "Electronics", retailerId: "ret5" },
+    { id: "cat20", name: "Home Improvement", retailerId: "ret5" }
+  ],
+  brands: [
+    // Walmart Electronics Brands
+    { id: "b1", name: "Samsung", categoryId: "cat1" },
+    { id: "b2", name: "Apple", categoryId: "cat1" },
+    { id: "b3", name: "Sony", categoryId: "cat1" },
+    { id: "b4", name: "LG", categoryId: "cat1" },
+    
+    // Walmart Grocery Brands
+    { id: "b5", name: "Great Value", categoryId: "cat2" },
+    { id: "b6", name: "Kraft", categoryId: "cat2" },
+    { id: "b7", name: "Nestlé", categoryId: "cat2" },
+    { id: "b8", name: "General Mills", categoryId: "cat2" },
+    
+    // Walmart Apparel Brands
+    { id: "b9", name: "George", categoryId: "cat3" },
+    { id: "b10", name: "Hanes", categoryId: "cat3" },
+    { id: "b11", name: "Levi's", categoryId: "cat3" },
+    { id: "b12", name: "Nike", categoryId: "cat3" },
+    
+    // More brands for various categories...
+    // Target Electronics Brands
+    { id: "b17", name: "Apple", categoryId: "cat5" },
+    { id: "b18", name: "Beats", categoryId: "cat5" },
+    { id: "b19", name: "JBL", categoryId: "cat5" },
+    { id: "b20", name: "Samsung", categoryId: "cat5" },
+    
+    // Amazon Books Brands
+    { id: "b25", name: "Penguin Random House", categoryId: "cat9" },
+    { id: "b26", name: "HarperCollins", categoryId: "cat9" },
+    { id: "b27", name: "Simon & Schuster", categoryId: "cat9" },
+    
+    // Best Buy Computers Brands
+    { id: "b28", name: "HP", categoryId: "cat13" },
+    { id: "b29", name: "Dell", categoryId: "cat13" },
+    { id: "b30", name: "Lenovo", categoryId: "cat13" },
+    { id: "b31", name: "ASUS", categoryId: "cat13" }
+  ],
+  existingWorkspaces: ["Marketing Analysis", "Product Research", "Q1 Planning"]
+};
+
+// Helper function to simulate API delay
+const simulateApiDelay = (data, delay = 500) => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(data), delay);
+  });
+};
+
 // API endpoints (replace these with your actual API endpoints)
 const API_ENDPOINTS = {
   RETAILERS: '/api/retailers',
@@ -14,10 +104,16 @@ export const fetchRetailers = createAsyncThunk(
   'workspace/fetchRetailers',
   async (_, { rejectWithValue }) => {
     try {
+      // Return dummy data if flag is enabled
+      if (USE_DUMMY_DATA) {
+        return await simulateApiDelay(DUMMY_DATA.retailers);
+      }
+      
+      // Otherwise make the actual API call
       const response = await axios.get(API_ENDPOINTS.RETAILERS);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || 'Failed to fetch retailers');
     }
   }
 );
@@ -26,10 +122,15 @@ export const fetchCategories = createAsyncThunk(
   'workspace/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
+      // Return dummy data if flag is enabled
+      if (USE_DUMMY_DATA) {
+        return await simulateApiDelay(DUMMY_DATA.categories, 700);
+      }
+      
       const response = await axios.get(API_ENDPOINTS.CATEGORIES);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || 'Failed to fetch categories');
     }
   }
 );
@@ -38,10 +139,15 @@ export const fetchBrands = createAsyncThunk(
   'workspace/fetchBrands',
   async (_, { rejectWithValue }) => {
     try {
+      // Return dummy data if flag is enabled
+      if (USE_DUMMY_DATA) {
+        return await simulateApiDelay(DUMMY_DATA.brands, 600);
+      }
+      
       const response = await axios.get(API_ENDPOINTS.BRANDS);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || 'Failed to fetch brands');
     }
   }
 );
@@ -50,10 +156,28 @@ export const createWorkspace = createAsyncThunk(
   'workspace/createWorkspace',
   async (workspaceData, { rejectWithValue }) => {
     try {
+      // Simulate workspace creation with dummy data
+      if (USE_DUMMY_DATA) {
+        // Validate workspace name
+        if (DUMMY_DATA.existingWorkspaces.includes(workspaceData.name)) {
+          throw new Error('A workspace with this name already exists.');
+        }
+        
+        // Simulate API success response
+        return await simulateApiDelay({
+          id: 'ws-' + Date.now(),
+          name: workspaceData.name,
+          createdAt: new Date().toISOString(),
+          ...workspaceData
+        }, 1000);
+      }
+      
       const response = await axios.post(API_ENDPOINTS.CREATE_WORKSPACE, workspaceData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(
+        error.response?.data || { message: error.message || 'Failed to create workspace' }
+      );
     }
   }
 );
@@ -120,6 +244,10 @@ const workspaceSlice = createSlice({
       // Validate workspace name
       if (!action.payload.trim()) {
         state.workspaceNameError = "Workspace name cannot be empty.";
+      } else if (USE_DUMMY_DATA && DUMMY_DATA.existingWorkspaces.some(
+        ws => ws.toLowerCase() === action.payload.trim().toLowerCase()
+      )) {
+        state.workspaceNameError = "A workspace with this name already exists. Please choose a different name.";
       } else if (state.existingWorkspaces && state.existingWorkspaces.some(
         ws => ws.toLowerCase() === action.payload.trim().toLowerCase()
       )) {

@@ -53,11 +53,11 @@ const HelpPage = () => {
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-900 text-gray-100 min-h-screen">
       <div className="mb-6 flex space-x-170">
         <button 
           onClick={handleGoBack}
-          className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
         >
           <ArrowLeft size={20} className="mr-1" />
           <span>Back</span>
@@ -69,21 +69,21 @@ const HelpPage = () => {
 
       <div className="space-y-6">
         {helpTopics.map((topic, index) => (
-          <div key={index} className="p-6 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-sm">
+          <div key={index} className="p-6 bg-gray-800 rounded-xl shadow-sm">
             <h2 className="text-xl font-semibold mb-1">{topic.title}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{topic.description}</p>
+            <p className="text-sm text-gray-400 mb-4">{topic.description}</p>
 
             <div className="space-y-2">
               {topic.faqs.map((faq, idx) => (
                 <details
                   key={idx}
-                  className="group border-b border-gray-300 dark:border-gray-700 py-2 cursor-pointer"
+                  className="group border-b border-gray-700 py-2 cursor-pointer"
                 >
-                  <summary className="flex items-center justify-between text-gray-800 dark:text-gray-200 font-medium">
+                  <summary className="flex items-center justify-between text-gray-200 font-medium">
                     {faq.question}
                     <ChevronDown size={18} className="transition-transform group-open:rotate-180" />
                   </summary>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
+                  <p className="mt-2 text-sm text-gray-400">{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -92,7 +92,7 @@ const HelpPage = () => {
       </div>
 
       <div className="mt-10 text-center">
-        <p className="mb-2 text-gray-700 dark:text-gray-300">Still need help?</p>
+        <p className="mb-2 text-gray-300">Still need help?</p>
         <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
           Contact Support
         </button>

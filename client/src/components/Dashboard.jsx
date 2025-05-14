@@ -36,12 +36,11 @@ const Dashboard = ({isLoggedIn}) => {
       </style>
       
       <div className="flex-grow overflow-y-auto custom-scrollbar px-4 py-66">
-        <div className="text-center text-amber-800 dark:text-amber-200 space-y-2">
+        <div className="text-center text-amber-200 space-y-2">
           <h2 className="text-3xl font-semibold">Main</h2>
           <p className="text-3xl font-semibold">Canvas</p>
         </div>
       </div>
-      
       <Footer isLoggedIn={isLoggedIn} />
     </div>
   );

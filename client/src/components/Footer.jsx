@@ -17,7 +17,7 @@ export default function Footer({ isLoggedIn }) {
   // Simple footer for logged in users
   if (isLoggedIn) {
     return (
-      <footer className="w-full bg-gray-800 text-gray-400 py-2  shadow-inner">
+      <footer className="w-full bg-gray-800 text-gray-400 py-2 shadow-inner">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm">© {new Date().getFullYear()} DSIQ Inc. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">

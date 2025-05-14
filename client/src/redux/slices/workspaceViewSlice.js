@@ -195,11 +195,20 @@ const workspaceViewSlice = createSlice({
       // Apply sorting
       result.sort((a, b) => {
         if (state.sortBy === 'name') {
+          // Handle case where name might be undefined
+          if (!a.name) return 1;  // undefined values go last
+          if (!b.name) return -1;
           return a.name.localeCompare(b.name);
         } else if (state.sortBy === 'date') {
-          return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+          // Handle case where modified date might be undefined
+          const dateA = a.modified ? new Date(a.modified).getTime() : 0;
+          const dateB = b.modified ? new Date(b.modified).getTime() : 0;
+          return dateB - dateA;  // Newest first
         } else if (state.sortBy === 'retailer') {
-          return a.retailers[0].localeCompare(b.retailers[0]);  // Sort by first retailer
+          // Handle case where retailers array might be empty or undefined
+          const retailerA = a.retailers && a.retailers.length > 0 ? a.retailers[0] : '';
+          const retailerB = b.retailers && b.retailers.length > 0 ? b.retailers[0] : '';
+          return retailerA.localeCompare(retailerB);
         }
         return 0;
       });
@@ -330,22 +339,35 @@ export const selectRetailers = state => {
 export const selectCategories = state => {
   const { workspaces, retailerFilter } = state.workspaceView;
   
+  // Initialize with "all" category
   let categories = ["all"];
   
-  if (retailerFilter === 'all') {
-    // Collect all categories from all retailers
-    workspaces.forEach(workspace => {
-      for (const retailer in workspace.categories) {
-        categories = [...categories, ...workspace.categories[retailer]];
-      }
-    });
-  } else {
-    // Only collect categories for the selected retailer
-    workspaces.forEach(workspace => {
-      if (workspace.categories[retailerFilter]) {
-        categories = [...categories, ...workspace.categories[retailerFilter]];
-      }
-    });
+  // Check if workspaces is an array before attempting to iterate
+  if (Array.isArray(workspaces) && workspaces.length > 0) {
+    if (retailerFilter === 'all') {
+      // Collect all categories from all retailers
+      workspaces.forEach(workspace => {
+        // Make sure workspace.categories exists before accessing it
+        if (workspace.categories) {
+          for (const retailer in workspace.categories) {
+            // Check if this property has an array value
+            if (Array.isArray(workspace.categories[retailer])) {
+              categories = [...categories, ...workspace.categories[retailer]];
+            }
+          }
+        }
+      });
+    } else {
+      // Only collect categories for the selected retailer
+      workspaces.forEach(workspace => {
+        // Make sure workspace.categories and the retailer property exist
+        if (workspace.categories && 
+            workspace.categories[retailerFilter] && 
+            Array.isArray(workspace.categories[retailerFilter])) {
+          categories = [...categories, ...workspace.categories[retailerFilter]];
+        }
+      });
+    }
   }
   
   // Remove duplicates
