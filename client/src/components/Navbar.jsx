@@ -137,7 +137,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
   const displayApp = selectedApp || pinnedApp || { name: "Apps" };
 
   return (
-    <nav className="flex !h-[69px] items-center justify-between px-4 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 transition-colors duration-300">
+    <nav className="flex !h-[68px] items-center justify-between px-4 bg-gray-800 border-b border-gray-700 transition-colors duration-300">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
         {isLoggedIn ? (
@@ -145,7 +145,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
             {/* Sidebar Toggle */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="p-2 rounded-md text-gray-300 hover:bg-gray-700"
             >
               {isSidebarOpen ? <TableOfContents size={20} /> : <ArrowRightFromLine size={20} />}
             </button>
@@ -154,7 +154,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
             <div className="relative" ref={appDropdownRef}>
               <button
                 onClick={() => setIsAppDropdownOpen(!isAppDropdownOpen)}
-                className="px-4 py-1.5 bg-gray-300 dark:bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-800 dark:text-gray-200"
+                className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-200 "
               >
                 <div className="flex items-center space-x-2">
                   {displayApp.icon && <span>{displayApp.icon}</span>}
@@ -201,15 +201,15 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
             <div className="relative flex" ref={workspaceDropdownRef}>
               <button
                 onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
-                className="px-4 py-1.5 bg-gray-300 dark:bg-gray-700 rounded-md flex items-center justify-between min-w-40"
+                className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40"
               >
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-800 dark:text-gray-200 truncate max-w-32">
+                  <span className="text-gray-200 truncate max-w-32">
                     {currentWorkspace.name}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ChevronDown size={16} className="text-gray-600 dark:text-gray-300" />
+                  <ChevronDown size={16} className="text-gray-200" />
                 </div>
               </button>
               <div className="relative group">
@@ -299,7 +299,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
         {/* Help button with tooltip */}
         <div className="relative group">
           <button
-            className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
+            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200"
             aria-label="Help"
             onClick={() => navigate('/help')}
           >
@@ -313,7 +313,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
         {/* Settings button with tooltip */}
         <div className="relative group">
           <button 
-            className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200" 
+            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
             aria-label="Settings"
           >
             <Settings size={20} />
@@ -326,7 +326,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
         {/* Notifications button with tooltip */}
         <div className="relative group">
           <button 
-            className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200" 
+            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
             aria-label="Notifications"
           >
             <Bell size={20} />
@@ -341,7 +341,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
           <div className="relative group">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="w-8 h-8 rounded-full bg-gray-400 overflow-hidden hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600 transition-all duration-200 flex items-center justify-center"
+              className="w-8 h-8 rounded-full bg-gray-400 overflow-hidden hover:ring-2 hover:ring-gray-300 transition-all duration-200 flex items-center justify-center"
               aria-label="User menu"
               aria-expanded={isProfileOpen}
             >
@@ -356,7 +356,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
             </div>
 
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+              <div className="absolute right-0 mt-2 w-56 bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-700">
                 <ProfileDropdown onClose={() => setIsProfileOpen(false)} />
               </div>
             )}

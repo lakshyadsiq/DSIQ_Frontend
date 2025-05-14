@@ -1,13 +1,7 @@
 import axios from 'axios';
 
-<<<<<<< Updated upstream
-const axiosInstance = axios.create({
-  baseURL: "",
-  withCredentials: true, // if you use cookies/auth
-=======
 const api = axios.create({
   baseURL: '',
->>>>>>> Stashed changes
 });
 
 // Request: attach token

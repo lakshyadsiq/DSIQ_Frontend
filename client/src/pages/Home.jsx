@@ -7,7 +7,7 @@ function Home({ isLoggedIn }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex h-screen overflow-hidden bg-gray-900 transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Navbar
@@ -18,6 +18,7 @@ function Home({ isLoggedIn }) {
         {/* Content from nested route appears here */}
         <Outlet />
       </div>
+
     </div>
   );
 }
