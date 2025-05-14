@@ -203,10 +203,11 @@ export default function WorkspaceCreation() {
           draggable: true,
           progress: undefined,
         })
-
+        
         // Navigate after a short delay to allow toast to be seen
         setTimeout(() => {
           navigate('/')
+          window.location.reload();
         }, 1500)
       })
       .catch((error) => {

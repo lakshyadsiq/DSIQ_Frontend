@@ -16,7 +16,6 @@ import {
 import ProfileDropdown from './ProfileDropdown';
 import { useNavigate } from 'react-router-dom';
 
-// Now we'll define apps outside the component to maintain original reference
 const initialApps = [
   { id: 1, name: 'Digital Shelf iQ', icon: '📊', description: 'Product visibility analytics' },
   { id: 2, name: 'Shopper iQ', icon: '🛒', description: 'Consumer behavior insights' },
@@ -35,7 +34,20 @@ const mockWorkspaces = [
   { id: 8, name: "Asia Pacific Region" },
 ];
 
-const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
+// Mock API function to send pinned app to backend
+const sendPinnedAppToBackend = async (app) => {
+  // In a real implementation, this would be an API call
+  try {
+    console.log('Sending pinned app to backend:', app);
+    // Mock successful API call
+    return { success: true, data: app };
+  } catch (error) {
+    console.error('Error sending pinned app to backend:', error);
+    return { success: false, error };
+  }
+};
+
+const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setSelectedApp }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const [isAppDropdownOpen, setIsAppDropdownOpen] = useState(false);
@@ -43,45 +55,56 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
   const [currentWorkspace, setCurrentWorkspace] = useState({ id: 1, name: "Marketing Team" });
   const [pinnedApp, setPinnedApp] = useState(null);
   const [apps, setApps] = useState([...initialApps]);
+  const [activeApp, setActiveApp] = useState(null); // New state to track the active app
   const workspaceDropdownRef = useRef(null);
   const appDropdownRef = useRef(null);
-  const [selectedApp, setSelectedApp] = useState(null);
-
   const navigate = useNavigate();
 
-  // Load pinnedApp and selectedApp from localStorage on mount
+  // Load selectedApp from localStorage on mount
   useEffect(() => {
-    const storedPinnedApp = localStorage.getItem('pinnedApp');
+    // First try to load from localStorage
     const storedSelectedApp = localStorage.getItem('selectedApp');
-
-    if (storedPinnedApp) {
-      const parsed = JSON.parse(storedPinnedApp);
-      setPinnedApp(parsed);
-      reorderApps(parsed);
-    }
-
     if (storedSelectedApp) {
-      setSelectedApp(JSON.parse(storedSelectedApp));
-    } else {
-      setSelectedApp(initialApps[0]);
+      try {
+        const parsed = JSON.parse(storedSelectedApp);
+        setSelectedApp(parsed); // Set in parent component
+        setActiveApp(parsed); // Also track locally
+      } catch (error) {
+        console.error('Error parsing stored selected app:', error);
+        localStorage.removeItem('selectedApp');
+      }
     }
+    
+    // Then fetch pinned app (only used if no selectedApp is found)
+    const fetchPinnedApp = async () => {
+      try {
+        // Simulated backend response
+        const response = { success: true, data: null }; // No pinned app initially
+        
+        if (response.success && response.data) {
+          setPinnedApp(response.data);
+          reorderApps(response.data);
+          
+          // Only use pinned app as active if no selectedApp was found
+          if (!storedSelectedApp) {
+            setActiveApp(response.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pinned app:', error);
+      }
+    };
+    
+    fetchPinnedApp();
   }, []);
 
-  // Save selectedApp to localStorage
+  // Update the active app whenever selectedApp changes from props
   useEffect(() => {
     if (selectedApp) {
+      setActiveApp(selectedApp);
       localStorage.setItem('selectedApp', JSON.stringify(selectedApp));
     }
   }, [selectedApp]);
-
-  // Save pinnedApp to localStorage
-  useEffect(() => {
-    if (pinnedApp) {
-      localStorage.setItem('pinnedApp', JSON.stringify(pinnedApp));
-    } else {
-      localStorage.removeItem('pinnedApp');
-    }
-  }, [pinnedApp]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -107,6 +130,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
 
   const selectApp = (app) => {
     setSelectedApp(app);
+    setActiveApp(app);
+    localStorage.setItem('selectedApp', JSON.stringify(app));
     setIsAppDropdownOpen(false);
   };
 
@@ -120,21 +145,29 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
     setApps(updated);
   };
 
-  const togglePinApp = (app, e) => {
+  const togglePinApp = async (app, e) => {
     e.stopPropagation();
-
     const isCurrentlyPinned = pinnedApp && pinnedApp.id === app.id;
 
     if (isCurrentlyPinned) {
-      setPinnedApp(null);
-      setApps([...initialApps]); // Reset to original order
+      // Send null to backend to unpin
+      const response = await sendPinnedAppToBackend(null);
+      if (response.success) {
+        setPinnedApp(null);
+        setApps([...initialApps]);
+      }
     } else {
-      setPinnedApp(app);
-      reorderApps(app);
+      // Send app to backend to pin
+      const response = await sendPinnedAppToBackend(app);
+      if (response.success) {
+        setPinnedApp(app);
+        reorderApps(app);
+      }
     }
   };
 
-  const displayApp = selectedApp || pinnedApp || { name: "Apps" };
+  // Use activeApp as the primary source for displaying the selected app
+  const displayApp = activeApp || (pinnedApp || { name: "Apps" });
 
   return (
     <nav className="flex !h-[68px] items-center justify-between px-4 bg-gray-800 border-b border-gray-700 transition-colors duration-300">
@@ -167,31 +200,32 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
                 <div className="absolute left-0 mt-1 w-72 bg-gray-900 rounded-md shadow-lg py-2 z-50 border border-gray-700">
                   {apps.map((app) => {
                     const isPinned = pinnedApp && pinnedApp.id === app.id;
+                    const isActive = activeApp && activeApp.id === app.id;
                     return (
-                    <div
-                      key={app.id}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
-                        isPinned ? 'bg-gray-800' : ''
-                      }`}
-                      onClick={() => selectApp(app)}
-                    >
-                      <span className="text-xl">{app.icon}</span>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-200">{app.name}</div>
-                        <div className="text-xs text-gray-400">{app.description}</div>
-                      </div>
-                      <button 
-                        onClick={(e) => togglePinApp(app, e)}
-                        className="p-1 text-gray-400 hover:text-gray-300"
-                        title={isPinned ? "Unpin app" : "Pin app"}
+                      <div
+                        key={app.id}
+                        className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
+                          isActive ? 'bg-gray-800' : ''
+                        }`}
+                        onClick={() => selectApp(app)}
                       >
-                        {isPinned ? 
-                          <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
-                          <PinOff size={16} />
-                        }
-                      </button>
-                    </div>
-                  );
+                        <span className="text-xl">{app.icon}</span>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-200">{app.name}</div>
+                          <div className="text-xs text-gray-400">{app.description}</div>
+                        </div>
+                        <button 
+                          onClick={(e) => togglePinApp(app, e)}
+                          className="p-1 text-gray-400 hover:text-gray-300"
+                          title={isPinned ? "Unpin app" : "Pin app"}
+                        >
+                          {isPinned ? 
+                            <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
+                            <PinOff size={16} />
+                          }
+                        </button>
+                      </div>
+                    );
                   })}
                 </div>
               )}
@@ -271,15 +305,15 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn }) => {
                   </div>
 
                   <div className="mt-auto border-t border-gray-700">
-                  <button
-                    onClick={() => {
-                      setIsWorkspaceDropdownOpen(false); // Close dropdown first
-                      navigate('/viewWorkspace');
-                    }}
-                    className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
-                  >
-                    See all workspaces
-                  </button>
+                    <button
+                      onClick={() => {
+                        setIsWorkspaceDropdownOpen(false);
+                        navigate('/viewWorkspace');
+                      }}
+                      className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
+                    >
+                      See all workspaces
+                    </button>
                   </div>
                 </div>
               )}

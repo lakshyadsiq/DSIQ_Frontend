@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/slices/authSlice';
+import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetStatus, setResetStatus] = useState('idle');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLoginChange = (e) => {
     const { name, value } = e.target;
@@ -43,7 +45,6 @@ const LoginPage = () => {
       console.log('Login failed or not fulfilled:', resultAction);
     }
   };
-  
 
   const handleResetSubmit = () => {
     if (!resetEmail) {
@@ -57,6 +58,10 @@ const LoginPage = () => {
       setResetStatus('sent');
       toast.success(`Reset link sent to ${resetEmail}`);
     }, 2000);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -132,14 +137,27 @@ const LoginPage = () => {
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <Input
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                className="w-full"
-                value={formData.password}
-                onChange={handleLoginChange}
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="••••••••"
+                  className="w-full !pr-10"
+                  value={formData.password}
+                  onChange={handleLoginChange}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="!h-5 !w-5" />
+                  ) : (
+                    <Eye className="!h-5 !w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button

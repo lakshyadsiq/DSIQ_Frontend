@@ -5,8 +5,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { ComboBox } from '@progress/kendo-react-dropdowns';
-import { useDispatch, useSelector } from 'react-redux'; 
-import { signupUser } from '../redux/slices/authSlice'; 
+import { useDispatch } from 'react-redux';
+import { signupUser } from '../redux/slices/authSlice';
+import { Eye, EyeOff } from 'lucide-react';
+
 const countries = [ 
   { id: 'af', name: 'Afghanistan', flag: '🇦🇫' },
   { id: 'al', name: 'Albania', flag: '🇦🇱' },
@@ -206,7 +208,7 @@ const countries = [
   { id: 'zw', name: 'Zimbabwe', flag: '🇿🇼' }
 ];
 
-const SignupPage = ( {onSignUp} ) => {
+const SignupPage = ({ onSignUp }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -218,9 +220,12 @@ const SignupPage = ( {onSignUp} ) => {
     userType: '',
   });
 
-  // State for filtered countries
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Country dropdown states
   const [filteredCountries, setFilteredCountries] = useState(countries);
-  // State for search term
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -228,12 +233,11 @@ const SignupPage = ( {onSignUp} ) => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target; 
+    const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleCountryChange = (e) => {
-    // Handle case when e.value is null or undefined
     const countryId = e.value && e.value.id ? e.value.id : '';
     setFormData((prevData) => ({ ...prevData, countryId }));
   };
@@ -242,11 +246,18 @@ const SignupPage = ( {onSignUp} ) => {
     setFormData((prevData) => ({ ...prevData, userType: e.target.value }));
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { fullName, email, countryId, password, confirmPassword, userType } = formData;
 
-    // Validation checks with toast notifications
     if (!fullName) {
       toast.error('Please enter your full name');
       return;
@@ -298,65 +309,41 @@ const SignupPage = ( {onSignUp} ) => {
       toast.success(`Account created for ${fullName} as ${userType}`);
       navigate('/workspaceCreate');
       onSignUp();
-    } catch (err) {
+    } catch (error) {
       toast.error(error || 'Error creating account');
     }
   };
 
   const countryItemRender = (li, itemProps) => {
     const country = itemProps.dataItem;
-    
-    const renderedLi = React.cloneElement(li, {
+    return React.cloneElement(li, {
       ...li.props,
-      style: {
-        ...li.props.style,
-      },
       children: (
         <div className="flex items-center gap-2 py-1">
-          <span >{country.flag}</span>
+          <span>{country.flag}</span>
           <span>{country.name}</span>
         </div>
       ),
     });
-    
-    return renderedLi;
   };
 
-  const filterCountry = (item, value) => {
-    if (!value) return true;
-    
-    // Case insensitive search
-    const searchLower = value.toLowerCase();
-    
-    // Search in country name and also in country code (id)
-    return (
-      item.name.toLowerCase().includes(searchLower) || 
-      item.id.toLowerCase().includes(searchLower)
-    );
-  };
-  
-  // Handle filter change
   const handleFilterChange = (event) => {
     const searchValue = event.filter.value || '';
     setSearchTerm(searchValue);
     
-    // Filter countries based on search term
     if (!searchValue) {
       setFilteredCountries(countries);
     } else {
       const filtered = countries.filter(country => 
-        filterCountry(country, searchValue)
+        country.name.toLowerCase().includes(searchValue.toLowerCase()) || 
+        country.id.toLowerCase().includes(searchValue.toLowerCase())
       );
       setFilteredCountries(filtered);
     }
   };
 
-  // Custom value render for selected country
   const countryValueRender = (element, value) => {
-    if (!value) {
-      return element;
-    }
-    
+    if (!value) return element;
     return (
       <div className="flex items-center gap-2">
         <span className="text-lg">{value.flag}</span>
@@ -365,7 +352,6 @@ const SignupPage = ( {onSignUp} ) => {
     );
   };
 
-  // Find the selected country object based on countryId
   const selectedCountry = countries.find(country => country.id === formData.countryId) || null;
 
   return (
@@ -374,7 +360,6 @@ const SignupPage = ( {onSignUp} ) => {
         onSubmit={handleSubmit}
         className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-md transition hover:shadow-2xl"
       >
-        {/* Branding */}
         <div className="mb-8 text-center">
           <img 
             src="/icon.png" 
@@ -389,6 +374,7 @@ const SignupPage = ( {onSignUp} ) => {
           <h1 className="text-3xl font-bold mt-6 text-gray-800 mb-2">DSIQ Registration</h1>
           <p className="text-gray-600 mb-6">Empowering Data-Driven Decisions</p>
         </div>
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
           <Input
@@ -435,27 +421,52 @@ const SignupPage = ( {onSignUp} ) => {
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <Input
-            type="password"
-            placeholder="••••••••"
-            className="w-full"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              className="w-full !pr-10"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
+              onClick={togglePasswordVisibility}
+            >
+              {showPassword ? (
+                <EyeOff className="!h-5 !w-5" />
+              ) : (
+                <Eye className="!h-5 !w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-          <Input
-            type="password"
-            placeholder="••••••••"
-            className="w-full"
-            name="confirmPassword" 
-            value={formData.confirmPassword}
-            onChange={handleChange}
-          />
-
+          <div className="relative">
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="••••••••"
+              className="w-full !pr-10"
+              name="confirmPassword" 
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
+              onClick={toggleConfirmPasswordVisibility}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="!h-5 !w-5" />
+              ) : (
+                <Eye className="!h-5 !w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -486,7 +497,6 @@ const SignupPage = ( {onSignUp} ) => {
           </div>
         </div>
 
-
         <Button primary={true} type="submit" className="w-full !text-white !bg-indigo-600 hover:!bg-indigo-700 rounded-full">
           Sign Up
         </Button>
@@ -499,7 +509,6 @@ const SignupPage = ( {onSignUp} ) => {
         </p>
       </form>
 
-      {/* Add ToastContainer */}
       <ToastContainer 
         position="top-right"
         autoClose={3000}
@@ -517,4 +526,3 @@ const SignupPage = ( {onSignUp} ) => {
 };
 
 export default SignupPage;
-

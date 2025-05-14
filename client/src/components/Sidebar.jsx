@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  BarChart, Briefcase, PiggyBank, Layers, LineChart,
-  PieChart, Keyboard, ChevronDown, ChevronRight,
-  Settings
+  BarChart, Briefcase, Layers, LineChart, PieChart, Keyboard, 
+  ChevronDown, ChevronRight, Settings, MessageSquare, BookOpen,
+  ShoppingBag, TrendingUp, Calendar, Users, FileText, Zap,
+  Clipboard, Target, Hash, Filter
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen }) => {
-  const [expanded, setExpanded] = useState(['Keyword']);
+const Sidebar = ({ isOpen, selectedApp }) => {
+  const [expanded, setExpanded] = useState([]);
   const [hoveredSection, setHoveredSection] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
   const [activeItem, setActiveItem] = useState(null);
@@ -60,48 +61,65 @@ const Sidebar = ({ isOpen }) => {
     };
   }, []);
 
-  const mainMenuItems = [
-    {
-      icon: <BarChart size={18} />,
-      label: 'Category Analysis',
-      isDropdown: false,
-      items: []
-    },
-    {
-      icon: <Briefcase size={18} />,
-      label: 'Brand Analysis',
-      isDropdown: false,
-      items: []
-    },
-    {
-      icon: <Layers size={18} />,
-      label: 'Item Level Analysis',
-      isDropdown: false,
-      items: []
-    },
-    {
-      icon: <LineChart size={18} />,
-      label: 'Sponsored AD Tracker',
-      isDropdown: false,
-      items: []
-    },
-    {
-      icon: <PieChart size={18} />,
-      label: 'Share of Voice',
-      isDropdown: false,
-      items: []
-    },
-    {
-      icon: <Keyboard size={18} />,
-      label: 'Keyword',
-      isDropdown: true,
-      items: [
-        { label: 'Keyword Tracker' },
-        { label: 'Keyword Planner' }
-      ]
-    },
-  ];
+  // Define menu items for each app
+  const getMainMenuItems = () => {
+    if (!selectedApp) return [];
+    switch(selectedApp.name) {
+      case 'Digital Shelf iQ':
+        return [
+          { icon: <BarChart size={18} />, label: 'Category Analysis', isDropdown: false, items: [] },
+          { icon: <Briefcase size={18} />, label: 'Brand Analysis', isDropdown: false, items: [] },
+          { icon: <Layers size={18} />, label: 'Item Level Analysis', isDropdown: false, items: [] },
+          { icon: <LineChart size={18} />, label: 'Sponsored AD Tracker', isDropdown: false, items: [] },
+          { icon: <PieChart size={18} />, label: 'Share of Voice', isDropdown: false, items: [] },
+          {
+            icon: <Keyboard size={18} />,
+            label: 'Keyword',
+            isDropdown: true,
+            items: [
+              { label: 'Keyword Tracker' },
+              { label: 'Keyword Planner' }
+            ]
+          },
+        ];
+      case 'Shopper iQ':
+        return [
+          { icon: <MessageSquare size={18} />, label: 'Review & Content Minor', isDropdown: false, items: [] },
+          { icon: <BookOpen size={18} />, label: 'Brand & Category Insights', isDropdown: false, items: [] },
+          { icon: <ShoppingBag size={18} />, label: 'Ask our AI Chatbot', isDropdown: false, items: [] },
+          { icon: <Users size={18} />, label: 'Panel Data', isDropdown: false, items: [] }
+        ];
+      case 'Promotion iQ':
+        return [
+          { icon: <Calendar size={18} />, label: 'Promotion Tracker', isDropdown: false, items: [] },
+          { icon: <TrendingUp size={18} />, label: 'Promotion Planner', isDropdown: false, items: [] },
+          { icon: <FileText size={18} />, label: 'Activation Partner', isDropdown: false, items: [] }
+        ];
+      case 'Channel AMP':
+        return [
+          { icon: <BarChart size={18} />, label: 'Dashboard', isDropdown: false, items: [] },
+          { icon: <Users size={18} />, label: 'Profiles', isDropdown: false, items: [] },
+          {
+            icon: <Target size={18} />,
+            label: 'Campaign',
+            isDropdown: true,
+            items: [
+              { label: 'Ad Groups' },
+              { label: 'Ads' },
+              { label: 'Keywords' },
+              { label: 'Search Terms' },
+              { label: 'Targets' }
+            ]
+          },
+          { icon: <Zap size={18} />, label: 'Automation Rules', isDropdown: false, items: [] },
+          { icon: <Clipboard size={18} />, label: 'Reporting', isDropdown: false, items: [] }
+        ];
+      default:
+        return [];
+    }
+  };
 
+  const mainMenuItems = getMainMenuItems();
   const bottomMenuItems = [
     {
       icon: <Settings size={18} />,
@@ -115,23 +133,39 @@ const Sidebar = ({ isOpen }) => {
     <div className="flex">
       <aside
         ref={sidebarRef}
-        className={`${isOpen ? 'w-64' : 'w-16'} h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white overflow-y-auto transition-all duration-300 relative z-10`}
+        className={`
+          ${isOpen ? 'w-64' : 'w-16'}
+          h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white
+          overflow-hidden overflow-y-auto transition-all duration-300 ease-in-out relative z-10
+        `}
       >
         {/* Logo */}
         <div className="p-4 h-[64px] border-b border-[#4A4561] flex items-center justify-center relative">
-          {isOpen ? (
+          <div
+            className={`
+              absolute inset-0 flex items-center justify-center
+              transition-all duration-300 ease-in-out
+              ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-5 pointer-events-none'}
+            `}
+          >
             <img
               src="./1.png"
               alt="Full Logo"
-              className="h-28 w-auto absolute top-8 left-28 transform -translate-x-1/2 -translate-y-1/2"
+              className="h-28 w-auto"
             />
-          ) : (
+          </div>
+          <div
+            className={`
+              transition-all duration-300 ease-in-out
+              ${!isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-5 pointer-events-none'}
+            `}
+          >
             <img
               src="./icon.png"
               alt="Logo Icon"
               className="h-8 w-8"
             />
-          )}
+          </div>
         </div>
 
         {/* Main Menu */}
@@ -142,16 +176,22 @@ const Sidebar = ({ isOpen }) => {
                 {isOpen ? (
                   <>
                     <div
-                      className={`relative flex items-center justify-between px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1] hover:bg-[#3D3850] rounded mx-2
+                      className={`
+                        relative flex items-center justify-between px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1]
+                        hover:bg-[#3D3850] rounded mx-2
                         ${activeItem === item.label || (item.isDropdown && item.items.some(sub => activeItem === `${item.label}-${sub.label}`)) ? 'bg-[#3D3850]' : ''}
+                        transition-all duration-300 ease-in-out
                       `}
                       onClick={() => item.isDropdown ? toggleSection(item.label) : handleItemClick(item.label)}
                     >
-                      {/* Vertical bar for active main item or any active subitem */}
                       {(activeItem === item.label || (item.isDropdown && item.items.some(sub => activeItem === `${item.label}-${sub.label}`))) && (
                         <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                       )}
-                      <div className="flex items-center p-2">
+                      <div className={`
+                        flex items-center p-2
+                        transition-all duration-300 ease-in-out
+                        ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}
+                      `}>
                         <span className="mr-2">{item.icon}</span>
                         <span>{item.label}</span>
                       </div>
@@ -166,12 +206,15 @@ const Sidebar = ({ isOpen }) => {
                       <div className="mt-1">
                         {item.items.map((subItem, subIndex) => (
                           <div key={subIndex} className="relative">
-                            {/* Vertical bar for active subitem */}
                             {activeItem === `${item.label}-${subItem.label}` && (
                               <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                             )}
                             <div
-                              className="pl-12 pr-4 py-2 text-[#A3A1B1] hover:bg-[#3D3850] cursor-pointer flex items-center"
+                              className={`
+                                pl-12 pr-4 py-2 text-[#A3A1B1] hover:bg-[#3D3850] cursor-pointer flex items-center
+                                transition-all duration-300 ease-in-out
+                                ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}
+                              `}
                               onClick={() => handleItemClick(item.label, subItem.label)}
                             >
                               <span>{subItem.label}</span>
@@ -187,12 +230,17 @@ const Sidebar = ({ isOpen }) => {
                     onMouseEnter={(e) => handleSectionHover(item, e)}
                     onMouseLeave={handleSectionLeave}
                   >
-                    {/* Vertical bar for active main item or any active subitem */}
                     {(activeItem === item.label || (item.isDropdown && item.items.some(sub => activeItem === `${item.label}-${sub.label}`))) && (
                       <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                     )}
                     <div
-                      className={`p-2 rounded-md ${activeItem === item.label || (item.isDropdown && item.items.some(sub => activeItem === `${item.label}-${sub.label}`)) ? 'bg-[#3D3850]' : 'hover:bg-[#3D3850]'} cursor-pointer my-1`}
+                      className={`
+                        p-2 rounded-md
+                        ${activeItem === item.label || (item.isDropdown && item.items.some(sub => activeItem === `${item.label}-${sub.label}`)) ? 'bg-[#3D3850]' : 'hover:bg-[#3D3850]'}
+                        cursor-pointer my-1
+                        transition-all duration-300 ease-in-out
+                        ${!isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}
+                      `}
                       title={item.label}
                       onClick={() => !item.isDropdown && handleItemClick(item.label)}
                     >
@@ -211,14 +259,22 @@ const Sidebar = ({ isOpen }) => {
             <div key={index}>
               {isOpen ? (
                 <div
-                  className={`relative flex items-center px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1] hover:bg-[#3D3850] rounded mx-2 ${activeItem === item.label ? 'bg-[#3D3850]' : ''}`}
+                  className={`
+                    relative flex items-center px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1]
+                    hover:bg-[#3D3850] rounded mx-2
+                    ${activeItem === item.label ? 'bg-[#3D3850]' : ''}
+                    transition-all duration-300 ease-in-out
+                  `}
                   onClick={() => handleItemClick(item.label)}
                 >
-                  {/* Vertical bar for active settings */}
                   {activeItem === item.label && (
                     <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                   )}
-                  <div className="flex items-center p-2">
+                  <div className={`
+                    flex items-center p-2
+                    transition-all duration-300 ease-in-out
+                    ${isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}
+                  `}>
                     <span className="mr-2">{item.icon}</span>
                     <span>{item.label}</span>
                   </div>
@@ -229,12 +285,17 @@ const Sidebar = ({ isOpen }) => {
                   onMouseEnter={(e) => handleSectionHover(item, e)}
                   onMouseLeave={handleSectionLeave}
                 >
-                  {/* Vertical bar for active settings */}
                   {activeItem === item.label && (
                     <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                   )}
                   <div
-                    className={`p-2 rounded-md ${activeItem === item.label ? 'bg-[#3D3850]' : 'hover:bg-[#3D3850]'} cursor-pointer my-1`}
+                    className={`
+                      p-2 rounded-md
+                      ${activeItem === item.label ? 'bg-[#3D3850]' : 'hover:bg-[#3D3850]'}
+                      cursor-pointer my-1
+                      transition-all duration-300 ease-in-out
+                      ${!isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}
+                    `}
                     title={item.label}
                     onClick={() => handleItemClick(item.label)}
                   >
@@ -270,7 +331,6 @@ const Sidebar = ({ isOpen }) => {
                 `}
                 onClick={() => handleItemClick(hoveredSection.label, item.label)}
               >
-                {/* Vertical bar for active subitem in hover popover */}
                 {activeItem === `${hoveredSection.label}-${item.label}` && (
                   <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
                 )}
