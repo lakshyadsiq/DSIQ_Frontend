@@ -1,127 +1,112 @@
 import React, { useState, useEffect } from 'react';
 
-const AddUser = ({ isOpen, onClose, onAddUser }) => {
+const AddUser = ({ isOpen, onClose, onAddUser, onUpdateUser, availableRoles, editingUser }) => {
   const [formData, setFormData] = useState({
     name: '',
-    position: '',
-    joiningDate: '',
     email: '',
+    role: ''
   });
 
   useEffect(() => {
-    if (isOpen) {
-      // Reset form data when modal opens
+    if (editingUser) {
+      setFormData({
+        name: editingUser.name,
+        email: editingUser.email,
+        role: editingUser.role
+      });
+    } else {
       setFormData({
         name: '',
-        position: '',
-        joiningDate: '',
         email: '',
+        role: ''
       });
-      
-      // Add a class to the body when modal is open to control background opacity
-      document.body.style.overflow = 'hidden';
-    } else {
-      // Remove the class when modal is closed
-      document.body.style.overflow = '';
     }
-    
-    // Cleanup function
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  }, [editingUser]);
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { name, position, joiningDate, email } = formData;
-    if (!name || !position || !joiningDate || !email) {
-      alert('Please fill all fields.');
-      return;
+    if (editingUser) {
+      onUpdateUser({
+        ...formData,
+        id: editingUser.id,
+        Role: formData.role
+      });
+    } else {
+      onAddUser({
+        ...formData,
+        Role: formData.role
+      });
     }
-    onAddUser(formData);
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6 relative border border-gray-700">
-        <h3 className="text-xl font-semibold mb-4 text-white">Add New User</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-              Name
-            </label>
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-white">
+          {editingUser ? 'Edit User' : 'Add New User'}
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">Name</label>
             <input
-              id="name"
+              type="text"
               name="name"
-              type="text"
               value={formData.name}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onChange={handleChange}
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded"
               required
             />
           </div>
-          <div>
-            <label htmlFor="position" className="block text-sm font-medium text-gray-300">
-              Role
-            </label>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">Email</label>
             <input
-              id="position"
-              name="position"
-              type="text"
-              value={formData.position}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="joiningDate" className="block text-sm font-medium text-gray-300">
-              Joining Date
-            </label>
-            <input
-              id="joiningDate"
-              name="joiningDate"
-              type="date"
-              value={formData.joiningDate}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
               type="email"
+              name="email"
               value={formData.email}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 text-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onChange={handleChange}
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded"
               required
             />
           </div>
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">role</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded"
+              required
+            >
+              <option value="">Select a role</option>
+              {availableRoles.map((role) => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-500 transition duration-200"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-500 transition duration-200"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200"
             >
-              Add New User
+              {editingUser ? 'Update' : 'Add'} User
             </button>
           </div>
         </form>
