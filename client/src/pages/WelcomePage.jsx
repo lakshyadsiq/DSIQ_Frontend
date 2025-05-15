@@ -79,7 +79,7 @@ useEffect(() => {
               <Button className="rounded-full px-6 bg-gray-800 text-white hover:bg-gray-700">Login</Button>
             </Link>
             <p className="text-sm text-gray-500">
-              Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline">Sign up</Link>
+              Don’t have an account? <Link to="/register" className="text-green-600 hover:underline">Sign up</Link>
             </p>
           </div>
 
@@ -96,7 +96,7 @@ useEffect(() => {
               </Button>
             </Link>
             <p className="text-sm text-gray-500">
-              Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline">Sign up</Link>
+              Don’t have an account? <Link to="/register" className="text-green-600 hover:underline">Sign up</Link>
             </p>
           </div>
         </section>

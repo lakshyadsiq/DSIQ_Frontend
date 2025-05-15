@@ -1,12 +1,12 @@
 //Update your Redux Slice to use createAsyncThunk
 // redux/slices/profileSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '../../api/axios'; // use default Axios if no instance
+import axios from '../../api/axios';
 
 // ✅ Async Thunk to Fetch Profile Data
 export const fetchProfile = createAsyncThunk('profile/fetchProfile', async () => {
   const response = await axios.get('/user/profile');
-  return response.data; // assumes backend sends user profile object
+  return response.data; 
 });
 
 // ✅ Async Thunk to Update Profile Data

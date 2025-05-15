@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '../../api/axios'; // Use basic axios for auth calls
+import axios from '../../api/axios';
 import { toast } from 'react-toastify';
 
 // Async Thunks
@@ -8,7 +8,6 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      // Development mock
       if (email === 'a@a.com' && password === '1234') {
         await new Promise((res) => setTimeout(res, 500));
         const dummyData = {
@@ -22,7 +21,6 @@ export const loginUser = createAsyncThunk(
         return dummyData;
       }
 
-      // Real API call
       const response = await axios.post('/api/auth/login', { email, password });
       const data = response.data;
 
@@ -37,10 +35,10 @@ export const loginUser = createAsyncThunk(
     }
   }
 );
-
-export const signupUser = createAsyncThunk(
-  'auth/signupUser',
-  async ({ fullName, email, countryId, password, userType }, { rejectWithValue }) => {
+export const registerAdmin = createAsyncThunk(
+  'auth/registerAdmin',
+  async ({ fullName, companyName, email, password, companyCode, userRole }, { rejectWithValue }) => {
+    
     try {
       // Development mock
       if (email === 'a@a.com') {
@@ -57,12 +55,13 @@ export const signupUser = createAsyncThunk(
       }
 
       // Real API call
-      const response = await axios.post('/api/auth/signup', {
+      const response = await axios.post('/api/auth/register-admin', {
         fullName,
+        companyName,
         email,
-        countryId,
         password,
-        userType,
+        companyCode,
+        role: userRole, // or directly 'admin'
       });
 
       const data = response.data;
@@ -73,11 +72,12 @@ export const signupUser = createAsyncThunk(
 
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || 'Signup failed. Please try again.';
+      const message = error.response?.data?.message || 'Admin registration failed. Please try again.';
       return rejectWithValue(message);
     }
   }
 );
+
 
 // Slice
 const authSlice = createSlice({
@@ -106,8 +106,8 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Login
     builder
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -124,15 +124,14 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         toast.error(action.payload);
-      });
+      })
 
-    // Signup
-    builder
-      .addCase(signupUser.pending, (state) => {
+      // Signup
+      .addCase(registerAdmin.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
+      .addCase(registerAdmin.fulfilled, (state, action) => {
         state.loading = false;
         state.isLoggedIn = true;
         state.user = action.payload.user;
@@ -140,7 +139,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         toast.success('Signup successful');
       })
-      .addCase(signupUser.rejected, (state, action) => {
+      .addCase(registerAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         toast.error(action.payload);
@@ -148,6 +147,5 @@ const authSlice = createSlice({
   },
 });
 
-// Exports
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;

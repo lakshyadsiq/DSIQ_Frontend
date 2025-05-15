@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
+import RegisterPage from './pages/SignupPage';
 import WorkspaceForm from './pages/WorkspaceCreation';
 import ModifyWorkspace from './components/ModifyWorkspace';
 import Home from './pages/Home';
@@ -38,10 +38,6 @@ const App = () => {
     setHasWorkspace(true);
   };
 
-  // Optional: pass login to children like LoginPage/SignupPage
-  const handleLogin = () => {
-    dispatch(login());
-  };
 
   return (
     <Router>
@@ -61,9 +57,9 @@ const App = () => {
           )}
         </Route>
 
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+        <Route path="/login" element={<LoginPage/>} />
         <Route path="/resetPassword" element={<ResetPassword />} />
-        <Route path="/signup" element={<SignupPage onSignUp={handleLogin} />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm onWorkspaceCreated={handleWorkspaceCreation}/> : <Navigate to="/login" />} />
         <Route
           path="/ModifyWorkspace/:id"
