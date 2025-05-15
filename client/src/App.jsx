@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState , useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -14,12 +14,29 @@ import ViewWorkspacesPage from './pages/ViewWorkspace';
 import Dashboard from './components/Dashboard';
 import ResetPassword from './pages/ResetPassword';
 import { Toaster } from 'react-hot-toast';
+import UsersList from './pages/UsersList';
+
 
 const App = () => {
   const dispatch = useDispatch();
 
   // ✅ Access isLoggedIn from Redux store
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  // State to track if at least one workspace exists
+  const [hasWorkspace, setHasWorkspace] = useState(false);
+  useEffect(() => {
+    // Check localStorage for the workspace flag
+    const workspaceFlag = localStorage.getItem('hasWorkspace');
+    if (workspaceFlag === 'true') {
+      setHasWorkspace(true);
+    }
+  }, []);
+
+  const handleWorkspaceCreation = () => {
+    // Set the flag in localStorage and update state
+    localStorage.setItem('hasWorkspace', 'true');
+    setHasWorkspace(true);
+  };
 
   // Optional: pass login to children like LoginPage/SignupPage
   const handleLogin = () => {
@@ -37,6 +54,9 @@ const App = () => {
             <>
               <Route index element={<Dashboard isLoggedIn={isLoggedIn} />} />
               <Route path="viewWorkspace" element={<ViewWorkspacesPage isLoggedIn={isLoggedIn}/>} />
+              {/* Conditionally render WorkspaceForm based on hasWorkspace flag */}
+              {hasWorkspace && <Route path="workspaceCreate" element={<WorkspaceForm onWorkspaceCreated={handleWorkspaceCreation} />} />}
+              <Route path="viewUsersList" element={<UsersList/>}/>
             </>
           )}
         </Route>
@@ -44,7 +64,7 @@ const App = () => {
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="/signup" element={<SignupPage onSignUp={handleLogin} />} />
-        <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm /> : <Navigate to="/login" />} />
+        <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm onWorkspaceCreated={handleWorkspaceCreation}/> : <Navigate to="/login" />} />
         <Route
           path="/ModifyWorkspace/:id"
           element={isLoggedIn ? <ModifyWorkspace /> : <Navigate to="/login" />}

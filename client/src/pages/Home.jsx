@@ -36,7 +36,7 @@ function Home({ isLoggedIn }) {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex h-screen overflow-hidden bg-gray-900 transition-colors duration-300">
       {/* Only render components once selectedApp is initialized */}
       {selectedApp && (
         <>

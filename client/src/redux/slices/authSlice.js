@@ -80,7 +80,6 @@ export const signupUser = createAsyncThunk(
 );
 
 // Slice
-
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -102,7 +101,7 @@ const authSlice = createSlice({
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
-
+      localStorage.removeItem('hasWorkspace');
       toast.info('Logged out');
     },
   },
