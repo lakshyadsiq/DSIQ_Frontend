@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Users } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 
@@ -21,30 +21,28 @@ const ProfileDropdown = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="w-56 bg-gray-800 text-white rounded-lg shadow-lg ring-1 ring-black/10 animate-dropdown"
-    >
-      <div className="px-4 py-4 border-b border-gray-700">
-        <p className="text-xs text-gray-400 uppercase tracking-wider">Signed in as</p>
-        <p className="text-base font-medium text-white truncate">{userRole}</p>
+    <div className="bg-gray-900 text-white rounded shadow-lg w-48 md:w-56 lg:w-55 transition-all">
+      <div className="px-4 py-3 border-b border-gray-800">
+        <p className="text-xs md:text-sm text-gray-400 uppercase">SIGNED IN AS</p>
+        <p className="text-sm md:text-base font-medium">Admin</p>
       </div>
-
-      <div className="py-1 transition-all">
+      
+      <div className="border-b border-gray-800">
         <button
           onClick={handleProfileClick}
-          className="flex items-center w-full gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-all duration-200 ease-in-out hover:scale-[1.01]"
+          className="flex items-center w-full gap-3 px-4 py-3 text-sm md:text-base hover:bg-gray-800 transition-colors"
         >
-          <User className="h-4 w-4" />
+          <User className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
           Your Profile
         </button>
       </div>
-
-      <div className="py-1 border-t border-gray-700 transition-all">
+      
+      <div>
         <button
           onClick={handleSignOut}
-          className="flex items-center w-full gap-3 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-gray-700 transition-all duration-200 ease-in-out hover:scale-[1.01]"
+          className="flex items-center w-full gap-3 px-4 py-3 text-sm md:text-base text-red-400 hover:bg-gray-800 transition-colors"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-4 w-4 md:h-5 md:w-5" />
           Sign out
         </button>
       </div>

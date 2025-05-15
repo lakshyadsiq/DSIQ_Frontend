@@ -1,47 +1,35 @@
 import React from 'react';
 import { useTimeGreeting } from '../hooks/useTimeGreeting';
-import Footer from './Footer'
+import Footer from './Footer';
 
 const Dashboard = ({isLoggedIn}) => {
   const greeting = useTimeGreeting();
-  const userName = "Name";
 
   return (
-    <div className="flex flex-col h-full">
-      <style>
-        {`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #2d3748; /* darker background */
-          }
-          
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #4a5568; /* lighter thumb */
-            border-radius: 20px;
-          }
-          
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: #718096; /* even lighter on hover */
-          }
-          
-          /* Firefox scrollbar */
-          .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: #4a5568 #2d3748;
-          }
-        `}
-      </style>
-      
-      <div className="flex-grow overflow-y-auto custom-scrollbar px-4 py-66">
-        <div className="text-center text-amber-200 space-y-2">
-          <h2 className="text-3xl font-semibold">Main</h2>
-          <p className="text-3xl font-semibold">Canvas</p>
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      {/* Main content with properly hidden scrollbar */}
+      <div className="flex-grow overflow-y-auto px-4 py-6 scrollbar-hide">
+        <div className="text-center text-amber-200 space-y-2 mb-6">
+          <h2 className="text-3xl font-semibold">
+            {greeting}
+          </h2>
+          <p className="text-3xl font-semibold">Main Canvas</p>
         </div>
       </div>
       <Footer isLoggedIn={isLoggedIn} />
+      
+      <style jsx>{`
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
     </div>
   );
 };

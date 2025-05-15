@@ -120,7 +120,7 @@ const CustomDropdown = ({ data, value, onChange, textField = "text", dataItemKey
           isOpen ? "opacity-100 transform scale-y-100 max-h-60" : "opacity-0 transform scale-y-0 max-h-0"
         }`}
       >
-        <div className="max-h-60 overflow-y-auto">
+        <div className="max-h-60 overflow-y-auto invisible-scrollbar">
           {data.map((item, index) => (
             <div
               key={index}
@@ -170,6 +170,31 @@ export default function WorkspacesPage({ isLoggedIn }) {
   useEffect(() => {
     dispatch(applyFiltersAndSort())
   }, [dispatch, searchQuery, sortBy, category, showArchived])
+
+  // Add global styles for invisible scrollbars
+  useEffect(() => {
+    // Create a style element
+    const styleEl = document.createElement('style');
+    // Define the CSS for invisible scrollbars
+    const css = `
+      .invisible-scrollbar {
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+      }
+      .invisible-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+      }
+    `;
+    
+    styleEl.appendChild(document.createTextNode(css));
+    document.head.appendChild(styleEl);
+    
+    return () => {
+      // Clean up by removing the style element when component unmounts
+      document.head.removeChild(styleEl);
+    };
+  }, []);
 
   // Get category items for dropdown
   const categoryData = [{ text: "All Categories", value: "all" }, ...categories.filter((cat) => cat.value !== "all")]
@@ -296,25 +321,15 @@ export default function WorkspacesPage({ isLoggedIn }) {
   }
 
   return (
-    <div className="h-[100vh] bg-gray-50 flex flex-col overflow-auto border ">
+    <div className="h-[100vh] bg-gray-50 flex flex-col overflow-auto invisible-scrollbar border">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-700 to-indigo-800 py-2 px-8 shadow-md">
-        <button
-          onClick={handleBack}
-          className="mb-4 flex items-center gap-2 text-white hover:text-purple-200 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back</span>
-        </button>
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-white">Workspaces</h1>
-              <p className="text-purple-100">Manage and organize your workspace collections</p>
-            </div>
+            <p className="text-purple-100">Manage and organize your workspace collections</p>
             <button
               onClick={handleCreateWorkspace}
-              className="!flex  !items-center !justify-center !gap-2 !bg-white !text-purple-700 !font-medium !px-4 !py-2.5 !rounded-lg !shadow-sm !hover:bg-purple-50 !transition-colors !duration-200 !border !border-purple-200 !text-sm"
+              className="!flex !items-center !justify-center !gap-2 !bg-white !text-purple-700 !font-medium !px-4 !py-2.5 !rounded-lg !shadow-sm !hover:bg-purple-50 !transition-colors !duration-200 !border !border-purple-200 !text-sm"
             >
               <Plus className="h-4 w-4" />
               <span>Create New Workspace</span>
@@ -324,7 +339,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
       </header>
 
       {/* Main content */}
-      <main className="flex-grow w-[calc(90vw-256px)] mx-auto py-8 px-4">
+      <main className="flex-grow w-[calc(90vw-256px)] mx-auto py-8 px-4 invisible-scrollbar">
         {/* Search and filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

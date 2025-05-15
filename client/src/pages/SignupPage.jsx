@@ -272,7 +272,7 @@ const RegisterPage = () => {
     try {
       await dispatch(registerAdmin({ fullName, companyName, email: companyEmail, password, companyCode, countryId, userType: 'admin' }));
       toast.success('Admin account created successfully!');
-      navigate('/');
+      navigate('/workspaceCreate');
     } catch (error) {
       toast.error(error || 'Failed to register admin');
     }

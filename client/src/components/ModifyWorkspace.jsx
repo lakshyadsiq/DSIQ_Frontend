@@ -26,8 +26,9 @@ import {
 } from "@progress/kendo-react-all"
 import "@progress/kendo-theme-default/dist/all.css"
 import { useNavigate, useParams } from "react-router-dom"
+import Footer from "./Footer"
 
-export default function WorkspaceModifyPage() {
+export default function WorkspaceModifyPage( {isLoggedIn} ) {
   const { id } = useParams()
   const navigate = useNavigate()
   
@@ -178,16 +179,9 @@ export default function WorkspaceModifyPage() {
   const selectedCategory = categories.find(c => c.value === workspace.category)
 
   return (
-    <div className="min-h-[80vh] bg-gray-50 flex-1 overflow-auto border">
+    <div className="min-h-[90vh] bg-gray-50 flex-1 overflow-auto border space-y-5">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-700 to-indigo-800 py-2 px-8 shadow-md">
-        <button
-          onClick={handleBack}
-          className="mb-4 flex items-center gap-2 text-white hover:text-purple-200 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Workspaces</span>
-        </button>
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-1">
@@ -364,6 +358,7 @@ export default function WorkspaceModifyPage() {
           </Notification>
         )}
       </NotificationGroup>
+      <Footer isLoggedIn={isLoggedIn} />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Calendar, MapPin, Briefcase, Mail, Phone, ArrowLeft } from 'lucide-react';
+import Footer from './Footer';
 
 const initialProfile = {
   name: 'Jane Doe',
@@ -77,7 +78,7 @@ const EditableField = ({
   );
 };
 
-const Profile = () => {
+const Profile = ({isLoggedIn} ) => {
   // Load profile from localStorage or use initial profile
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -174,18 +175,8 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-4">
-          <button 
-            onClick={handleGoBack}
-            className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <ArrowLeft size={20} className="mr-1" />
-            <span>Back</span>
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-1 py-9">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 bg-gray-800 shadow-lg p-6 mb-4">
           <div className="flex flex-col items-center lg:border-r lg:border-gray-700 pr-0 lg:pr-6">
             <div className="relative mb-4">
               <img
@@ -362,7 +353,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-gray-800 shadow-lg p-4">
           <h2 className="text-xl font-bold mb-4 text-gray-100">Recent Activity</h2>
           <div className="space-y-4">
             {[1, 2, 3].map((item) => (
@@ -379,6 +370,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <Footer isLoggedIn={isLoggedIn} />
     </div>
   );
 };
