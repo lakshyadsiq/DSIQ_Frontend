@@ -5,7 +5,7 @@ const initialProfile = {
   name: 'Jane Doe',
   email: 'jane.doe@example.com',
   company: 'DSIQ Inc.',
-  role: 'Product Manager',
+  role: 'Admin',
   location: 'San Francisco, CA',
   phone: '+1 (555) 123-4567',
   birthday: 'April 15, 1990',

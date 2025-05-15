@@ -47,7 +47,7 @@ const helpTopics = [
 
 const HelpPage = () => {
   const navigate = useNavigate();
-  
+
   const handleGoBack = () => {
     navigate(-1);
   };
@@ -55,7 +55,7 @@ const HelpPage = () => {
   return (
     <div className="p-6 bg-gray-900 text-gray-100 min-h-screen">
       <div className="mb-6 flex space-x-170">
-        <button 
+        <button
           onClick={handleGoBack}
           className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
         >
@@ -63,8 +63,8 @@ const HelpPage = () => {
           <span>Back</span>
         </button>
         <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-        <HelpCircle size={28} /> Help & Support
-      </h1>
+          <HelpCircle size={28} /> Help & Support
+        </h1>
       </div>
 
       <div className="space-y-6">

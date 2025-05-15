@@ -180,7 +180,7 @@ const LoginPage = () => {
               >
                 Forgot password?
               </button>
-              <a href="/signup" className="text-indigo-600 hover:underline">
+              <a href="/register" className="text-indigo-600 hover:underline">
                 Create account
               </a>
             </div>

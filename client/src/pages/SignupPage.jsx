@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@progress/kendo-react-inputs';
 import { Button } from '@progress/kendo-react-buttons';
+import { ComboBox } from '@progress/kendo-react-dropdowns';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import { ComboBox } from '@progress/kendo-react-dropdowns';
 import { useDispatch } from 'react-redux';
-import { signupUser } from '../redux/slices/authSlice';
+import { registerAdmin } from '../redux/slices/authSlice';
 import { Eye, EyeOff } from 'lucide-react';
 
 const countries = [ 
@@ -208,89 +208,59 @@ const countries = [
   { id: 'zw', name: 'Zimbabwe', flag: '🇿🇼' }
 ];
 
-const SignupPage = ({ onSignUp }) => {
+const RegisterPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
-    countryId: '',
+    companyName: '',
+    companyEmail: '',
     password: '',
     confirmPassword: '',
-    userType: '',
+    companyCode: '',
+    countryId: '',
   });
 
-  // Password visibility states
+  const [filteredCountries, setFilteredCountries] = useState(countries);
+  const [searchTerm, setSearchTerm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Country dropdown states
-  const [filteredCountries, setFilteredCountries] = useState(countries);
-  const [searchTerm, setSearchTerm] = useState('');
-
   useEffect(() => {
-    setFormData(prevData => ({ ...prevData, countryId: 'us' }));
+    setFormData(prev => ({ ...prev, countryId: 'us' })); // default country
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCountryChange = (e) => {
     const countryId = e.value && e.value.id ? e.value.id : '';
-    setFormData((prevData) => ({ ...prevData, countryId }));
+    setFormData(prev => ({ ...prev, countryId }));
   };
 
-  const handleRadioChange = (e) => {
-    setFormData((prevData) => ({ ...prevData, userType: e.target.value }));
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(prev => !prev);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { fullName, email, countryId, password, confirmPassword, userType } = formData;
+    const { fullName, companyName, companyEmail, password, confirmPassword, companyCode, countryId } = formData;
 
-    if (!fullName) {
-      toast.error('Please enter your full name');
-      return;
-    }
-
-    if (!email) {
-      toast.error('Please enter your email address');
+    if (!fullName || !companyName || !companyEmail || !password || !confirmPassword || !companyCode || !countryId) {
+      toast.error('Please fill in all fields');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    if (!countryId) {
-      toast.error('Please select a country');
-      return;
-    }
-
-    if (!password) {
-      toast.error('Please enter a password');
+    if (!emailRegex.test(companyEmail)) {
+      toast.error('Please enter a valid company email');
       return;
     }
 
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
-
-    if (!confirmPassword) {
-      toast.error('Please confirm your password');
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
@@ -299,19 +269,24 @@ const SignupPage = ({ onSignUp }) => {
       return;
     }
 
-    if (!userType) {
-      toast.error('Please select your role');
-      return;
-    }
-
     try {
-      await dispatch(signupUser({ fullName, email, countryId, password, userType }));
-      toast.success(`Account created for ${fullName} as ${userType}`);
-      navigate('/workspaceCreate');
-      onSignUp();
+      await dispatch(registerAdmin({ fullName, companyName, email: companyEmail, password, companyCode, countryId, userType: 'admin' }));
+      toast.success('Admin account created successfully!');
+      navigate('/');
     } catch (error) {
-      toast.error(error || 'Error creating account');
+      toast.error(error || 'Failed to register admin');
     }
+  };
+
+  const selectedCountry = countries.find(c => c.id === formData.countryId) || null;
+
+  const handleFilterChange = (event) => {
+    const value = event.filter.value || '';
+    setSearchTerm(value);
+    const filtered = countries.filter(
+      (c) => c.name.toLowerCase().includes(value.toLowerCase()) || c.id.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredCountries(filtered);
   };
 
   const countryItemRender = (li, itemProps) => {
@@ -327,76 +302,38 @@ const SignupPage = ({ onSignUp }) => {
     });
   };
 
-  const handleFilterChange = (event) => {
-    const searchValue = event.filter.value || '';
-    setSearchTerm(searchValue);
-    
-    if (!searchValue) {
-      setFilteredCountries(countries);
-    } else {
-      const filtered = countries.filter(country => 
-        country.name.toLowerCase().includes(searchValue.toLowerCase()) || 
-        country.id.toLowerCase().includes(searchValue.toLowerCase())
-      );
-      setFilteredCountries(filtered);
-    }
-  };
-
   const countryValueRender = (element, value) => {
     if (!value) return element;
     return (
       <div className="flex items-center gap-2">
-        <span className="text-lg">{value.flag}</span>
+        <span>{value.flag}</span>
         <span>{value.name}</span>
       </div>
     );
   };
 
-  const selectedCountry = countries.find(country => country.id === formData.countryId) || null;
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-md transition hover:shadow-2xl"
-      >
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-10 w-full max-w-md transition hover:shadow-2xl">
         <div className="mb-8 text-center">
-          <img 
-            src="/icon.png" 
-            alt="DSIQ Logo" 
-            className="h-16 w-auto mx-auto mb-4"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "/icon.png";
-            }}
-          />
-          <h2 className="text-xl font-bold text-gray-800">Welcome to DSIQ</h2>
-          <h1 className="text-3xl font-bold mt-6 text-gray-800 mb-2">DSIQ Registration</h1>
-          <p className="text-gray-600 mb-6">Empowering Data-Driven Decisions</p>
+          <img src="/icon.png" alt="DSIQ Logo" className="h-16 w-auto mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Registration</h1>
+          <p className="text-gray-600">Register your company to get started</p>
         </div>
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <Input
-            type="text"
-            placeholder="John Doe"
-            className="w-full"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-          />
+          <Input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="John Doe" className="w-full" />
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-          <Input
-            type="email"
-            placeholder="email@example.com"
-            className="w-full"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+          <Input type="text" name="companyName" value={formData.companyName} onChange={handleChange} placeholder="Acme Inc." className="w-full" />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Company Email ID</label>
+          <Input type="email" name="companyEmail" value={formData.companyEmail} onChange={handleChange} placeholder="admin@acme.com" className="w-full" />
         </div>
 
         <div className="mb-4">
@@ -407,122 +344,69 @@ const SignupPage = ({ onSignUp }) => {
             dataItemKey="id"
             value={selectedCountry}
             onChange={handleCountryChange}
+            filterable
+            onFilterChange={handleFilterChange}
             itemRender={countryItemRender}
             valueRender={countryValueRender}
-            filterable={true}
-            onFilterChange={handleFilterChange}
-            placeholder="Search country..."
+            placeholder="Select Country"
             className="w-full"
-            popupSettings={{
-              className: "country-dropdown"
-            }}
           />
         </div>
 
-        <div className="mb-5">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Company Unique Code</label>
+          <Input type="text" name="companyCode" value={formData.companyCode} onChange={handleChange} placeholder="e.g., ACME123" className="w-full" />
+        </div>
+
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <div className="relative">
             <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              className="w-full !pr-10"
+              type={showPassword ? 'text' : 'password'}
               name="password"
               value={formData.password}
               onChange={handleChange}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? (
-                <EyeOff className="!h-5 !w-5" />
-              ) : (
-                <Eye className="!h-5 !w-5" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-          <div className="relative">
-            <Input
-              type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••"
               className="w-full !pr-10"
-              name="confirmPassword" 
-              value={formData.confirmPassword}
-              onChange={handleChange}
             />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
-              onClick={toggleConfirmPasswordVisibility}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="!h-5 !w-5" />
-              ) : (
-                <Eye className="!h-5 !w-5" />
-              )}
+            <button type="button" className="absolute inset-y-0 right-0 px-3 text-gray-600" onClick={togglePasswordVisibility}>
+              {showPassword ? <EyeOff className="!h-5 !w-5" /> : <Eye className="!h-5 !w-5" />}
             </button>
           </div>
         </div>
 
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-2">Select your role:</p>
-          <div className="flex gap-4">
-            {['Agency', 'Brand'].map((type) => {
-              const value = type.toLowerCase();
-              const selected = formData.userType === value;
-              return (
-                <label
-                  key={type}
-                  className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-all duration-200 text-sm
-                    ${selected ? 'border-indigo-600 bg-indigo-100 text-indigo-800 shadow-sm' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}
-                    focus-within:ring-2 focus-within:ring-indigo-500`}
-                >
-                  <input
-                    type="radio"
-                    name="userType"
-                    value={value}
-                    checked={selected}
-                    onChange={handleRadioChange}
-                    className="hidden"
-                  />
-                  <span className="font-medium">{type}</span>
-                </label>
-              );
-            })}
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+          <div className="relative">
+            <Input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              className="w-full !pr-10"
+            />
+            <button type="button" className="absolute inset-y-0 right-0 px-3 text-gray-600" onClick={toggleConfirmPasswordVisibility}>
+              {showConfirmPassword ? <EyeOff className="!h-5 !w-5" /> : <Eye className="!h-5 !w-5" />}
+            </button>
           </div>
         </div>
 
-        <Button primary={true} type="submit" className="w-full !text-white !bg-indigo-600 hover:!bg-indigo-700 rounded-full">
-          Sign Up
+        <Button primary type="submit" className="w-full !text-white !bg-indigo-600 hover:!bg-indigo-700 rounded-full">
+          Register
         </Button>
 
         <p className="mt-5 text-center text-sm text-gray-500">
-          Already have an account?{' '}
+          Already registered?{' '}
           <a href="/login" className="text-indigo-600 font-medium hover:underline">
             Log in
           </a>
         </p>
       </form>
 
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </div>
   );
 };
 
-export default SignupPage;
+export default RegisterPage;

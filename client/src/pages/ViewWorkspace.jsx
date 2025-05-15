@@ -1,4 +1,6 @@
-import { useEffect } from "react"
+"use client"
+
+import { useEffect, useState, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux" // Import Redux hooks
 import {
   Search,
@@ -19,12 +21,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { MdArchive } from "react-icons/md"
-import toast from 'react-hot-toast'
-import {
-  DropDownList,
-  Tooltip
-} from "@progress/kendo-react-all"
-import "@progress/kendo-theme-default/dist/all.css"
+import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import Footer from "../components/Footer"
 
@@ -52,13 +49,102 @@ import {
   selectIsFiltersOpen,
   selectShowArchived,
   selectCurrentPage,
-  selectCategories
+  selectCategories,
 } from "../redux/slices/workspaceViewSlice"
+
+// Custom Tooltip component
+const Tooltip = ({ content, position = "top", children }) => {
+  const [isVisible, setIsVisible] = useState(false)
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      {isVisible && (
+        <div
+          className={`absolute z-10 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-sm whitespace-nowrap
+          ${position === "top" ? "bottom-full mb-1 left-1/2 transform -translate-x-1/2" : ""}
+          ${position === "bottom" ? "top-full mt-1 left-1/2 transform -translate-x-1/2" : ""}
+          ${position === "left" ? "right-full mr-1 top-1/2 transform -translate-y-1/2" : ""}
+          ${position === "right" ? "left-full ml-1 top-1/2 transform -translate-y-1/2" : ""}
+        `}
+        >
+          {content}
+          <div
+            className={`absolute w-2 h-2 bg-gray-800 transform rotate-45
+            ${position === "top" ? "top-full -mt-1 left-1/2 -ml-1" : ""}
+            ${position === "bottom" ? "bottom-full -mb-1 left-1/2 -ml-1" : ""}
+            ${position === "left" ? "left-full -ml-1 top-1/2 -mt-1" : ""}
+            ${position === "right" ? "right-full -mr-1 top-1/2 -mt-1" : ""}
+          `}
+          ></div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Custom Dropdown component with animations
+const CustomDropdown = ({ data, value, onChange, textField = "text", dataItemKey = "value" }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const selectedItem = data.find((item) => item[dataItemKey] === value)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        className="flex items-center justify-between w-full px-4 py-2.5 text-left bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedItem ? selectedItem[textField] : "Select..."}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      <div
+        className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top ${
+          isOpen ? "opacity-100 transform scale-y-100 max-h-60" : "opacity-0 transform scale-y-0 max-h-0"
+        }`}
+      >
+        <div className="max-h-60 overflow-y-auto">
+          {data.map((item, index) => (
+            <div
+              key={index}
+              className={`px-4 py-2.5 cursor-pointer hover:bg-purple-50 transition-colors ${
+                item[dataItemKey] === value ? "bg-purple-100 text-purple-700" : "text-gray-700"
+              }`}
+              onClick={() => {
+                onChange({ value: item })
+                setIsOpen(false)
+              }}
+            >
+              {item[textField]}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function WorkspacesPage({ isLoggedIn }) {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  
+
   // Get data from Redux store
   const paginatedWorkspaces = useSelector(selectPaginatedWorkspaces)
   const totalPages = useSelector(selectTotalPages)
@@ -75,7 +161,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
 
   // Fetch workspaces when component mounts
   useEffect(() => {
-    if (status === 'idle') {
+    if (status === "idle") {
       dispatch(fetchWorkspaces())
     }
   }, [dispatch, status])
@@ -86,15 +172,12 @@ export default function WorkspacesPage({ isLoggedIn }) {
   }, [dispatch, searchQuery, sortBy, category, showArchived])
 
   // Get category items for dropdown
-  const categoryData = [
-    { text: "All Categories", value: "all" },
-    ...categories.filter(cat => cat.value !== "all")
-  ]
+  const categoryData = [{ text: "All Categories", value: "all" }, ...categories.filter((cat) => cat.value !== "all")]
 
   const sortOptions = [
     { text: "Name", value: "name" },
     { text: "Date Modified", value: "date" },
-    { text: "Retailer", value: "retailer" }
+    { text: "Retailer", value: "retailer" },
   ]
 
   // Handle workspace actions
@@ -107,14 +190,14 @@ export default function WorkspacesPage({ isLoggedIn }) {
     dispatch(archiveWorkspace(id))
       .unwrap()
       .then(() => {
-        toast.success('Workspace archived successfully!', {
+        toast.success("Workspace archived successfully!", {
           icon: <MdArchive className="text-blue-500" />,
-          position: 'top-center',
+          position: "top-center",
           duration: 3000,
         })
       })
       .catch((err) => {
-        toast.error('Failed to archive workspace')
+        toast.error("Failed to archive workspace")
         console.error("Error archiving workspace:", err)
       })
   }
@@ -123,18 +206,18 @@ export default function WorkspacesPage({ isLoggedIn }) {
     dispatch(restoreWorkspace(id))
       .unwrap()
       .then(() => {
-        toast.success('Workspace restored successfully!', {
-          position: 'top-center',
+        toast.success("Workspace restored successfully!", {
+          position: "top-center",
           duration: 3000,
           icon: <Package className="text-green-500" />,
         })
       })
       .catch((err) => {
-        toast.error('Failed to restore workspace')
+        toast.error("Failed to restore workspace")
         console.error("Error restoring workspace:", err)
       })
   }
-  
+
   const handleCreateWorkspace = () => {
     console.log("Creating new workspace")
     navigate("/workspaceCreate")
@@ -182,7 +265,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
   }
 
   // Show loading state
-  if (status === 'loading' && paginatedWorkspaces.length === 0) {
+  if (status === "loading" && paginatedWorkspaces.length === 0) {
     return (
       <div className="min-h-[80vh] bg-gray-50 flex-1 flex items-center justify-center">
         <div className="text-center">
@@ -194,14 +277,14 @@ export default function WorkspacesPage({ isLoggedIn }) {
   }
 
   // Show error state
-  if (status === 'failed') {
+  if (status === "failed") {
     return (
       <div className="min-h-[80vh] bg-gray-50 flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h3 className="text-xl font-bold text-gray-800 mb-2">Failed to load workspaces</h3>
           <p className="text-gray-600 mb-4">{error || "An unexpected error occurred."}</p>
-          <button 
+          <button
             onClick={() => dispatch(fetchWorkspaces())}
             className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
@@ -213,7 +296,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
   }
 
   return (
-    <div className="h-[100vh] bg-gray-50 flex-row overflow-auto border ">
+    <div className="h-[100vh] bg-gray-50 flex flex-col overflow-auto border ">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-700 to-indigo-800 py-2 px-8 shadow-md">
         <button
@@ -241,7 +324,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto py-8 px-4">
+      <main className="flex-grow w-[calc(90vw-256px)] mx-auto py-8 px-4">
         {/* Search and filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -292,35 +375,35 @@ export default function WorkspacesPage({ isLoggedIn }) {
           </div>
 
           {/* Expanded filters */}
-          {isFiltersOpen && (
-            <div className="pt-4 border-t mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isFiltersOpen ? "max-h-96 opacity-100 pt-4 border-t mt-4" : "max-h-0 opacity-0 mt-0"
+            }`}
+          >
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transform transition-transform duration-300 ${
+                isFiltersOpen ? "translate-y-0" : "-translate-y-4"
+              }`}
+            >
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">Sort by</label>
-                <DropDownList
+                <CustomDropdown
                   data={sortOptions}
-                  textField="text"
-                  dataItemKey="value"
-                  value={sortOptions.find((item) => item.value === sortBy)}
+                  value={sortBy}
                   onChange={(e) => dispatch(setSortBy(e.value.value))}
-                  style={{ width: "100%" }}
-                  className="!w-full"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">Category</label>
-                <DropDownList
+                <CustomDropdown
                   data={categoryData}
-                  textField="text"
-                  dataItemKey="value"
-                  value={categoryData.find((item) => item.value === category)}
+                  value={category}
                   onChange={(e) => dispatch(setCategoryFilter(e.value.value))}
-                  style={{ width: "100%" }}
-                  className="!w-full"
                 />
               </div>
             </div>
-          )}
+          </div>
 
           {/* Archived Workspaces Toggle */}
           <div className="pt-4 mt-4 border-t">
@@ -329,8 +412,8 @@ export default function WorkspacesPage({ isLoggedIn }) {
                 <label className="text-sm font-semibold text-gray-700">Archived Workspaces</label>
                 <p className="text-xs text-gray-500 italic mt-1">
                   {showArchived
-                    ? 'Showing archived workspaces in the list.'
-                    : 'Archived workspaces are currently hidden.'}
+                    ? "Showing archived workspaces in the list."
+                    : "Archived workspaces are currently hidden."}
                 </p>
               </div>
 
@@ -338,18 +421,20 @@ export default function WorkspacesPage({ isLoggedIn }) {
                 type="button"
                 onClick={() => dispatch(toggleShowArchived())}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition
-                ${showArchived
-                    ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200'
-                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'}
+                ${
+                  showArchived
+                    ? "bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
+                    : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+                }
                 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1`}
               >
-                <MdArchive className={`h-5 w-5 ${showArchived ? 'text-purple-600' : 'text-gray-400'}`} />
-                {showArchived ? 'Hide Archived' : 'Show Archived'}
+                <MdArchive className={`h-5 w-5 ${showArchived ? "text-purple-600" : "text-gray-400"}`} />
+                {showArchived ? "Hide Archived" : "Show Archived"}
               </button>
             </div>
           </div>
         </div>
-        
+
         {/* Summary stats */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -370,24 +455,29 @@ export default function WorkspacesPage({ isLoggedIn }) {
         <div
           className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
         >
-          {paginatedWorkspaces.map((index , workspace) => (
+          {paginatedWorkspaces.map((index, workspace) => (
             <div
               key={index}
-              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${viewMode === "list" ? "flex justify-between items-center" : ""
-                } ${workspace.archived ? "opacity-75 border-dashed" : ""}`}
+              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
+                viewMode === "list" ? "flex justify-between items-center" : ""
+              } ${workspace.archived ? "opacity-75 border-dashed" : ""}`}
             >
               <div className={`${viewMode === "list" ? "flex items-center gap-4 flex-1 p-4" : "p-5"}`}>
                 <div className={`flex items-center gap-4 ${viewMode === "grid" ? "mb-4" : ""}`}>
                   <div
-                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center ${workspace.archived ? "opacity-80" : ""
-                      }`}
+                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center ${
+                      workspace.archived ? "opacity-80" : ""
+                    }`}
                   >
                     {getWorkspaceIcon(workspace.category)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h3 className={`font-semibold text-lg text-gray-900 truncate ${workspace.archived ? "line-through" : ""
-                        }`}>
+                      <h3
+                        className={`font-semibold text-lg text-gray-900 truncate ${
+                          workspace.archived ? "line-through" : ""
+                        }`}
+                      >
                         {workspace.name}
                         {workspace.archived && (
                           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
@@ -443,7 +533,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
                       onClick={() => handleEdit(workspace.id)}
                       disabled={workspace.archived}
                     >
-                      <Edit className={`h-4 w-4 ${workspace.archived ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <Edit className={`h-4 w-4 ${workspace.archived ? "text-gray-400" : "text-gray-500"}`} />
                     </button>
                   </div>
                 </Tooltip>
@@ -455,9 +545,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
                   <div>
                     <button
                       className="p-2 rounded hover:bg-purple-50 flex items-center justify-center"
-                      onClick={() =>
-                        workspace.archived ? handleRestore(workspace.id) : handleArchive(workspace.id)
-                      }
+                      onClick={() => (workspace.archived ? handleRestore(workspace.id) : handleArchive(workspace.id))}
                     >
                       {workspace.archived ? (
                         <Package className="h-4 w-4 text-green-500" />
@@ -478,15 +566,15 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <div className="text-5xl mb-3">🔍</div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No workspaces found</h3>
             <p className="text-gray-600 mb-4">
-              {searchQuery || category !== 'all' 
-                ? "Try adjusting your filters or search query" 
+              {searchQuery || category !== "all"
+                ? "Try adjusting your filters or search query"
                 : "Create your first workspace to get started"}
             </p>
-            {(searchQuery || category !== 'all') && (
+            {(searchQuery || category !== "all") && (
               <button
                 onClick={() => {
-                  dispatch(setSearchQuery(''))
-                  dispatch(setCategoryFilter('all'))
+                  dispatch(setSearchQuery(""))
+                  dispatch(setCategoryFilter("all"))
                 }}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
@@ -503,10 +591,11 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-white hover:bg-gray-100 text-gray-700"
-                }`}
+              className={`px-3 py-1 border rounded-md text-sm ${
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
+              }`}
             >
               First
             </button>
@@ -515,10 +604,11 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-white hover:bg-gray-100 text-gray-700"
-                }`}
+              className={`px-3 py-1 border rounded-md text-sm ${
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
+              }`}
             >
               Prev
             </button>
@@ -526,39 +616,41 @@ export default function WorkspacesPage({ isLoggedIn }) {
             {/* Page numbers */}
             {Array.from({ length: Math.min(totalPages, 5) }, (_, idx) => {
               // Logic for showing pages around current page
-              let pageNum;
+              let pageNum
               if (totalPages <= 5) {
-                pageNum = idx + 1;
+                pageNum = idx + 1
               } else if (currentPage <= 3) {
-                pageNum = idx + 1;
+                pageNum = idx + 1
               } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + idx;
+                pageNum = totalPages - 4 + idx
               } else {
-                pageNum = currentPage - 2 + idx;
+                pageNum = currentPage - 2 + idx
               }
-              
+
               return (
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`px-3 py-1 border rounded-md text-sm font-medium ${currentPage === pageNum
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                    }`}
+                  className={`px-3 py-1 border rounded-md text-sm font-medium ${
+                    currentPage === pageNum
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                  }`}
                 >
                   {pageNum}
                 </button>
-              );
+              )
             })}
 
             {/* Next */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-white hover:bg-gray-100 text-gray-700"
-                }`}
+              className={`px-3 py-1 border rounded-md text-sm ${
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
+              }`}
             >
               Next
             </button>
@@ -567,17 +659,18 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-white hover:bg-gray-100 text-gray-700"
-                }`}
+              className={`px-3 py-1 border rounded-md text-sm ${
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
+              }`}
             >
               Last
             </button>
           </div>
         )}
       </main>
-      {/* <Footer isLoggedIn={isLoggedIn} /> */}
+      <Footer isLoggedIn={isLoggedIn} />
     </div>
   )
 }
