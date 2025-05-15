@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 function Home({ isLoggedIn }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
 
-  // Load the selected app from localStorage when the component mounts
   useEffect(() => {
     const storedSelectedApp = localStorage.getItem('selectedApp');
     if (storedSelectedApp) {
@@ -16,7 +16,6 @@ function Home({ isLoggedIn }) {
         setSelectedApp(parsed);
       } catch (error) {
         console.error('Error parsing stored selected app:', error);
-        // Fall back to default if parse error
         setSelectedApp({
           id: 1,
           name: 'Digital Shelf iQ',
@@ -25,7 +24,6 @@ function Home({ isLoggedIn }) {
         });
       }
     } else {
-      // Set default only if no stored app found
       setSelectedApp({
         id: 1,
         name: 'Digital Shelf iQ',
@@ -36,26 +34,43 @@ function Home({ isLoggedIn }) {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-900 transition-colors duration-300">
-      {/* Only render components once selectedApp is initialized */}
-      {selectedApp && (
-        <>
-          <Sidebar isOpen={isSidebarOpen} selectedApp={selectedApp} />
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <Navbar
-              isSidebarOpen={isSidebarOpen}
-              isLoggedIn={isLoggedIn}
-              setIsSidebarOpen={setIsSidebarOpen}
-              selectedApp={selectedApp}
-              setSelectedApp={setSelectedApp}
-            />
-            {/* Content from nested route appears here */}
-            <Outlet />
-          </div>
-        </>
-      )}
-    </div>
+    <>
+      <style>{`
+        /* Hide scrollbar for WebKit browsers */
+        .scrollable::-webkit-scrollbar {
+          display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollable {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
+      <div className="flex h-screen overflow-hidden bg-gray-900 transition-colors duration-300">
+        {selectedApp && (
+          <>
+            <Sidebar isOpen={isSidebarOpen} selectedApp={selectedApp} />
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <Navbar
+                isSidebarOpen={isSidebarOpen}
+                isLoggedIn={isLoggedIn}
+                setIsSidebarOpen={setIsSidebarOpen}
+                selectedApp={selectedApp}
+                setSelectedApp={setSelectedApp}
+              />
+              <div className="p-0">
+                {isLoggedIn && <Breadcrumbs />}
+              </div>
+              <div className="flex-1 overflow-auto p-0 scrollable">
+                <Outlet />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
 export default Home;
+

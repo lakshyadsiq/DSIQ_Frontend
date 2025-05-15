@@ -621,7 +621,7 @@ export default function WorkspaceCreation() {
   }
 
   return (
-    <div className="flex items-center justify-center h-[100vh] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="flex items-center justify-center h-[95vh] py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <style>
         {`
           @keyframes slideDown {

@@ -52,19 +52,29 @@ const HelpPage = () => {
     navigate(-1);
   };
 
+  const handleClick = () => {
+    navigate('/');
+  };
+
   return (
     <div className="p-6 bg-gray-900 text-gray-100 min-h-screen">
-      <div className="mb-6 flex space-x-170">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between md:space-x-4">
         <button
           onClick={handleGoBack}
-          className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+          className="flex items-center text-blue-400 hover:text-blue-300 transition-colors mb-4 md:mb-0"
         >
           <ArrowLeft size={20} className="mr-1" />
           <span>Back</span>
         </button>
-        <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-          <HelpCircle size={28} /> Help & Support
+        <h1 className="text-3xl font-bold flex items-center gap-2 mb-4 md:mb-0">
+          <HelpCircle size={28} /> Help &amp; Support
         </h1>
+        <button
+          onClick={handleClick}
+          className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          <span>Go to Dashboard</span>
+        </button>
       </div>
 
       <div className="space-y-6">
@@ -102,3 +112,4 @@ const HelpPage = () => {
 };
 
 export default HelpPage;
+
