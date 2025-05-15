@@ -193,6 +193,10 @@ export default function WorkspaceCreation() {
     dispatch(createWorkspace(workspaceData))
       .unwrap()
       .then(() => {
+        // Set the flag in localStorage to indicate that at least one workspace has been created
+        if (!localStorage.getItem('hasWorkspace')) {
+          localStorage.setItem('hasWorkspace', 'true');
+        }
         // Show success toast
         toast.success(`Workspace "${workspaceName}" created successfully!`, {
           position: "top-right",
