@@ -11,6 +11,7 @@ import {
   Save,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Plus,
   Search,
   Clock,
@@ -19,6 +20,7 @@ import {
   FileText,
 } from 'lucide-react';
 import UsersList from './UsersList';
+import GroupsManagement from '../components/GroupsManagement';
 
 // Main Settings Component
 export default function SettingsPage() {
@@ -65,7 +67,7 @@ export default function SettingsPage() {
       case 'users':
         return <UsersList/>;
       case 'groups':
-        return <GroupsPlaceholder />;
+        return <GroupsManagement/>;
       case 'roles-overview':
         return <RolesOverview />;
       case 'default-roles':
@@ -85,11 +87,26 @@ export default function SettingsPage() {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1); // Go back to the previous page
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 flex items-center">
+          <div className="relative group flex items-center">
+            <button 
+              onClick={handleBack} 
+              className="mr-2 transition-transform duration-200 group-hover:-translate-x-0.5 flex-shrink-0"
+            >
+              <ChevronLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <span className="absolute -top-6 left-1/2 mt-1 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-md">
+              Back
+            </span>
+          </div>
           <h1 className="text-xl font-semibold text-gray-800">Settings</h1>
         </div>
 
@@ -118,9 +135,9 @@ export default function SettingsPage() {
 
                 <button 
                   onClick={() => handleSubSectionClick('user-management', 'groups')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'groups' ? 'bg-blue-50 text-blue-700' : 'text-gray-500'}`}
+                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'groups' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
                 >
-                  Groups <span className="ml-2 px-1.5 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">Coming Soon</span>
+                  Groups
                 </button>
                 <button 
                   onClick={() => handleSubSectionClick('user-management', 'roles-overview')}
