@@ -146,13 +146,23 @@ const UsersList = () => {
             Users
           </h1>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg hover:shadow-blue-600/20"
-          >
-            <UserPlus className="w-5 h-5 mr-2" />
-            Add New User
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition duration-200 flex items-center shadow-lg hover:shadow-green-600/20"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Export CSV
+            </button>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg hover:shadow-blue-600/20"
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Add New User
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-xl p-5 border border-gray-300">
