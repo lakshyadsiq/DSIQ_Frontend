@@ -349,6 +349,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
           <button 
             className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
             aria-label="Settings"
+            onClick={() => navigate('/settings')}
           >
             <Settings size={20} />
           </button>
