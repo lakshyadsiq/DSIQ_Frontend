@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard';
 import ResetPassword from './pages/ResetPassword';
 import { Toaster } from 'react-hot-toast';
 import UsersList from './pages/UsersList';
+import SettingsPage from './pages/SettingsPage'
 
 const App = () => {
   const dispatch = useDispatch();
@@ -51,7 +52,6 @@ const App = () => {
               <Route path="viewWorkspace" element={<ViewWorkspacesPage isLoggedIn={isLoggedIn}/>} />
               {/* Conditionally render WorkspaceForm based on hasWorkspace flag */}
               {hasWorkspace && <Route path="workspaceCreate" element={<WorkspaceForm isLoggedIn={isLoggedIn} onWorkspaceCreated={handleWorkspaceCreation} />} />}
-              <Route path="viewUsersList" element={<UsersList/>}/>
               {/* Adding nested routes for profile and help to work with breadcrumbs */}
               <Route path="profile" element={<Profile isLoggedIn={isLoggedIn} />} />
               <Route path="ModifyWorkspace/:id" element={<ModifyWorkspace isLoggedIn={isLoggedIn}/>} />
@@ -68,6 +68,9 @@ const App = () => {
         <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm OnWorkspaceCreated={handleWorkspaceCreation}/> : <Navigate to="/login" />} />
         <Route path="/ModifyWorkspace/:id" element={isLoggedIn ? <Navigate to={<ModifyWorkspace isLoggedIn={isLoggedIn}/>} /> : <Navigate to="/login" />} />
         <Route path="/help" element={isLoggedIn ? <HelpPage /> : <Navigate to="/login" />} />
+        <Route path="/settings" element={isLoggedIn ? <SettingsPage /> : <Navigate to="/login" />} />
+        {/* <Route path="/viewUsersList" element={<UsersList/>}/> */}
+
       </Routes>
       <Toaster position="bottom-right" />
     </Router>
