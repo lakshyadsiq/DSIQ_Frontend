@@ -113,14 +113,11 @@ const UsersList = () => {
     toast.success("Password updated successfully!");
   };
 
-<<<<<<< Updated upstream
   const handleExportCSV = () => {
     // This is just a placeholder for future implementation
     toast.info("Export to CSV functionality will be implemented soon");
   };
 
-=======
->>>>>>> Stashed changes
   const handleClearFilters = () => {
     setSearchTerm('');
     setRoleFilter('all');
@@ -142,16 +139,6 @@ const UsersList = () => {
         theme="light"
       />
 
-<<<<<<< Updated upstream
-      <div className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
-
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-white flex items-center">
-            <Users className="w-8 h-8 mr-3 text-blue-400" />
-            User Management
-          </h1>
-
-=======
       <div className="flex-grow p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center mb-4 md:mb-0">
@@ -159,7 +146,6 @@ const UsersList = () => {
             Users
           </h1>
 
->>>>>>> Stashed changes
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg hover:shadow-blue-600/20"
@@ -167,32 +153,6 @@ const UsersList = () => {
             <UserPlus className="w-5 h-5 mr-2" />
             Add New User
           </button>
-<<<<<<< Updated upstream
-        </div>
-
-    <div className="bg-white rounded-xl shadow-xl p-5 border border-gray-300">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-        <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-4 md:mb-0 w-full md:w-auto">
-          <h2 className="text-xl font-semibold text-gray-800 min-w-[140px]">
-            {filter === 'all' ? 'All Users' : 'Archived Users'}
-          </h2>
-
-          <div className="flex mt-2 md:mt-0">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-l-md ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} transition duration-200`}
-            >
-              Active ({users.filter(u => !u.archived).length})
-            </button>
-            <button
-              onClick={() => setFilter('archived')}
-              className={`px-4 py-2 rounded-r-md ${filter === 'archived' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'} transition duration-200`}
-            >
-              Archived ({users.filter(u => u.archived).length})
-            </button>
-          </div>
-=======
->>>>>>> Stashed changes
         </div>
 
         <div className="bg-white rounded-xl shadow-xl p-5 border border-gray-300">
