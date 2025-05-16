@@ -116,17 +116,15 @@ const CustomDropdown = ({ data, value, onChange, textField = "text", dataItemKey
       </button>
 
       <div
-        className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top ${
-          isOpen ? "opacity-100 transform scale-y-100 max-h-60" : "opacity-0 transform scale-y-0 max-h-0"
-        }`}
+        className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden transition-all duration-300 origin-top ${isOpen ? "opacity-100 transform scale-y-100 max-h-60" : "opacity-0 transform scale-y-0 max-h-0"
+          }`}
       >
         <div className="max-h-60 overflow-y-auto invisible-scrollbar">
           {data.map((item, index) => (
             <div
               key={index}
-              className={`px-4 py-2.5 cursor-pointer hover:bg-purple-50 transition-colors ${
-                item[dataItemKey] === value ? "bg-purple-100 text-purple-700" : "text-gray-700"
-              }`}
+              className={`px-4 py-2.5 cursor-pointer hover:bg-purple-50 transition-colors ${item[dataItemKey] === value ? "bg-purple-100 text-purple-700" : "text-gray-700"
+                }`}
               onClick={() => {
                 onChange({ value: item })
                 setIsOpen(false)
@@ -186,10 +184,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
         display: none; /* Chrome, Safari and Opera */
       }
     `;
-    
+
     styleEl.appendChild(document.createTextNode(css));
     document.head.appendChild(styleEl);
-    
+
     return () => {
       // Clean up by removing the style element when component unmounts
       document.head.removeChild(styleEl);
@@ -326,6 +324,7 @@ export default function WorkspacesPage({ isLoggedIn }) {
       <header className="bg-gradient-to-r from-purple-700 to-indigo-800 py-2 px-8 shadow-md">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <h1 className="text-3xl font-bold text-white">Workspaces</h1>
             <p className="text-purple-100">Manage and organize your workspace collections</p>
             <button
               onClick={handleCreateWorkspace}
@@ -391,14 +390,12 @@ export default function WorkspacesPage({ isLoggedIn }) {
 
           {/* Expanded filters */}
           <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isFiltersOpen ? "max-h-96 opacity-100 pt-4 border-t mt-4" : "max-h-0 opacity-0 mt-0"
-            }`}
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${isFiltersOpen ? "max-h-96 opacity-100 pt-4 border-t mt-4" : "max-h-0 opacity-0 mt-0"
+              }`}
           >
             <div
-              className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transform transition-transform duration-300 ${
-                isFiltersOpen ? "translate-y-0" : "-translate-y-4"
-              }`}
+              className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transform transition-transform duration-300 ${isFiltersOpen ? "translate-y-0" : "-translate-y-4"
+                }`}
             >
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">Sort by</label>
@@ -436,11 +433,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
                 type="button"
                 onClick={() => dispatch(toggleShowArchived())}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition
-                ${
-                  showArchived
+                ${showArchived
                     ? "bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
                     : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
-                }
+                  }
                 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1`}
               >
                 <MdArchive className={`h-5 w-5 ${showArchived ? "text-purple-600" : "text-gray-400"}`} />
@@ -473,25 +469,22 @@ export default function WorkspacesPage({ isLoggedIn }) {
           {paginatedWorkspaces.map((index, workspace) => (
             <div
               key={index}
-              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
-                viewMode === "list" ? "flex justify-between items-center" : ""
-              } ${workspace.archived ? "opacity-75 border-dashed" : ""}`}
+              className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${viewMode === "list" ? "flex justify-between items-center" : ""
+                } ${workspace.archived ? "opacity-75 border-dashed" : ""}`}
             >
               <div className={`${viewMode === "list" ? "flex items-center gap-4 flex-1 p-4" : "p-5"}`}>
                 <div className={`flex items-center gap-4 ${viewMode === "grid" ? "mb-4" : ""}`}>
                   <div
-                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center ${
-                      workspace.archived ? "opacity-80" : ""
-                    }`}
+                    className={`${getIconBackground(workspace.category)} rounded-lg p-3 flex items-center justify-center ${workspace.archived ? "opacity-80" : ""
+                      }`}
                   >
                     {getWorkspaceIcon(workspace.category)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                       <h3
-                        className={`font-semibold text-lg text-gray-900 truncate ${
-                          workspace.archived ? "line-through" : ""
-                        }`}
+                        className={`font-semibold text-lg text-gray-900 truncate ${workspace.archived ? "line-through" : ""
+                          }`}
                       >
                         {workspace.name}
                         {workspace.archived && (
@@ -606,11 +599,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-md text-sm ${
-                currentPage === 1
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               First
             </button>
@@ -619,11 +611,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded-md text-sm ${
-                currentPage === 1
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === 1
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               Prev
             </button>
@@ -646,11 +637,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`px-3 py-1 border rounded-md text-sm font-medium ${
-                    currentPage === pageNum
+                  className={`px-3 py-1 border rounded-md text-sm font-medium ${currentPage === pageNum
                       ? "bg-purple-600 text-white border-purple-600"
                       : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
@@ -661,11 +651,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-md text-sm ${
-                currentPage === totalPages
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               Next
             </button>
@@ -674,11 +663,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
             <button
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded-md text-sm ${
-                currentPage === totalPages
+              className={`px-3 py-1 border rounded-md text-sm ${currentPage === totalPages
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-white hover:bg-gray-100 text-gray-700"
-              }`}
+                }`}
             >
               Last
             </button>

@@ -18,6 +18,7 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('authToken', dummyData.accessToken);
         localStorage.setItem('refreshToken', dummyData.refreshToken);
         localStorage.setItem('isLoggedIn', 'true');
+        localStorage.getItem('hasWorkspace', 'true');
         return dummyData;
       }
 
@@ -101,7 +102,7 @@ const authSlice = createSlice({
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
-      localStorage.removeItem('hasWorkspace');
+      localStorage.setItem('hasWorkspace', 'false');
       toast.info('Logged out');
     },
   },
