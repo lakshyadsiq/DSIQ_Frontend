@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Users, ArrowLeft, Edit2, RotateCcw, Search, UserPlus, Filter, KeyRound } from 'lucide-react';
+import { Users, ArrowLeft, Edit2, RotateCcw, Search, UserPlus, Filter, KeyRound, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -113,6 +113,10 @@ const UsersList = () => {
     toast.success("Password updated successfully!");
   };
 
+  const handleExportCSV = () => {
+    // This is just a placeholder for future implementation
+    toast.info("Export to CSV functionality will be implemented soon");
+  };
 
   const handleClearFilters = () => {
     setSearchTerm('');
@@ -135,21 +139,22 @@ const UsersList = () => {
     theme="light"
   />
 
-  <div className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-        <Users className="w-8 h-8 mr-3 text-blue-600" />
-        Users
-      </h1>
+      <div className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg hover:shadow-blue-600/20"
-      >
-        <UserPlus className="w-5 h-5 mr-2" />
-        Add New User
-      </button>
-    </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-white flex items-center">
+            <Users className="w-8 h-8 mr-3 text-blue-400" />
+            User Management
+          </h1>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg hover:shadow-blue-600/20"
+          >
+            <UserPlus className="w-5 h-5 mr-2" />
+            Add New User
+          </button>
+        </div>
 
     <div className="bg-white rounded-xl shadow-xl p-5 border border-gray-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">

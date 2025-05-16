@@ -24,20 +24,15 @@ const App = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   // State to track if at least one workspace exists
   const [hasWorkspace, setHasWorkspace] = useState(false);
-  
+
   useEffect(() => {
     // Check localStorage for the workspace flag
-    const workspaceFlag = localStorage.getItem('hasWorkspace');
+    const workspaceFlag = localStorage.getItem('hasWorkspace', 'false');
     if (workspaceFlag === 'true') {
       setHasWorkspace(true);
     }
   }, []);
 
-  const handleWorkspaceCreation = () => {
-    // Set the flag in localStorage and update state
-    localStorage.setItem('hasWorkspace', 'true');
-    setHasWorkspace(true);
-  };
 
   return (
     <Router>
@@ -49,24 +44,25 @@ const App = () => {
           {isLoggedIn && (
             <>
               <Route index element={<Dashboard isLoggedIn={isLoggedIn} />} />
-              <Route path="viewWorkspace" element={<ViewWorkspacesPage isLoggedIn={isLoggedIn}/>} />
+              <Route path="viewWorkspace" element={<ViewWorkspacesPage isLoggedIn={isLoggedIn} />} />
               {/* Conditionally render WorkspaceForm based on hasWorkspace flag */}
-              {hasWorkspace && <Route path="workspaceCreate" element={<WorkspaceForm isLoggedIn={isLoggedIn} onWorkspaceCreated={handleWorkspaceCreation} />} />}
+              {hasWorkspace && <Route path="workspaceCreate" element={<WorkspaceForm hasWorkspace={hasWorkspace} setHasWorkspace={setHasWorkspace}  isLoggedIn={isLoggedIn} />} />}
+              <Route path="viewUsersList" element={<UsersList />} />
               {/* Adding nested routes for profile and help to work with breadcrumbs */}
               <Route path="profile" element={<Profile isLoggedIn={isLoggedIn} />} />
-              <Route path="ModifyWorkspace/:id" element={<ModifyWorkspace isLoggedIn={isLoggedIn}/>} />
+              <Route path="ModifyWorkspace/:id" element={<ModifyWorkspace isLoggedIn={isLoggedIn} />} />
             </>
           )}
         </Route>
 
-        <Route path="/login" element={<LoginPage/>} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+
         {/* These routes are now nested inside the Home layout */}
         {/* We still keep these routes for direct access but they should redirect to nested routes */}
-        <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm OnWorkspaceCreated={handleWorkspaceCreation}/> : <Navigate to="/login" />} />
-        <Route path="/ModifyWorkspace/:id" element={isLoggedIn ? <Navigate to={<ModifyWorkspace isLoggedIn={isLoggedIn}/>} /> : <Navigate to="/login" />} />
+        <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm hasWorkspace={hasWorkspace} setHasWorkspace={setHasWorkspace}  isLoggedIn={isLoggedIn} /> : <Navigate to="/login" />} />
+        <Route path="/ModifyWorkspace/:id" element={isLoggedIn ? <Navigate to={<ModifyWorkspace isLoggedIn={isLoggedIn} />} /> : <Navigate to="/login" />} />
         <Route path="/help" element={isLoggedIn ? <HelpPage /> : <Navigate to="/login" />} />
         <Route path="/settings" element={isLoggedIn ? <SettingsPage /> : <Navigate to="/login" />} />
         {/* <Route path="/viewUsersList" element={<UsersList/>}/> */}
