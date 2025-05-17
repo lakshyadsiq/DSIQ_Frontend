@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { Check, Search, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
-const CreateRoles = () => {
+const CreateRoles = ( {onCancel} ) => {
   const [activeTab, setActiveTab] = useState("details");
   const [showToast, setShowToast] = useState(false);
   const [creationComplete, setCreationComplete] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   
   const modules = [
-    "User Management",
     "Dashboard",
     "Reports",
     "Data Export",
@@ -22,7 +20,6 @@ const CreateRoles = () => {
   const steps = [
     { id: "details", label: "Role Details" },
     { id: "permissions", label: "Permissions" },
-    { id: "users", label: "Assign Users" },
     { id: "review", label: "Review & Create" }
   ];
 
@@ -41,23 +38,17 @@ const CreateRoles = () => {
   const [formData, setFormData] = useState({
     details: {
       name: "",
-      description: ""
     },
     permissions: {
       // Initialize with one permission (read) selected for each module
       selectedPermissions: modules.length
     },
-    users: {
-      // Initialize with empty selected users
-      selectedUsers: []
-    }
   });
 
   // Validation state
   const [isValid, setIsValid] = useState({
     details: false,
     permissions: true, // Initially true because we set read permissions by default
-    users: true // Users assignment is optional
   });
 
   // Handle role name and description change
@@ -78,7 +69,7 @@ const CreateRoles = () => {
     // Validate details form
     setIsValid({
       ...isValid,
-      details: updatedDetails.name.trim() !== "" && updatedDetails.description.trim() !== ""
+      details: updatedDetails.name.trim() !== "" 
     });
   };
 
@@ -115,66 +106,10 @@ const CreateRoles = () => {
     });
   };
 
-  // Handle user selection
-  const handleUserSelection = (userId) => {
-    const isSelected = formData.users.selectedUsers.includes(userId);
-    
-    let updatedUsers;
-    if (!isSelected) {
-      // Add user to selection
-      updatedUsers = [...formData.users.selectedUsers, userId];
-    } else {
-      // Remove user from selection
-      updatedUsers = formData.users.selectedUsers.filter(id => id !== userId);
-    }
-    
-    setFormData({
-      ...formData,
-      users: {
-        selectedUsers: updatedUsers
-      }
-    });
-  };
-  
-  // Handle select all users
-  const handleSelectAllUsers = (e) => {
-    const filteredUsers = users.filter(user => 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    
-    if (e.target.checked) {
-      // Select all filtered users
-      setFormData({
-        ...formData,
-        users: {
-          selectedUsers: [...new Set([...formData.users.selectedUsers, ...filteredUsers.map(user => user.id)])]
-        }
-      });
-    } else {
-      // Deselect all filtered users
-      const filteredIds = filteredUsers.map(user => user.id);
-      setFormData({
-        ...formData,
-        users: {
-          selectedUsers: formData.users.selectedUsers.filter(id => !filteredIds.includes(id))
-        }
-      });
-    }
-  };
-
-  // Handle search query change
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   // Handle create role button click
   const handleCreateRole = () => {
     setShowToast(true);
     setCreationComplete(true);
-    
     // Hide toast after 5 seconds
     setTimeout(() => {
       setShowToast(false);
@@ -183,27 +118,6 @@ const CreateRoles = () => {
 
   // Determine current step index
   const currentStepIndex = steps.findIndex(step => step.id === activeTab);
-
-  // Sample user data
-  const users = [
-    { id: "1", name: "John Doe", email: "john.doe@example.com", department: "Marketing", role: "Analyst", initials: "JD" },
-    { id: "2", name: "Anna Rodriguez", email: "a.Rodriguez@example.com", department: "Sales", role: "Viewer", initials: "AR" },
-    { id: "3", name: "Kevin Miller", email: "k.miller@example.com", department: "Finance", role: "Report Creator", initials: "KM" },
-    { id: "4", name: "Tina Smith", email: "t.smith@example.com", department: "Product", role: "Analyst", initials: "TS" },
-    { id: "5", name: "Robert Brown", email: "r.brown@example.com", department: "Engineering", role: "Viewer", initials: "RB" }
-  ];
-
-  // Filter users based on search query
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Check if all filtered users are selected
-  const areAllFilteredUsersSelected = filteredUsers.length > 0 && 
-    filteredUsers.every(user => formData.users.selectedUsers.includes(user.id));
 
   // If role creation is complete, show success view
   if (creationComplete) {
@@ -218,7 +132,7 @@ const CreateRoles = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-green-800">
-                  Role "{formData.details.name || 'Marketing Analyst'}" created successfully!
+                  Role "{formData.details.name}" created successfully!
                 </p>
               </div>
             </div>
@@ -237,15 +151,14 @@ const CreateRoles = () => {
           </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Role Created Successfully</h2>
           <p className="text-gray-600 mb-8">
-            Role "{formData.details.name || 'Marketing Analyst'}" has been created with {formData.users.selectedUsers.length} assigned users.
+            Role "{formData.details.name}" has been created.
           </p>
           <button 
             onClick={() => {
               // Reset form and start fresh
               setFormData({
                 details: { name: "", description: "" },
-                permissions: { selectedPermissions: modules.length },
-                users: { selectedUsers: [] }
+                permissions: { selectedPermissions: modules.length }
               });
               setPermissionMatrix(modules.map(module => ({
                 name: module,
@@ -254,7 +167,7 @@ const CreateRoles = () => {
                 update: false,
                 delete: false
               })));
-              setIsValid({ details: false, permissions: true, users: true });
+              setIsValid({ details: false, permissions: true});
               setActiveTab("details");
               setCreationComplete(false);
             }}
@@ -269,7 +182,15 @@ const CreateRoles = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Create New Role</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Create New Role</h2>
+        <button 
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
       
       {/* Progress Path */}
       <div className="mb-9">
@@ -340,7 +261,7 @@ const CreateRoles = () => {
             
             <div>
               <label htmlFor="role-description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description <span className="text-red-500">*</span>
+                Description
               </label>
               <textarea
                 id="role-description"
@@ -350,9 +271,6 @@ const CreateRoles = () => {
                 value={formData.details.description}
                 onChange={handleDetailsChange}
               ></textarea>
-              {!isValid.details && formData.details.description.trim() === "" && (
-                <p className="mt-1 text-sm text-red-500">Description is required</p>
-              )}
             </div>
             
             <div className="flex items-center justify-end pt-4">
@@ -455,126 +373,9 @@ const CreateRoles = () => {
                 Back
               </button>
               <button 
-                onClick={() => setActiveTab("users")}
+                onClick={() => setActiveTab("review")}
                 className={`px-4 py-2 ${isValid.permissions ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
                 disabled={!isValid.permissions}
-              >
-                Next: Assign Users
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {activeTab === "users" && (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-lg font-medium text-gray-800">Assign Users to Role</h3>
-            <p className="text-sm text-gray-500">Select users to assign this role immediately upon creation (optional)</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="mb-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-            
-            <div className="overflow-hidden border border-gray-200 rounded-md">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input 
-                        type="checkbox" 
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        onChange={handleSelectAllUsers}
-                        checked={filteredUsers.length > 0 && areAllFilteredUsersSelected}
-                      />
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Current Role
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user, idx) => (
-                      <tr key={idx}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <input 
-                            type="checkbox" 
-                            value={user.id}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            checked={formData.users.selectedUsers.includes(user.id)}
-                            onChange={() => handleUserSelection(user.id)} 
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                              {user.initials}
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-medium text-gray-900">
-                                {user.name}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.department}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 text-xs font-medium rounded-full" style={{
-                            backgroundColor: ["#EFF6FF", "#F3F4F6", "#FEF3C7", "#EFF6FF", "#F3F4F6"][idx % 5],
-                            color: ["#1D4ED8", "#4B5563", "#D97706", "#1D4ED8", "#4B5563"][idx % 5]
-                          }}>
-                            {user.role}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-sm text-gray-500">
-                        No users found matching your search.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="flex items-center justify-between mt-6">
-              <button 
-                onClick={() => setActiveTab("permissions")}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-              >
-                Back
-              </button>
-              <button 
-                onClick={() => setActiveTab("review")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 Next: Review
               </button>
@@ -603,29 +404,6 @@ const CreateRoles = () => {
                     <span className="block text-xs text-gray-500">Description</span>
                     <span className="block text-sm text-gray-800">{formData.details.description || "Role for marketing team members who need to analyze campaign data and create reports."}</span>
                   </div>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Users to Assign ({formData.users.selectedUsers.length})</h4>
-                <div className="bg-gray-50 p-4 rounded-md max-h-40 overflow-y-auto">
-                  {formData.users.selectedUsers.length > 0 ? (
-                    <ul className="space-y-2">
-                      {formData.users.selectedUsers.map((userId) => {
-                        const user = users.find(u => u.id === userId);
-                        return (
-                          <li key={userId} className="flex items-center">
-                            <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium">
-                              {user?.initials}
-                            </div>
-                            <span className="ml-2 text-sm text-gray-800">{user?.name}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500">No users assigned</p>
-                  )}
                 </div>
               </div>
             </div>
@@ -663,7 +441,7 @@ const CreateRoles = () => {
             
             <div className="flex items-center justify-between mt-6">
               <button 
-                onClick={() => setActiveTab("users")}
+                onClick={() => setActiveTab("permissions")}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
               >
                 Back
