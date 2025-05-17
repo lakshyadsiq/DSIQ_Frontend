@@ -1,10 +1,15 @@
 // GroupsManagement.jsx
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
   Check,
   X,
+  ArrowLeft,
+  ArrowRight,
+  Users,
+  UserPlus,
+  UserMinus
 } from 'lucide-react';
 
 const GroupsManagement = () => {
@@ -45,15 +50,6 @@ const GroupsManagement = () => {
       memberCount: 5,
       roles: ['QA Engineer', 'Test Automation Engineer'],
       lastUpdated: '2025-05-12'
-    },
-    {
-      id: 5,
-      name: 'Product',
-      description: 'Product management team',
-      tags: ['Management'],
-      memberCount: 3,
-      roles: ['Product Manager', 'Product Owner'],
-      lastUpdated: '2025-05-08'
     }
   ]);
 
@@ -71,6 +67,7 @@ const GroupsManagement = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('members');
   const [newTag, setNewTag] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
 
   // Sample users data - would come from API in real app
   const [users, setUsers] = useState([
@@ -84,14 +81,17 @@ const GroupsManagement = () => {
     { id: 8, name: 'Lisa Miller', email: 'lisa@example.com', role: 'Test Automation Engineer', lastActive: '12 hours ago', status: 'active' }
   ]);
 
-  // Sample activity data
-  const [groupActivity, setGroupActivity] = useState([
-    { id: 1, action: 'Exported dashboard data', user: 'John Doe', timestamp: '2025-05-15 10:30', type: 'export' },
-    { id: 2, action: 'Created new report', user: 'Jane Smith', timestamp: '2025-05-15 09:15', type: 'create' },
-    { id: 3, action: 'Modified API settings', user: 'Mike Johnson', timestamp: '2025-05-14 16:45', type: 'modify' },
-    { id: 4, action: 'Ran test suite', user: 'Sarah Williams', timestamp: '2025-05-14 14:20', type: 'execute' },
-    { id: 5, action: 'Updated product roadmap', user: 'David Brown', timestamp: '2025-05-13 11:10', type: 'update' }
-  ]);
+  // Track which users are in which groups
+  const [groupMemberships, setGroupMemberships] = useState({
+    1: [1, 6], // Frontend group has users 1 and 6
+    2: [2, 7], // Backend group has users 2 and 7
+    3: [3],    // DevOps group has user 3
+    4: [4, 8]  // QA group has users 4 and 8
+  });
+
+  // State for drag and drop
+  const [draggingUserId, setDraggingUserId] = useState(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(null); // 'group' or 'available'
 
   // Sample permissions data
   const [permissions, setPermissions] = useState({
@@ -102,20 +102,42 @@ const GroupsManagement = () => {
     'Product Manager': ['View all data', 'Manage projects', 'User management']
   });
 
+  // Update group member counts when groupMemberships changes
+  useEffect(() => {
+    if (!selectedGroup) return;
+    
+    const updatedGroups = groups.map(group => {
+      const memberCount = groupMemberships[group.id]?.length || 0;
+      return { ...group, memberCount };
+    });
+    
+    setGroups(updatedGroups);
+  }, [groupMemberships]);
+
   // Get all unique tags from groups
   const allTags = [...new Set(groups.flatMap(group => group.tags))];
 
   // Filter groups based on search and tag filter
   const filteredGroups = groups.filter(group => {
-    const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         group.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) || group.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTag = selectedTagFilter ? group.tags.includes(selectedTagFilter) : true;
     return matchesSearch && matchesTag;
   });
 
   // Get members for selected group
   const groupMembers = selectedGroup ? 
-    users.filter(user => selectedGroup.roles.includes(user.role)) : [];
+    users.filter(user => groupMemberships[selectedGroup.id]?.includes(user.id)) : [];
+
+  // Get available users (not in the selected group)
+  const availableUsers = selectedGroup ? 
+    users.filter(user => !groupMemberships[selectedGroup.id]?.includes(user.id)) : [];
+
+  // Filter users based on search
+  const filteredAvailableUsers = availableUsers.filter(user => 
+    user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) || 
+    user.email.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
 
   // Handle creating a new group
   const handleCreateGroup = () => {
@@ -129,6 +151,11 @@ const GroupsManagement = () => {
       lastUpdated: new Date().toISOString().split('T')[0]
     };
     setGroups([...groups, newGroupObj]);
+    // Initialize empty member list for the new group
+    setGroupMemberships(prev => ({
+      ...prev,
+      [newGroupObj.id]: []
+    }));
     setNewGroup({ name: '', description: '', tags: [], roles: [] });
     setIsCreatingGroup(false);
   };
@@ -146,54 +173,109 @@ const GroupsManagement = () => {
     setNewGroup({ ...newGroup, tags: newGroup.tags.filter(tag => tag !== tagToRemove) });
   };
 
-  // Toggle user selection for bulk actions
-  const toggleUserSelection = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId) 
-        : [...prev, userId]
+  // Drag and Drop handling
+  const handleDragStart = (userId) => {
+    setDraggingUserId(userId);
+  };
+
+  const handleDragOver = (e, dropArea) => {
+    e.preventDefault();
+    setIsDraggingOver(dropArea);
+  };
+
+  const handleDragLeave = () => {
+    setIsDraggingOver(null);
+  };
+
+  const handleDrop = (e, dropArea) => {
+    e.preventDefault();
+    if (!draggingUserId || !selectedGroup) return;
+
+    if (dropArea === 'group') {
+      // Add user to group
+      if (!groupMemberships[selectedGroup.id].includes(draggingUserId)) {
+        setGroupMemberships(prev => ({
+          ...prev,
+          [selectedGroup.id]: [...prev[selectedGroup.id], draggingUserId]
+        }));
+      }
+    } else if (dropArea === 'available') {
+      // Remove user from group
+      setGroupMemberships(prev => ({
+        ...prev,
+        [selectedGroup.id]: prev[selectedGroup.id].filter(id => id !== draggingUserId)
+      }));
+    }
+
+    setDraggingUserId(null);
+    setIsDraggingOver(null);
+  };
+
+  // Explicitly add a user to the selected group
+  const addUserToGroup = (userId) => {
+    if (!selectedGroup) return;
+    
+    setGroupMemberships(prev => ({
+      ...prev,
+      [selectedGroup.id]: [...prev[selectedGroup.id], userId]
+    }));
+  };
+
+  // Explicitly remove a user from the selected group
+  const removeUserFromGroup = (userId) => {
+    if (!selectedGroup) return;
+    
+    setGroupMemberships(prev => ({
+      ...prev,
+      [selectedGroup.id]: prev[selectedGroup.id].filter(id => id !== userId)
+    }));
+  };
+
+  // Render user card for drag and drop
+  const UserCard = ({ user, inGroup }) => {
+    return (
+      <div 
+        draggable
+        onDragStart={() => handleDragStart(user.id)}
+        className="flex items-center justify-between p-3 border border-gray-200 rounded-md mb-2 bg-white cursor-move hover:shadow-sm"
+      >
+        <div className="flex items-center overflow-hidden">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+            {user.name.split(' ').map(n => n[0]).join('')}
+          </div>
+          <div className="ml-3 min-w-0">
+            <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
+            <div className="text-xs text-gray-500 truncate">{user.email}</div>
+            <div className="text-xs text-gray-500 truncate">{user.role}</div>
+          </div>
+        </div>
+        <div className="ml-2 flex-shrink-0">
+          {inGroup ? (
+            <button 
+              onClick={() => removeUserFromGroup(user.id)}
+              className="text-red-500 hover:text-red-700 p-1"
+              title="Remove from group"
+            >
+              <UserMinus className="h-4 w-4" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => addUserToGroup(user.id)}
+              className="text-green-500 hover:text-green-700 p-1"
+              title="Add to group"
+            >
+              <UserPlus className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
     );
   };
 
-  // Select all/none users for bulk actions
-  const toggleSelectAllUsers = () => {
-    if (selectedUsers.length === groupMembers.length) {
-      setSelectedUsers([]);
-    } else {
-      setSelectedUsers(groupMembers.map(user => user.id));
-    }
-  };
-
-  // Bulk remove users from group
-  const handleBulkRemove = () => {
-    // In a real app, this would call an API to update the group
-    alert(`Removing ${selectedUsers.length} users from ${selectedGroup.name}`);
-    setSelectedUsers([]);
-    setBulkActionMode(false);
-  };
-
-  // Bulk reassign roles
-  const handleBulkReassign = (newRole) => {
-    // In a real app, this would call an API to update users' roles
-    alert(`Reassigning ${selectedUsers.length} users to ${newRole} role`);
-    setSelectedUsers([]);
-    setBulkActionMode(false);
-  };
-
-  // Send group notification
-  const sendGroupNotification = () => {
-    alert(`Notification sent to all ${selectedGroup.name} members`);
-  };
-
-  // Export group data
-  const exportGroupData = (format) => {
-    alert(`Exporting ${selectedGroup.name} data as ${format}`);
-  };
-
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-w-full">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-xl font-semibold text-gray-800">Group Management</h2>
         <button 
           onClick={() => setIsCreatingGroup(true)}
@@ -202,12 +284,12 @@ const GroupsManagement = () => {
           <Plus className="h-4 w-4 mr-2" />
           Create Group
         </button>
-      </div>
+      </div>  
 
       {/* Create Group Modal */}
       {isCreatingGroup && (
-        <div className="fixed inset-0 bg-white/50 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-lg">
             
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Create New Group</h3>
@@ -285,24 +367,26 @@ const GroupsManagement = () => {
                     setNewGroup({ ...newGroup, roles: selected });
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  size={Math.min(5, Object.keys(permissions).length)}
                 >
                   {Object.keys(permissions).map(role => (
                     <option key={role} value={role}>{role}</option>
                   ))}
                 </select>
+                <p className="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select multiple roles</p>
               </div>
               
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   onClick={() => setIsCreatingGroup(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 w-full sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateGroup}
                   disabled={!newGroup.name || !newGroup.roles.length}
-                  className={`px-4 py-2 rounded-md ${!newGroup.name || !newGroup.roles.length ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+                  className={`px-4 py-2 rounded-md ${!newGroup.name || !newGroup.roles.length ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white w-full sm:w-auto`}
                 >
                   Create Group
                 </button>
@@ -313,11 +397,11 @@ const GroupsManagement = () => {
       )}
 
       {/* Main Content */}
-      <div className="flex flex-1 gap-6">
+      <div className="flex flex-col lg:flex-row flex-1 gap-6">
         {/* Groups List */}
-        <div className={`${selectedGroup ? 'w-1/3' : 'w-full'} bg-white border border-gray-200 rounded-lg overflow-hidden`}>
-          <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-            <div className="relative flex-1">
+        <div className={`${selectedGroup ? 'lg:w-1/3 md:w-full' : 'w-full'} bg-white border border-gray-200 rounded-lg overflow-hidden`}>
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <div className="relative flex-1 mb-3">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               <input
                 type="text"
@@ -327,11 +411,11 @@ const GroupsManagement = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="ml-3">
+            <div>
               <select
                 value={selectedTagFilter}
                 onChange={(e) => setSelectedTagFilter(e.target.value)}
-                className="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 <option value="">All Tags</option>
                 {allTags.map(tag => (
@@ -341,7 +425,7 @@ const GroupsManagement = () => {
             </div>
           </div>
           
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 max-h-96 lg:max-h-full overflow-y-auto">
             {filteredGroups.length > 0 ? (
               filteredGroups.map(group => (
                 <div 
@@ -376,304 +460,78 @@ const GroupsManagement = () => {
           </div>
         </div>
         
-        {/* Group Details */}
+        {/* Group Details and Drag-Drop Area */}
         {selectedGroup && (
-          <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden">
-            {/* Group Header */}
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-medium text-gray-800">{selectedGroup.name}</h3>
-                  <p className="text-sm text-gray-500">{selectedGroup.description}</p>
+          <div className="flex-1 flex flex-col md:flex-row gap-4">
+            {/* Available Users */}
+            <div className="md:w-1/2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <h3 className="text-md font-medium text-gray-800 mb-2">Available Users</h3>
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
               
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedGroup.tags.map(tag => (
-                  <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                    {tag}
-                  </span>
-                ))}
+              <div 
+                className={`p-4 h-64 md:h-96 overflow-y-auto ${isDraggingOver === 'available' ? 'bg-gray-100' : ''}`}
+                onDragOver={(e) => handleDragOver(e, 'available')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 'available')}
+              >
+                <div className="flex items-center justify-center mb-3">
+                  <div className="text-sm text-gray-500">
+                    Drag users from the group to remove them or use the button
+                  </div>
+                </div>
+                
+                {filteredAvailableUsers.length > 0 ? (
+                  filteredAvailableUsers.map(user => (
+                    <UserCard key={user.id} user={user} inGroup={false} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No users available to add to this group
+                  </div>
+                )}
               </div>
             </div>
             
-            {/* Tabs */}
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('members')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'members'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Members ({groupMembers.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('permissions')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'permissions'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Permissions
-                </button>
-                <button
-                  onClick={() => setActiveTab('activity')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'activity'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Activity
-                </button>
-              </nav>
-            </div>
-            
-            {/* Tab Content */}
-            <div className="p-4">
-              {activeTab === 'members' && (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      {bulkActionMode ? `${selectedUsers.length} selected` : `${groupMembers.length} members`}
-                    </h4>
-                    <div className="flex space-x-2">
-                      {bulkActionMode ? (
-                        <>
-                          <button 
-                            onClick={handleBulkRemove}
-                            className="px-3 py-1.5 bg-red-50 text-red-600 text-sm rounded-md hover:bg-red-100"
-                          >
-                            Remove from Group
-                          </button>
-                          <div className="relative">
-                            <select
-                              onChange={(e) => handleBulkReassign(e.target.value)}
-                              className="pl-3 pr-8 py-1.5 bg-gray-50 border border-gray-300 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              defaultValue=""
-                            >
-                              <option value="" disabled>Reassign Role</option>
-                              {Object.keys(permissions).map(role => (
-                                <option key={role} value={role}>{role}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <button 
-                            onClick={() => {
-                              setBulkActionMode(false);
-                              setSelectedUsers([]);
-                            }}
-                            className="px-3 py-1.5 bg-gray-50 text-gray-600 text-sm rounded-md hover:bg-gray-100"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => setBulkActionMode(true)}
-                            className="px-3 py-1.5 bg-gray-50 text-gray-600 text-sm rounded-md hover:bg-gray-100"
-                          >
-                            Bulk Actions
-                          </button>
-                          <button className="px-3 py-1.5 bg-blue-50 text-blue-600 text-sm rounded-md hover:bg-blue-100">
-                            Add Members
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="overflow-hidden border border-gray-200 rounded-md">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {bulkActionMode && (
-                              <input
-                                type="checkbox"
-                                checked={selectedUsers.length === groupMembers.length && groupMembers.length > 0}
-                                onChange={toggleSelectAllUsers}
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                              />
-                            )}
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {groupMembers.length > 0 ? (
-                          groupMembers.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {bulkActionMode && (
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedUsers.includes(user.id)}
-                                    onChange={() => toggleUserSelection(user.id)}
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                                    {user.name.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="ml-3">
-                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {user.email}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {user.role}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {user.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
-                              No members found in this group
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+            {/* Group Users */}
+            <div className="md:w-1/2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <h3 className="text-md font-medium text-gray-800">{selectedGroup.name}: Members</h3>
+                <p className="text-sm text-gray-500">{groupMembers.length} users in this group</p>
+              </div>
               
-              {activeTab === 'permissions' && (
-                <div>
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Role-Based Permissions</h4>
-                    <div className="bg-gray-50 p-4 rounded-md">
-                      {selectedGroup.roles.map(role => (
-                        <div key={role} className="mb-4 last:mb-0">
-                          <h5 className="text-sm font-medium text-gray-800 mb-2">{role}</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {permissions[role]?.map((perm, idx) => (
-                              <span key={idx} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {perm}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Permission Matrix</h4>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Module
-                            </th>
-                            {selectedGroup.roles.map(role => (
-                              <th key={role} scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {role}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {['Dashboards', 'Reports', 'Data Export', 'User Management', 'System Settings'].map(module => (
-                            <tr key={module}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                                {module}
-                              </td>
-                              {selectedGroup.roles.map(role => (
-                                <td key={`${module}-${role}`} className="px-6 py-4 whitespace-nowrap text-center">
-                                  {permissions[role]?.some(p => p.toLowerCase().includes(module.toLowerCase())) ? (
-                                    <Check className="h-5 w-5 text-green-500 mx-auto" />
-                                  ) : (
-                                    <X className="h-5 w-5 text-red-500 mx-auto" />
-                                  )}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+              <div 
+                className={`p-4 h-64 md:h-96 overflow-y-auto ${isDraggingOver === 'group' ? 'bg-gray-100' : ''}`}
+                onDragOver={(e) => handleDragOver(e, 'group')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 'group')}
+              >
+                <div className="flex items-center justify-center mb-3">
+                  <div className="text-sm text-gray-500">
+                    Drag users here to add them to the group or use the button
                   </div>
                 </div>
-              )}
-              
-              {activeTab === 'activity' && (
-                <div>
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Activity</h4>
-                    <div className="bg-gray-50 p-4 rounded-md">
-                      {groupActivity.map(activity => (
-                        <div key={activity.id} className="mb-3 pb-3 border-b border-gray-200 last:border-0 last:mb-0 last:pb-0">
-                          <div className="flex justify-between">
-                            <div className="text-sm font-medium text-gray-800">{activity.user}</div>
-                            <div className="text-xs text-gray-500">{activity.timestamp}</div>
-                          </div>
-                          <div className="text-sm text-gray-600 mt-1">{activity.action}</div>
-                        </div>
-                      ))}
-                    </div>
+                
+                {groupMembers.length > 0 ? (
+                  groupMembers.map(user => (
+                    <UserCard key={user.id} user={user} inGroup={true} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No members in this group yet
                   </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Activity Insights</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-white border border-gray-200 rounded-md p-4">
-                        <h5 className="text-xs font-medium text-gray-500 mb-2">Most Active Members</h5>
-                        {users.slice(0, 3).map(user => (
-                          <div key={user.id} className="mb-3">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-700">{user.name}</span>
-                              <span className="text-gray-500">24 actions</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${Math.random() * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="bg-white border border-gray-200 rounded-md p-4">
-                        <h5 className="text-xs font-medium text-gray-500 mb-2">Activity Types</h5>
-                        <div className="flex items-center justify-center h-32">
-                          {/* Placeholder for chart */}
-                          <div className="text-gray-400 text-sm">Activity chart will appear here</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
