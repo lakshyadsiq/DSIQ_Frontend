@@ -1,32 +1,23 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
-  UserCog, 
   Shield, 
   History, 
   Database, 
-  Download, 
-  Lock, 
   Save,
   ChevronRight,
   ChevronDown,
   ChevronLeft,
-  Plus,
-  Search,
-  Clock,
-  Calendar,
-  BarChart2,
-  FileText,
   Menu,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import UsersList from './UsersList';
 import GroupsManagement from '../components/GroupsManagement';
-import CreateRoles from '../components/CreateRoles';
 import DataExport from '../components/DataExport';
 import ActivityLogs from '../components/ActivityLogs';
+import CreateRoles from '../components/CreateRoles';
 
 // Main Settings Component
 export default function SettingsPage() {
@@ -38,6 +29,7 @@ export default function SettingsPage() {
     'data-management': false
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showCreateRoleForm, setShowCreateRoleForm] = useState(false);
   const navigate = useNavigate();
 
   const toggleSection = (section) => {
@@ -55,6 +47,7 @@ export default function SettingsPage() {
       ...prev,
       [section]: true
     }));
+    setShowCreateRoleForm(false); // Reset create role form visibility when switching subsections
   };
 
   // Handler for Get Started button from WelcomeScreen
@@ -67,17 +60,23 @@ export default function SettingsPage() {
     setActiveSubSection('users');
   };
 
+  const handleCreateRole = () => {
+    setShowCreateRoleForm(true);
+  };
+
   // Render the appropriate component based on active section/subsection
   const renderContent = () => {
+    if (activeSubSection === 'roles' && showCreateRoleForm) {
+      return <CreateRoles onCancel={() => setShowCreateRoleForm(false)} />; 
+    }
+
     switch(activeSubSection) {
       case 'users':
         return <UsersList/>;
       case 'groups':
         return <GroupsManagement/>;
-      case 'roles-overview':
-        return <RolesOverview />;
-      case 'create-roles':
-        return <CreateRoles/>;
+      case 'roles':
+        return <RolesManagement onCreateRole={handleCreateRole} />;
       case 'activity-logs':
         return <ActivityLogs />;
       case 'data-export':
@@ -133,7 +132,7 @@ export default function SettingsPage() {
         </div>
 
         <nav className="p-2">
-          {/* User Management Section - Now includes Role Management */}
+          {/* User Management Section - Now with consolidated Roles section */}
           <div className="mb-1">
             <button 
               onClick={() => toggleSection('user-management')}
@@ -161,17 +160,12 @@ export default function SettingsPage() {
                 >
                   Groups
                 </button>
+                
                 <button 
-                  onClick={() => handleSubSectionClick('user-management', 'roles-overview')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'roles-overview' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  onClick={() => handleSubSectionClick('user-management', 'roles')}
+                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'roles' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
                 >
-                  Roles Overview
-                </button>
-                <button 
-                  onClick={() => handleSubSectionClick('user-management', 'create-roles')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'create-roles' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Create Roles
+                  Roles
                 </button>
               </div>
             )}
@@ -277,8 +271,8 @@ const WelcomeScreen = ({ onGetStarted }) => {
   );
 };
 
-// Roles Overview
-const RolesOverview = () => {
+// Roles Management Component with Create Role Button
+const RolesManagement = ({ onCreateRole }) => {
   const roles = [
     {
       name: 'Administrator',
@@ -314,14 +308,13 @@ const RolesOverview = () => {
   ];
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Roles Overview</h2>
+    <div className="relative">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">Roles Management</h2>
       <p className="text-gray-600 mb-6">
-        Review existing roles and their assigned permissions. This view is read-only.
-        To create or modify roles, please go to the Role Management section.
+        Review existing roles and their assigned permissions. Create new roles or modify existing ones.
       </p>
       
-      <div className="grid gap-6 md:grid-cols-2 ">
+      <div className="grid gap-6 md:grid-cols-2 mb-16">
         {roles.map((role, index) => (
           <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
@@ -347,10 +340,20 @@ const RolesOverview = () => {
           </div>
         ))}
       </div>
+      
+      {/* Fixed create role button */}
+      <div className="fixed bottom-6 right-6 z-10">
+        <button 
+          onClick={onCreateRole}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-md"
+        >
+          <Plus className="h-5 w-5 mr-1" />
+          Create Role
+        </button>
+      </div>
     </div>
   );
-};  
-
+};
 
 // Privacy Preferences
 const PrivacyPreferences = () => {
@@ -420,7 +423,8 @@ const PrivacyPreferences = () => {
     </div>
   );
 };
-// Backup & Restore Placeholder (to be implemented)
+
+// Backup & Restore Placeholder
 const BackupRestore = () => {
   return (
     <div>

@@ -8,7 +8,7 @@ import {
   Keyboard,
   ChevronDown,
   ChevronRight,
-  Settings,
+  Cog,
   MessageSquare,
   BookOpen,
   ShoppingBag,
@@ -147,8 +147,8 @@ const Sidebar = ({ isOpen, selectedApp }) => {
 
   const bottomMenuItems = [
     {
-      icon: <Settings size={18} />,
-      label: "Settings",
+      icon: <Cog size={22} />,
+      label: "App Settings",
       isDropdown: false,
       items: [],
     },
