@@ -116,6 +116,25 @@ const CreateRoles = ( {onCancel} ) => {
     }, 5000);
   };
 
+  // Function to handle tab navigation with validation
+  const handleTabChange = (tabId) => {
+    // Validate current tab before changing
+    if (tabId === "details") {
+      // Always allow going back to details
+      setActiveTab(tabId);
+    } else if (tabId === "permissions") {
+      // Only allow going to permissions if details are valid
+      if (isValid.details) {
+        setActiveTab(tabId);
+      }
+    } else if (tabId === "review") {
+      // Only allow going to review if both details and permissions are valid
+      if (isValid.details && isValid.permissions) {
+        setActiveTab(tabId);
+      }
+    }
+  };
+
   // Determine current step index
   const currentStepIndex = steps.findIndex(step => step.id === activeTab);
 
@@ -207,15 +226,21 @@ const CreateRoles = ( {onCancel} ) => {
                 ></div>
               )}
               
-              {/* Step circle */}
+              {/* Step circle - now using handleTabChange for validation */}
               <button
-                onClick={() => setActiveTab(step.id)}
+                onClick={() => handleTabChange(step.id)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
                   index < currentStepIndex
                     ? "bg-blue-500 text-white"
                     : index === currentStepIndex
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-500"
+                } ${
+                  // Add cursor-not-allowed for steps that can't be accessed yet
+                  (index === 1 && !isValid.details) || 
+                  (index === 2 && (!isValid.details || !isValid.permissions))
+                    ? "cursor-not-allowed"
+                    : "cursor-pointer"
                 }`}
               >
                 {index < currentStepIndex ? (
@@ -275,7 +300,7 @@ const CreateRoles = ( {onCancel} ) => {
             
             <div className="flex items-center justify-end pt-4">
               <button 
-                onClick={() => setActiveTab("permissions")}
+                onClick={() => handleTabChange("permissions")}
                 className={`px-4 py-2 ${isValid.details ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
                 disabled={!isValid.details}
               >
@@ -367,13 +392,13 @@ const CreateRoles = ( {onCancel} ) => {
             
             <div className="flex items-center justify-between mt-6">
               <button 
-                onClick={() => setActiveTab("details")}
+                onClick={() => handleTabChange("details")}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
               >
                 Back
               </button>
               <button 
-                onClick={() => setActiveTab("review")}
+                onClick={() => handleTabChange("review")}
                 className={`px-4 py-2 ${isValid.permissions ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
                 disabled={!isValid.permissions}
               >
@@ -441,7 +466,7 @@ const CreateRoles = ( {onCancel} ) => {
             
             <div className="flex items-center justify-between mt-6">
               <button 
-                onClick={() => setActiveTab("permissions")}
+                onClick={() => handleTabChange("permissions")}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
               >
                 Back
