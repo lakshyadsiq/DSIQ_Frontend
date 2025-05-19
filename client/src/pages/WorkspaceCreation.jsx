@@ -16,6 +16,7 @@ import {
   FiChevronRight,
   FiCheck,
   FiX,
+  FiAlertCircle,
 } from "react-icons/fi"
 import clsx from "clsx"
 
@@ -100,6 +101,24 @@ export default function WorkspaceCreation({}) {
     dispatch(fetchCategories())
     dispatch(fetchBrands())
   }, [dispatch])
+
+  // Helper function to check if retailer has incomplete categories (for step 2)
+  const hasIncompleteCategories = (retailerId) => {
+    if (step === 2) {
+      return selectedRetailers.includes(retailerId) && 
+        (!selectedCategories[retailerId] || selectedCategories[retailerId].length === 0)
+    }
+    return false
+  }
+
+  // Helper function to check if category has incomplete brands (for step 3)
+  const hasIncompleteBrands = (categoryId) => {
+    if (step === 3) {
+      return selectedCategoriesFlat.includes(categoryId) && 
+        (!selectedBrands[categoryId] || selectedBrands[categoryId].length === 0)
+    }
+    return false
+  }
 
   // Next/Prev steps
   const handleNextStep = () => {
@@ -227,7 +246,7 @@ export default function WorkspaceCreation({}) {
     const steps = [
       { number: 1, label: "Retailers", icon: <FiShoppingCart /> },
       { number: 2, label: "Categories", icon: <FiGrid /> },
-      { number: 3, label: "Brands", icon: <FiTag /> },
+      { number: 3, label: "My Brands", icon: <FiTag /> },
     ]
 
     return (
@@ -374,7 +393,12 @@ export default function WorkspaceCreation({}) {
                       handleToggleRetailerDropdown(retailerId)
                     }}
                   >
-                    <span className="text-gray-800 font-medium">{retailer?.name || retailerId}</span>
+                    <div className="flex items-center">
+                      <span className="text-gray-800 font-medium">{retailer?.name || retailerId}</span>
+                      {hasIncompleteCategories(retailerId) && (
+                        <FiAlertCircle className="ml-2 h-4 w-4 text-red-500" />
+                      )}
+                    </div>
                     {expandedRetailers[retailerId] ? (
                       <FiChevronUp className="h-5 w-5 text-gray-500" />
                     ) : (
@@ -523,7 +547,12 @@ export default function WorkspaceCreation({}) {
                                 handleToggleCategoryDropdown(categoryId);
                               }}
                             >
-                              <span className="text-gray-700">{category?.name || categoryId}</span>
+                              <div className="flex items-center">
+                                <span className="text-gray-700">{category?.name || categoryId}</span>
+                                {hasIncompleteBrands(categoryId) && (
+                                  <FiAlertCircle className="ml-2 h-3 w-3 text-red-500" />
+                                )}
+                              </div>
                               {expandedCategories[categoryId] ? (
                                 <FiChevronUp className="h-4 w-4 text-gray-500" />
                               ) : (
@@ -721,7 +750,7 @@ export default function WorkspaceCreation({}) {
 
         {step === 3 && (
           <>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Your Brands</h2>
             {selectedCategoriesFlat.some(
               (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
             ) && (
@@ -864,7 +893,7 @@ export default function WorkspaceCreation({}) {
 
         {step === 3 && (
           <>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Brands</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Your Brands</h2>
             {selectedCategoriesFlat.some(
               (categoryId) => !selectedBrands[categoryId] || selectedBrands[categoryId].length === 0
             ) && (

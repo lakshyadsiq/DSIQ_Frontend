@@ -14,7 +14,7 @@ import {
   PinOff
 } from 'lucide-react';
 import ProfileDropdown from './ProfileDropdown';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const initialApps = [
   { id: 1, name: 'Digital Shelf iQ', icon: '📊', description: 'Product visibility analytics' },
@@ -59,6 +59,12 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const workspaceDropdownRef = useRef(null);
   const appDropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation(); // Get current route
+
+  // Check if we're on home page
+  const isSettingOrHelp = location.pathname === '/settings' || location.pathname === '/help';
+  // Determine if we should show the main navigation elements
+  const showMainNav = !isLoggedIn || isSettingOrHelp;
 
   // Load selectedApp from localStorage on mount
   useEffect(() => {
@@ -170,154 +176,165 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const displayApp = activeApp || (pinnedApp || { name: "Apps" });
 
   return (
-    <nav className="flex !h-[64px] items-center justify-between px-4 bg-gray-800 border-b border-gray-700 transition-colors duration-300">
+    <nav className="flex !h-[64px] items-center justify-between pr-4 bg-gray-800 border-b border-gray-700 transition-colors duration-300">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
         {isLoggedIn ? (
           <>
-            {/* Sidebar Toggle */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-md text-gray-300 hover:bg-gray-700"
-            >
-              {isSidebarOpen ? <TableOfContents size={20} /> : <ArrowRightFromLine size={20} />}
-            </button>
-
-            {/* Apps Dropdown */}
-            <div className="relative" ref={appDropdownRef}>
-              <button
-                onClick={() => setIsAppDropdownOpen(!isAppDropdownOpen)}
-                className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-200 "
-              >
-                <div className="flex items-center space-x-2">
-                  {displayApp.icon && <span>{displayApp.icon}</span>}
-                  <span>{displayApp.name}</span>
-                </div>
-                <ChevronDown size={16} className="ml-2" />
-              </button>
-
-              {isAppDropdownOpen && (
-                <div className="absolute left-0 mt-1 w-72 bg-gray-900 rounded-md shadow-lg py-2 z-50 border border-gray-700">
-                  {apps.map((app) => {
-                    const isPinned = pinnedApp && pinnedApp.id === app.id;
-                    const isActive = activeApp && activeApp.id === app.id;
-                    return (
-                      <div
-                        key={app.id}
-                        className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
-                          isActive ? 'bg-gray-800' : ''
-                        }`}
-                        onClick={() => selectApp(app)}
-                      >
-                        <span className="text-xl">{app.icon}</span>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-200">{app.name}</div>
-                          <div className="text-xs text-gray-400">{app.description}</div>
-                        </div>
-                        <button 
-                          onClick={(e) => togglePinApp(app, e)}
-                          className="p-1 text-gray-400 hover:text-gray-300"
-                          title={isPinned ? "Unpin app" : "Pin app"}
-                        >
-                          {isPinned ? 
-                            <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
-                            <PinOff size={16} />
-                          }
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Workspace Dropdown */}
-            <div className="relative flex" ref={workspaceDropdownRef}>
-              <button
-                onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
-                className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-200 truncate max-w-32">
-                    {currentWorkspace.name}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <ChevronDown size={16} className="text-gray-200" />
-                </div>
-              </button>
-              <div className="relative group">
+            {!showMainNav ? (
+              <>
+                {/* Sidebar Toggle */}
                 <button
-                  className="p-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition duration-200 flex items-center justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/workspaceCreate');
-                  }}
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="p-2 rounded-md text-gray-300 hover:bg-gray-700"
                 >
-                  <Plus size={16} />
+                  {isSidebarOpen ? <TableOfContents size={20} /> : <ArrowRightFromLine size={20} />}
                 </button>
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
-                  create new
-                </div>
-              </div>
 
-              {isWorkspaceDropdownOpen && (
-                <div className="absolute left-0 mt-10 w-72 bg-gray-900 rounded-md shadow-lg z-50 border border-gray-700 flex flex-col">
-                  <div className="px-3 py-2 border-b border-gray-700">
-                    <div className="relative">
-                      <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search workspaces..."
-                        value={workspaceSearch}
-                        onChange={(e) => setWorkspaceSearch(e.target.value)}
-                        className="pl-8 pr-8 py-2 w-full bg-gray-800 border border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
-                      />
-                      {workspaceSearch && (
-                        <button
-                          onClick={() => setWorkspaceSearch('')}
-                          className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-300"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
+                {/* Apps Dropdown */}
+                <div className="relative" ref={appDropdownRef}>
+                  <button
+                    onClick={() => setIsAppDropdownOpen(!isAppDropdownOpen)}
+                    className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-200 "
+                  >
+                    <div className="flex items-center space-x-2">
+                      {displayApp.icon && <span>{displayApp.icon}</span>}
+                      <span>{displayApp.name}</span>
+                    </div>
+                    <ChevronDown size={16} className="ml-2" />
+                  </button>
+
+                  {isAppDropdownOpen && (
+                    <div className="absolute left-0 mt-1 w-72 bg-gray-900 rounded-md shadow-lg py-2 z-50 border border-gray-700">
+                      {apps.map((app) => {
+                        const isPinned = pinnedApp && pinnedApp.id === app.id;
+                        const isActive = activeApp && activeApp.id === app.id;
+                        return (
+                          <div
+                            key={app.id}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
+                              isActive ? 'bg-gray-800' : ''
+                            }`}
+                            onClick={() => selectApp(app)}
+                          >
+                            <span className="text-xl">{app.icon}</span>
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-200">{app.name}</div>
+                              <div className="text-xs text-gray-400">{app.description}</div>
+                            </div>
+                            <button 
+                              onClick={(e) => togglePinApp(app, e)}
+                              className="p-1 text-gray-400 hover:text-gray-300"
+                              title={isPinned ? "Unpin app" : "Pin app"}
+                            >
+                              {isPinned ? 
+                                <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
+                                <PinOff size={16} />
+                              }
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Workspace Dropdown */}
+                <div className="relative flex" ref={workspaceDropdownRef}>
+                  <button
+                    onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
+                    className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-200 truncate max-w-32">
+                        {currentWorkspace.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <ChevronDown size={16} className="text-gray-200" />
+                    </div>
+                  </button>
+                  <div className="relative group">
+                    <button
+                      className="p-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition duration-200 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/workspaceCreate');
+                      }}
+                    >
+                      <Plus size={16} />
+                    </button>
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
+                      create new
                     </div>
                   </div>
 
-                  <div className="max-h-60 overflow-y-auto custom-scrollbar">
-                    {filteredWorkspaces.length > 0 ? (
-                      filteredWorkspaces.map(workspace => (
-                        <button
-                          key={workspace.id}
-                          onClick={() => selectWorkspace(workspace)}
-                          className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center ${
-                            currentWorkspace.id === workspace.id ? 'bg-gray-800' : ''
-                          }`}
-                        >
-                          <span className="text-gray-200">{workspace.name}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-2 text-gray-400 text-center">
-                        No workspaces found
+                  {isWorkspaceDropdownOpen && (
+                    <div className="absolute left-0 mt-10 w-72 bg-gray-900 rounded-md shadow-lg z-50 border border-gray-700 flex flex-col">
+                      <div className="px-3 py-2 border-b border-gray-700">
+                        <div className="relative">
+                          <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search workspaces..."
+                            value={workspaceSearch}
+                            onChange={(e) => setWorkspaceSearch(e.target.value)}
+                            className="pl-8 pr-8 py-2 w-full bg-gray-800 border border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
+                          />
+                          {workspaceSearch && (
+                            <button
+                              onClick={() => setWorkspaceSearch('')}
+                              className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-300"
+                            >
+                              <X size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="mt-auto border-t border-gray-700">
-                    <button
-                      onClick={() => {
-                        setIsWorkspaceDropdownOpen(false);
-                        navigate('/viewWorkspace');
-                      }}
-                      className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
-                    >
-                      See all workspaces
-                    </button>
-                  </div>
+                      <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                        {filteredWorkspaces.length > 0 ? (
+                          filteredWorkspaces.map(workspace => (
+                            <button
+                              key={workspace.id}
+                              onClick={() => selectWorkspace(workspace)}
+                              className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center ${
+                                currentWorkspace.id === workspace.id ? 'bg-gray-800' : ''
+                              }`}
+                            >
+                              <span className="text-gray-200">{workspace.name}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-gray-400 text-center">
+                            No workspaces found
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-auto border-t border-gray-700">
+                        <button
+                          onClick={() => {
+                            setIsWorkspaceDropdownOpen(false);
+                            navigate('/viewWorkspace');
+                          }}
+                          className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
+                        >
+                          See all workspaces
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              // Logo for non-homepage routes when logged in
+              <div className="flex items-center justify-center h-full relative w-64 lg:w-72 xl:w-80">
+                <div>
+                  <img src="./1.png" alt="Full Logo" className="h-28 w-auto" />
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -331,7 +348,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
       {/* Right Section */}
       <div className="flex items-center space-x-3">
         {/* Help button with tooltip */}
-        <div className="relative group">
+        {location.pathname === '/help' ? (null): (<div className="relative group">
           <button
             className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200"
             aria-label="Help"
@@ -342,10 +359,11 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
           <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
             Help
           </div>
-        </div>
+        </div>) }
+        
 
         {/* Settings button with tooltip */}
-        <div className="relative group">
+        {location.pathname === '/settings' ? (null): (<div className="relative group">
           <button 
             className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
             aria-label="Settings"
@@ -356,7 +374,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
           <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
             Settings
           </div>
-        </div>
+        </div>)}
+        
 
         {/* Notifications button with tooltip */}
         <div className="relative group">

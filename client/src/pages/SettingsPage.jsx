@@ -1,32 +1,24 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  UserCog, 
-  Shield, 
-  History, 
-  Database, 
-  Download, 
-  Lock, 
+import { useSelector } from 'react-redux';
+import {
+  Users,
+  Shield,
+  History,
+  Database,
   Save,
   ChevronRight,
   ChevronDown,
   ChevronLeft,
-  Plus,
-  Search,
-  Clock,
-  Calendar,
-  BarChart2,
-  FileText,
   Menu,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import UsersList from './UsersList';
-import GroupsManagement from '../components/GroupsManagement';
-import CreateRoles from '../components/CreateRoles';
 import DataExport from '../components/DataExport';
 import ActivityLogs from '../components/ActivityLogs';
+import CreateRoles from '../components/CreateRoles';
+import Navbar from '../components/Navbar';
 
 // Main Settings Component
 export default function SettingsPage() {
@@ -38,6 +30,7 @@ export default function SettingsPage() {
     'data-management': false
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showCreateRoleForm, setShowCreateRoleForm] = useState(false);
   const navigate = useNavigate();
 
   const toggleSection = (section) => {
@@ -55,6 +48,7 @@ export default function SettingsPage() {
       ...prev,
       [section]: true
     }));
+    setShowCreateRoleForm(false); // Reset create role form visibility when switching subsections
   };
 
   // Handler for Get Started button from WelcomeScreen
@@ -67,27 +61,31 @@ export default function SettingsPage() {
     setActiveSubSection('users');
   };
 
+  const handleCreateRole = () => {
+    setShowCreateRoleForm(true);
+  };
+
   // Render the appropriate component based on active section/subsection
   const renderContent = () => {
-    switch(activeSubSection) {
+    if (activeSubSection === 'roles' && showCreateRoleForm) {
+      return <CreateRoles onCancel={() => setShowCreateRoleForm(false)} />;
+    }
+
+    switch (activeSubSection) {
       case 'users':
-        return <UsersList/>;
-      case 'groups':
-        return <GroupsManagement/>;
-      case 'roles-overview':
-        return <RolesOverview />;
-      case 'create-roles':
-        return <CreateRoles/>;
+        return <UsersList />;
+      case 'roles':
+        return <RolesManagement onCreateRole={handleCreateRole} />;
       case 'activity-logs':
         return <ActivityLogs />;
       case 'data-export':
-        return <DataExport/>;
+        return <DataExport />;
       case 'privacy-preferences':
         return <PrivacyPreferences />;
       case 'backup-restore':
         return <BackupRestore />;
       default:
-        return <WelcomeScreen onGetStarted={handleGetStarted}/>;
+        return <WelcomeScreen onGetStarted={handleGetStarted} />;
     }
   };
 
@@ -99,160 +97,152 @@ export default function SettingsPage() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Mobile sidebar toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-20">
-        <button 
-          onClick={toggleSidebar}
-          className="p-2 rounded-md bg-white shadow-md text-gray-700"
-        >
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {/* Sidebar - responsive with overlay on mobile */}
-      <div 
-        className={`fixed md:static inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0 transition duration-200 ease-in-out md:transition-none z-10 
-        w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0`}
-      >
-        <div className="p-4 border-b border-gray-200 flex items-center">
-          <div className="relative group flex items-center">
-            <button 
-              onClick={handleBack} 
-              className="mr-2 transition-transform duration-200 group-hover:-translate-x-0.5 flex-shrink-0"
-            >
-              <ChevronLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <span className="absolute -top-6 left-1/2 mt-1 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-md">
-              Back
-            </span>
-          </div>
-          <h1 className="text-xl font-semibold text-gray-800">Settings</h1>
+    <div>
+      <Navbar isLoggedIn={isLoggedIn} />
+      <div className="flex h-screen bg-gray-50">
+        {/* Mobile sidebar toggle */}
+        <div className="md:hidden fixed top-4 left-4 z-20">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md bg-white shadow-md text-gray-700"
+          >
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
 
-        <nav className="p-2">
-          {/* User Management Section - Now includes Role Management */}
-          <div className="mb-1">
-            <button 
-              onClick={() => toggleSection('user-management')}
-              className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'user-management' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-            >
-              <div className="flex items-center">
-                <Users className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">User Management</span>
-              </div>
-              {expandedSections['user-management'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-            
-            {expandedSections['user-management'] && (
-              <div className="ml-7 mt-1 space-y-1">
-                <button 
-                  onClick={() => handleSubSectionClick('user-management', 'users')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'users' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Users
-                </button>
-
-                <button 
-                  onClick={() => handleSubSectionClick('user-management', 'groups')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'groups' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Groups
-                </button>
-                <button 
-                  onClick={() => handleSubSectionClick('user-management', 'roles-overview')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'roles-overview' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Roles Overview
-                </button>
-                <button 
-                  onClick={() => handleSubSectionClick('user-management', 'create-roles')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'create-roles' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Create Roles
-                </button>
-              </div>
-            )}
+        {/* Sidebar - responsive with overlay on mobile */}
+        <div
+          className={`fixed md:static inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        md:translate-x-0 transition duration-200 ease-in-out md:transition-none z-10 
+        w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0`}
+        >
+          <div className="p-4 border-b border-gray-200 flex items-center">
+            <div className="relative group flex items-center">
+              <button
+                onClick={handleBack}
+                className="mr-2 transition-transform duration-200 group-hover:-translate-x-0.5 flex-shrink-0"
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <span className="absolute -top-6 left-1/2 mt-1 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-md">
+                Back
+              </span>
+            </div>
+            <h1 className="text-xl font-semibold text-gray-800">Settings</h1>
           </div>
 
-          {/* Activity History Section */}
-          <div className="mb-1">
-            <button 
-              onClick={() => toggleSection('activity-history')}
-              className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'activity-history' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-            >
-              <div className="flex items-center">
-                <History className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">Activity History</span>
-              </div>
-              {expandedSections['activity-history'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-            
-            {expandedSections['activity-history'] && (
-              <div className="ml-7 mt-1 space-y-1">
-                <button 
-                  onClick={() => handleSubSectionClick('activity-history', 'activity-logs')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'activity-logs' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Activity Logs
-                </button>
-              </div>
-            )}
-          </div>
+          <nav className="p-2">
+            {/* User Management Section - Now with consolidated Roles section */}
+            <div className="mb-1">
+              <button
+                onClick={() => toggleSection('user-management')}
+                className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'user-management' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+              >
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">User Management</span>
+                </div>
+                {expandedSections['user-management'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
 
-          {/* Data Management Section */}
-          <div className="mb-1">
-            <button 
-              onClick={() => toggleSection('data-management')}
-              className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'data-management' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-            >
-              <div className="flex items-center">
-                <Database className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">Data Management</span>
-              </div>
-              {expandedSections['data-management'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-            
-            {expandedSections['data-management'] && (
-              <div className="ml-7 mt-1 space-y-1">
-                <button 
-                  onClick={() => handleSubSectionClick('data-management', 'data-export')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'data-export' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Data Export
-                </button>
-                <button 
-                  onClick={() => handleSubSectionClick('data-management', 'privacy-preferences')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'privacy-preferences' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Privacy Preferences
-                </button>
-                <button 
-                  onClick={() => handleSubSectionClick('data-management', 'backup-restore')}
-                  className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'backup-restore' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
-                >
-                  Backup & Restore
-                </button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </div>
+              {expandedSections['user-management'] && (
+                <div className="ml-7 mt-1 space-y-1">
+                  <button
+                    onClick={() => handleSubSectionClick('user-management', 'users')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'users' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Users
+                  </button>
 
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-0"
-          onClick={toggleSidebar}
-        ></div>
-      )}
-      
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-6 xl:p-8 max-w-7xl mx-auto">
-          {renderContent()}
+                  <button
+                    onClick={() => handleSubSectionClick('user-management', 'roles')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'roles' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Roles
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Activity History Section */}
+            <div className="mb-1">
+              <button
+                onClick={() => toggleSection('activity-history')}
+                className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'activity-history' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+              >
+                <div className="flex items-center">
+                  <History className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">Activity History</span>
+                </div>
+                {expandedSections['activity-history'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+
+              {expandedSections['activity-history'] && (
+                <div className="ml-7 mt-1 space-y-1">
+                  <button
+                    onClick={() => handleSubSectionClick('activity-history', 'activity-logs')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'activity-logs' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Activity Logs
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Data Management Section */}
+            <div className="mb-1">
+              <button
+                onClick={() => toggleSection('data-management')}
+                className={`flex items-center justify-between w-full p-2 rounded-md hover:bg-gray-100 ${activeSection === 'data-management' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+              >
+                <div className="flex items-center">
+                  <Database className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">Data Management</span>
+                </div>
+                {expandedSections['data-management'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+
+              {expandedSections['data-management'] && (
+                <div className="ml-7 mt-1 space-y-1">
+                  <button
+                    onClick={() => handleSubSectionClick('data-management', 'data-export')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'data-export' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Data Export
+                  </button>
+                  <button
+                    onClick={() => handleSubSectionClick('data-management', 'privacy-preferences')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'privacy-preferences' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Privacy Preferences
+                  </button>
+                  <button
+                    onClick={() => handleSubSectionClick('data-management', 'backup-restore')}
+                    className={`flex items-center w-full p-2 text-xs rounded-md hover:bg-gray-100 ${activeSubSection === 'backup-restore' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+                  >
+                    Backup & Restore
+                  </button>
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
+
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && (
+          <div
+            className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-0"
+            onClick={toggleSidebar}
+          ></div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-6 xl:p-8 max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>
@@ -267,7 +257,7 @@ const WelcomeScreen = ({ onGetStarted }) => {
       <p className="text-gray-600 mb-8 text-center">
         Manage users, roles, and data settings to optimize your experience. Get started by managing your users.
       </p>
-      <button 
+      <button
         onClick={onGetStarted}
         className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow"
       >
@@ -276,9 +266,93 @@ const WelcomeScreen = ({ onGetStarted }) => {
     </div>
   );
 };
+const createRoleButtonStyles = `
+  .floating-create-role-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 50;
+    border: none;
+    outline: none;
+  }
 
-// Roles Overview
-const RolesOverview = () => {
+  .floating-create-role-btn:hover {
+    width: 11rem;
+    border-radius: 2rem;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+  }
+
+  .floating-create-role-btn:active {
+    transform: scale(0.95);
+  }
+
+  .floating-create-role-btn .icon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .floating-create-role-btn:hover .icon {
+    left: 1.25rem;
+    transform: translateX(0) rotate(360deg);
+  }
+
+  .floating-create-role-btn .text {
+    position: absolute;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-1rem);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .floating-create-role-btn:hover .text {
+    opacity: 1;
+    transform: translateX(1.75rem);
+  }
+
+  /* Pulse animation */
+  @keyframes role-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(124, 58, 237, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+  }
+
+  .floating-create-role-btn::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: role-pulse 2s infinite;
+  }
+
+  .floating-create-role-btn:hover::after {
+    animation: none;
+    opacity: 0;
+  }
+`;
+
+// Roles Management Component with Create Role Button
+const RolesManagement = ({ onCreateRole }) => {
   const roles = [
     {
       name: 'Administrator',
@@ -314,14 +388,13 @@ const RolesOverview = () => {
   ];
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Roles Overview</h2>
+    <div className="relative">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">Roles Management</h2>
       <p className="text-gray-600 mb-6">
-        Review existing roles and their assigned permissions. This view is read-only.
-        To create or modify roles, please go to the Role Management section.
+        Review existing roles and their assigned permissions. Create new roles or modify existing ones.
       </p>
-      
-      <div className="grid gap-6 md:grid-cols-2 ">
+
+      <div className="grid gap-6 md:grid-cols-2 mb-16">
         {roles.map((role, index) => (
           <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
@@ -335,8 +408,8 @@ const RolesOverview = () => {
               <h4 className="text-sm font-medium text-gray-700 mb-3">Permissions</h4>
               <div className="flex flex-wrap gap-2">
                 {role.permissions.map((permission, permIndex) => (
-                  <span 
-                    key={permIndex} 
+                  <span
+                    key={permIndex}
                     className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                   >
                     {permission}
@@ -347,17 +420,31 @@ const RolesOverview = () => {
           </div>
         ))}
       </div>
+
+      {/* Fixed create role button */}
+      <div className="fixed bottom-6 right-6 z-10">
+        <style>{createRoleButtonStyles}</style>
+        <button
+          className="floating-create-role-btn"
+          onClick={onCreateRole}
+          aria-label="Create new role"
+        >
+          <div className="icon">
+            <Shield className="h-5 w-5" />
+          </div>
+          <span className="text">Create Role</span>
+        </button>
+      </div>
     </div>
   );
-};  
-
+};
 
 // Privacy Preferences
 const PrivacyPreferences = () => {
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Privacy Preferences</h2>
-      
+
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-base font-medium text-gray-800">Data Visibility & Anonymization</h3>
@@ -378,7 +465,7 @@ const PrivacyPreferences = () => {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center">
                 <div>
@@ -393,7 +480,7 @@ const PrivacyPreferences = () => {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center">
                 <div>
@@ -408,7 +495,7 @@ const PrivacyPreferences = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="text-sm text-gray-500">
               <p>
                 For more information on how we handle data privacy, please refer to our <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
@@ -420,7 +507,8 @@ const PrivacyPreferences = () => {
     </div>
   );
 };
-// Backup & Restore Placeholder (to be implemented)
+
+// Backup & Restore Placeholder
 const BackupRestore = () => {
   return (
     <div>
