@@ -510,7 +510,7 @@ const UsersList = () => {
         theme="light"
       />
 
-      <div className="flex-grow p-4 md:p-6 lg:p-8 max-w-8xl mx-auto w-full">
+      <div className="flex-grow md:p-6 lg:p-8 max-w-8xl mx-auto w-full bg-gray-50">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center mb-4 md:mb-0">
             <Users className="w-8 h-8 mr-3 text-blue-600" />
