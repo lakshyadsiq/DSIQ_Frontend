@@ -362,20 +362,19 @@ export default function WorkspaceCreation({}) {
     )
   }
 
-  const renderCategoryStep = () => {
+ const renderCategoryStep = () => {
     if (selectedRetailers.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one retailer to proceed.</p>
     }
-
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Selected Retailers List with Dropdown */}
         <div className="w-1/3 p-6 rounded-xl bg-white shadow-sm border border-gray-200">
           <h3 className="font-semibold text-lg text-gray-800 mb-4">Retailers</h3>
-
           <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
             {selectedRetailers.map((retailerId) => {
               const retailer = Array.isArray(retailers) ? retailers.find((r) => r.id === retailerId) : null;
+              const categoryCount = (selectedCategories[retailerId] || []).length;
               const retailerCategories = (selectedCategories[retailerId] || []).map((categoryId) => {
                 const category = Array.isArray(allCategories) ? 
                   allCategories.find(c => c.id === categoryId && c.retailerId === retailerId) : null;
@@ -393,8 +392,13 @@ export default function WorkspaceCreation({}) {
                       handleToggleRetailerDropdown(retailerId)
                     }}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center space-x-2">
                       <span className="text-gray-800 font-medium">{retailer?.name || retailerId}</span>
+                      {categoryCount > 0 && (
+                        <span className="inline-block bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                          {categoryCount}
+                        </span>
+                      )}
                       {hasIncompleteCategories(retailerId) && (
                         <FiAlertCircle className="ml-2 h-4 w-4 text-red-500" />
                       )}
@@ -485,11 +489,11 @@ export default function WorkspaceCreation({}) {
     )
   }
 
+
   const renderBrandStep = () => {
     if (selectedCategoriesFlat.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one category to proceed.</p>
     }
-
     // Get all categories that have brands
     const categoriesWithBrands = Array.isArray(selectedCategoriesFlat) ? 
       selectedCategoriesFlat.filter(id => {
@@ -535,7 +539,7 @@ export default function WorkspaceCreation({}) {
                         const category = Array.isArray(allCategories) ? 
                           allCategories.find(c => c.id === categoryId && c.retailerId === retailerId) : null;
                         const selectedBrandsList = selectedBrands[categoryId] || [];
-                        
+                        const brandCount = selectedBrandsList.length;
                         return (
                           <div key={categoryId}>
                             <div
@@ -547,8 +551,13 @@ export default function WorkspaceCreation({}) {
                                 handleToggleCategoryDropdown(categoryId);
                               }}
                             >
-                              <div className="flex items-center">
+                              <div className="flex items-center space-x-2">
                                 <span className="text-gray-700">{category?.name || categoryId}</span>
+                                {brandCount > 0 && (
+                                  <span className="inline-block bg-green-200 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                    {brandCount}
+                                  </span>
+                                )}
                                 {hasIncompleteBrands(categoryId) && (
                                   <FiAlertCircle className="ml-2 h-3 w-3 text-red-500" />
                                 )}
@@ -615,7 +624,8 @@ export default function WorkspaceCreation({}) {
                 onChange={(e) => handleBrandSearch(activeBrandCategory, e.target.value)}
                 className="w-full pl-12 py-3 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
-            </div>
+            </div> 
+
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
               {Array.isArray(allBrands) ?
                 allBrands
