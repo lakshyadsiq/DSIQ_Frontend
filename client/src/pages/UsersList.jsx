@@ -196,12 +196,12 @@ const UsersList = () => {
   const nameCell = useCallback(
     (props) => {
       if (props.rowType === "groupHeader") {
-        return null;
+        return null
       }
 
-      if (!props.dataItem.name) return <td></td>;
+      if (!props.dataItem.name) return <td></td>
 
-      const isEditing = editUserId === props.dataItem.id;
+      const isEditing = editUserId === props.dataItem.id
       return (
         <td>
           <EditableNameCell
@@ -210,25 +210,25 @@ const UsersList = () => {
             onChange={handleEditChange}
             onSave={() => handleEditSave(props.dataItem.id)}
             onCancel={() => {
-              setEditUserId(null);
-              setEditForm({ name: "", Role: "" });
+              setEditUserId(null)
+              setEditForm({ name: "", Role: "" })
             }}
           />
         </td>
-      );
+      )
     },
-    [editUserId, editForm.name, handleEditChange, handleEditSave]
-  );
+    [editUserId, editForm.name, handleEditChange, handleEditSave],
+  )
 
   const roleCell = useCallback(
     (props) => {
       if (props.rowType === "groupHeader") {
-        return null;
+        return null
       }
 
-      if (!props.dataItem.Role) return <td></td>;
+      if (!props.dataItem.Role) return <td></td>
 
-      const isEditing = editUserId === props.dataItem.id;
+      const isEditing = editUserId === props.dataItem.id
       return (
         <td>
           <EditableRoleCell
@@ -238,15 +238,15 @@ const UsersList = () => {
             availableRoles={availableRoles}
             onSave={() => handleEditSave(props.dataItem.id)}
             onCancel={() => {
-              setEditUserId(null);
-              setEditForm({ name: "", Role: "" });
+              setEditUserId(null)
+              setEditForm({ name: "", Role: "" })
             }}
           />
         </td>
-      );
+      )
     },
-    [editUserId, editForm.Role, handleEditChange, handleEditSave, availableRoles]
-  );
+    [editUserId, editForm.Role, handleEditChange, handleEditSave, availableRoles],
+  )
 
   const EditableNameCell = memo(({ isEditing, value, onChange, onSave, onCancel }) => {
     const inputRef = useRef(null)
@@ -299,7 +299,7 @@ const UsersList = () => {
     (props) => {
       // Don't show actions for group rows
       if (props.rowType === "groupHeader") {
-        return null;
+        return null
       }
 
       return (
@@ -315,8 +315,8 @@ const UsersList = () => {
                 </button>
                 <button
                   onClick={() => {
-                    setEditUserId(null); // Cancel editing
-                    setEditForm({ name: "", Role: "" }); // Reset edit form
+                    setEditUserId(null) // Cancel editing
+                    setEditForm({ name: "", Role: "" }) // Reset edit form
                   }}
                   className="px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-400 transition duration-200"
                 >
@@ -339,8 +339,8 @@ const UsersList = () => {
                 </button>
                 <button
                   onClick={() => {
-                    setSelectedUserForPassword(props.dataItem);
-                    setIsPasswordModalOpen(true);
+                    setSelectedUserForPassword(props.dataItem)
+                    setIsPasswordModalOpen(true)
                   }}
                   className="p-2 text-blue-500 hover:text-blue-600 hover:bg-gray-100 rounded-full transition duration-200"
                 >
@@ -358,10 +358,10 @@ const UsersList = () => {
             </button>
           )}
         </td>
-      );
+      )
     },
-    [editUserId, handleEditSave, handleEdit, handleArchive, handleRestore]
-  );
+    [editUserId, handleEditSave, handleEdit, handleArchive, handleRestore],
+  )
 
   // Update your groupHeaderCell to be more specific
   const groupHeaderCell = useCallback((props) => {
@@ -375,10 +375,10 @@ const UsersList = () => {
             </span>
           </div>
         </td>
-      );
+      )
     }
-    return null; // Don't render duplicate group headers
-  }, []);
+    return null // Don't render duplicate group headers
+  }, [])
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -413,6 +413,89 @@ const UsersList = () => {
   .k-grid-grouping-row {
     background-color: #f3f4f6;
   }
+
+  .floating-add-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 50;
+    border: none;
+    outline: none;
+  }
+
+  .floating-add-btn:hover {
+    width: 11rem;
+    border-radius: 2rem;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  }
+
+  .floating-add-btn:active {
+    transform: scale(0.95);
+  }
+
+  .floating-add-btn .icon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .floating-add-btn:hover .icon {
+    left: 1.25rem;
+    transform: translateX(0) rotate(360deg);
+  }
+
+  .floating-add-btn .text {
+    position: absolute;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-1rem);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .floating-add-btn:hover .text {
+    opacity: 1;
+    transform: translateX(1.75rem);
+  }
+
+  /* Pulse animation */
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  }
+
+  .floating-add-btn::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .floating-add-btn:hover::after {
+    animation: none;
+    opacity: 0;
+  }
 `}</style>
       <ToastContainer
         position="top-right"
@@ -427,7 +510,7 @@ const UsersList = () => {
         theme="light"
       />
 
-      <div className="flex-grow p-4 md:p-6 lg:p-8 max-w-8xl mx-auto w-full">
+      <div className="flex-grow md:p-6 lg:p-8 max-w-8xl mx-auto w-full bg-gray-50">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center mb-4 md:mb-0">
             <Users className="w-8 h-8 mr-3 text-blue-600" />
@@ -449,14 +532,6 @@ const UsersList = () => {
             >
               <Upload className="w-5 h-5 mr-2" />
               Import CSV
-            </button>
-
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition duration-200 flex items-center shadow-lg"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              Add New User
             </button>
           </div>
         </div>
@@ -507,7 +582,7 @@ const UsersList = () => {
             </div>
           ) : (
             <Grid
-              style={{ height: '100%', border: 'none' }}
+              style={{ height: "100%", border: "none" }}
               data={processedData}
               filterable={true}
               sortable={true}
@@ -526,8 +601,8 @@ const UsersList = () => {
               pager={MyPager}
               groupHeaderCell={groupHeaderCell}
               groupPanel={{
-                className: 'bg-white p-3 mb-2 border border-gray-200 rounded',
-                placeholder: 'Drag a column header and drop it here to group by that column',
+                className: "bg-white p-3 mb-2 border border-gray-200 rounded",
+                placeholder: "Drag a column header and drop it here to group by that column",
               }}
               className="border-none"
             >
@@ -607,6 +682,12 @@ const UsersList = () => {
               />
             </Grid>
           )}
+        </div>
+        <div className="floating-add-btn" onClick={() => setIsModalOpen(true)}>
+          <div className="icon">
+            <UserPlus size={24} />
+          </div>
+          <span className="text font-medium">Add User</span>
         </div>
       </div>
 
