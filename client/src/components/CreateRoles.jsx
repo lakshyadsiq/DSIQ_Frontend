@@ -1,10 +1,56 @@
 import { useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Copy } from "lucide-react";
 
-const CreateRoles = ( {onCancel} ) => {
+const CreateRoles = ({ onCancel }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [showToast, setShowToast] = useState(false);
   const [creationComplete, setCreationComplete] = useState(false);
+  
+  // Predefined existing roles for template selection
+  const existingRoles = [
+    {
+      id: 1,
+      name: "Admin",
+      description: "Full system access with all permissions",
+      permissions: {
+        Dashboard: { create: true, read: true, update: true, delete: true },
+        Reports: { create: true, read: true, update: true, delete: true },
+        "Data Export": { create: true, read: true, update: true, delete: true },
+        Settings: { create: true, read: true, update: true, delete: true },
+        "API Access": { create: true, read: true, update: true, delete: true },
+        Notifications: { create: true, read: true, update: true, delete: true },
+        Analytics: { create: true, read: true, update: true, delete: true }
+      }
+    },
+    {
+      id: 2,
+      name: "Analyst",
+      description: "Access to view reports and analytics data",
+      permissions: {
+        Dashboard: { create: false, read: true, update: false, delete: false },
+        Reports: { create: true, read: true, update: true, delete: false },
+        "Data Export": { create: true, read: true, update: false, delete: false },
+        Settings: { create: false, read: false, update: false, delete: false },
+        "API Access": { create: false, read: true, update: false, delete: false },
+        Notifications: { create: false, read: true, update: false, delete: false },
+        Analytics: { create: false, read: true, update: false, delete: false }
+      }
+    },
+    {
+      id: 3,
+      name: "Editor",
+      description: "Content management permissions",
+      permissions: {
+        Dashboard: { create: false, read: true, update: false, delete: false },
+        Reports: { create: false, read: true, update: false, delete: false },
+        "Data Export": { create: false, read: true, update: false, delete: false },
+        Settings: { create: false, read: false, update: false, delete: false },
+        "API Access": { create: false, read: false, update: false, delete: false },
+        Notifications: { create: true, read: true, update: true, delete: false },
+        Analytics: { create: false, read: true, update: false, delete: false }
+      }
+    }
+  ];
   
   const modules = [
     "Dashboard",
@@ -38,12 +84,16 @@ const CreateRoles = ( {onCancel} ) => {
   const [formData, setFormData] = useState({
     details: {
       name: "",
+      description: "",
     },
     permissions: {
-      // Initialize with one permission (read) selected for each module
-      selectedPermissions: modules.length
+      selectedPermissions: modules.length,
+      copiedFrom: null
     },
   });
+
+  // State for template selection
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
   // Validation state
   const [isValid, setIsValid] = useState({
@@ -96,7 +146,8 @@ const CreateRoles = ( {onCancel} ) => {
       ...formData,
       permissions: {
         ...formData.permissions,
-        selectedPermissions: totalPermissions
+        selectedPermissions: totalPermissions,
+        copiedFrom: null // Clear template source if manually modified
       }
     });
     
@@ -132,6 +183,52 @@ const CreateRoles = ( {onCancel} ) => {
       if (isValid.details && isValid.permissions) {
         setActiveTab(tabId);
       }
+    }
+  };
+
+  // Handle copying an existing role's permissions
+  const handleCopyFromTemplate = (roleId) => {
+    const selectedRole = existingRoles.find(role => role.id === roleId);
+    
+    if (selectedRole) {
+      // Convert permission object to matrix format
+      const newMatrix = modules.map(moduleName => {
+        const modulePermissions = selectedRole.permissions[moduleName] || { 
+          create: false, read: true, update: false, delete: false 
+        };
+        
+        return {
+          name: moduleName,
+          ...modulePermissions
+        };
+      });
+      
+      setPermissionMatrix(newMatrix);
+      
+      // Count total permissions
+      let totalPermissions = 0;
+      newMatrix.forEach(module => {
+        if (module.create) totalPermissions++;
+        if (module.read) totalPermissions++;
+        if (module.update) totalPermissions++;
+        if (module.delete) totalPermissions++;
+      });
+      
+      // Update form data with the template role's details (optionally)
+      setFormData({
+        ...formData,
+        details: {
+          ...formData.details,
+          // Don't copy the name or description to encourage unique names
+        },
+        permissions: {
+          selectedPermissions: totalPermissions,
+          copiedFrom: selectedRole.name
+        }
+      });
+      
+      // Close the template selector
+      setShowTemplateSelector(false);
     }
   };
 
@@ -177,7 +274,7 @@ const CreateRoles = ( {onCancel} ) => {
               // Reset form and start fresh
               setFormData({
                 details: { name: "", description: "" },
-                permissions: { selectedPermissions: modules.length }
+                permissions: { selectedPermissions: modules.length, copiedFrom: null }
               });
               setPermissionMatrix(modules.map(module => ({
                 name: module,
@@ -319,6 +416,47 @@ const CreateRoles = ( {onCancel} ) => {
           </div>
           
           <div className="p-6">
+            {/* Template selector button */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+                className="flex items-center px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                <Copy size={16} className="mr-2" />
+                Copy from existing role
+              </button>
+              
+              {/* Template selector dropdown */}
+              {showTemplateSelector && (
+                <div className="mt-2 bg-white border border-gray-200 rounded-md shadow-sm p-2">
+                  <p className="text-xs text-gray-500 mb-2 px-2">Select a role to copy permissions from:</p>
+                  <ul className="divide-y divide-gray-100">
+                    {existingRoles.map(role => (
+                      <li key={role.id}>
+                        <button
+                          onClick={() => handleCopyFromTemplate(role.id)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors"
+                        >
+                          <p className="text-sm font-medium text-gray-800">{role.name}</p>
+                          <p className="text-xs text-gray-500">{role.description}</p>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* Display if permissions were copied from template */}
+              {formData.permissions.copiedFrom && (
+                <div className="mt-2 text-xs text-gray-600 flex items-center">
+                  <Check size={14} className="text-green-500 mr-1" />
+                  <span>
+                    Permissions copied from <strong>{formData.permissions.copiedFrom}</strong>. You can modify them below.
+                  </span>
+                </div>
+              )}
+            </div>
+            
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
@@ -431,6 +569,20 @@ const CreateRoles = ( {onCancel} ) => {
                   </div>
                 </div>
               </div>
+              
+              {formData.permissions.copiedFrom && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Template Source</h4>
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    <div className="flex items-center">
+                      <Copy size={16} className="text-blue-500 mr-2" />
+                      <span className="text-sm text-gray-800">
+                        Based on <strong>{formData.permissions.copiedFrom}</strong> role with modifications
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="mt-6">
