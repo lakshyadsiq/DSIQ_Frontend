@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useRef, useCallback, memo } from "react"
 import { Users, Edit2, RotateCcw, UserPlus, KeyRound, Download, Upload } from "lucide-react"
 import { Archive } from "lucide-react"
@@ -674,6 +672,7 @@ const UsersList = () => {
                 title="Actions"
                 width="180px"
                 cell={actionsCell}
+                filterable={false}
                 headerCell={() => (
                   <th className="k-header">
                     <span className="k-link">Actions</span>

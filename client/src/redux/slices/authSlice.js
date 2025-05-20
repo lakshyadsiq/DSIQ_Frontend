@@ -18,7 +18,7 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('authToken', dummyData.accessToken);
         localStorage.setItem('refreshToken', dummyData.refreshToken);
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.getItem('hasWorkspace', 'true');
+        localStorage.setItem('hasWorkspace', 'true');
         return dummyData;
       }
 
