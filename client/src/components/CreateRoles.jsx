@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Check, X, Copy } from "lucide-react";
+import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from '@progress/kendo-react-layout';
 
-const CreateRoles = ({ onCancel }) => {
+const CreateRoles = ({ onCancel, roles, setRoles }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [showToast, setShowToast] = useState(false);
   const [creationComplete, setCreationComplete] = useState(false);
@@ -13,13 +14,13 @@ const CreateRoles = ({ onCancel }) => {
       name: "Admin",
       description: "Full system access with all permissions",
       permissions: {
-        Dashboard: { create: true, read: true, update: true, delete: true },
-        Reports: { create: true, read: true, update: true, delete: true },
-        "Data Export": { create: true, read: true, update: true, delete: true },
-        Settings: { create: true, read: true, update: true, delete: true },
-        "API Access": { create: true, read: true, update: true, delete: true },
-        Notifications: { create: true, read: true, update: true, delete: true },
-        Analytics: { create: true, read: true, update: true, delete: true }
+        Dashboard: { create: true, read: true, update: true, archived: true },
+        Reports: { create: true, read: true, update: true, archived: true },
+        "Data Export": { create: true, read: true, update: true, archived: true },
+        Settings: { create: true, read: true, update: true, archived: true },
+        "API Access": { create: true, read: true, update: true, archived: true },
+        Notifications: { create: true, read: true, update: true, archived: true },
+        Analytics: { create: true, read: true, update: true, archived: true }
       }
     },
     {
@@ -27,13 +28,13 @@ const CreateRoles = ({ onCancel }) => {
       name: "Analyst",
       description: "Access to view reports and analytics data",
       permissions: {
-        Dashboard: { create: false, read: true, update: false, delete: false },
-        Reports: { create: true, read: true, update: true, delete: false },
-        "Data Export": { create: true, read: true, update: false, delete: false },
-        Settings: { create: false, read: false, update: false, delete: false },
-        "API Access": { create: false, read: true, update: false, delete: false },
-        Notifications: { create: false, read: true, update: false, delete: false },
-        Analytics: { create: false, read: true, update: false, delete: false }
+        Dashboard: { create: false, read: true, update: false, archived: false },
+        Reports: { create: true, read: true, update: true, archived: false },
+        "Data Export": { create: true, read: true, update: false, archived: false },
+        Settings: { create: false, read: false, update: false, archived: false },
+        "API Access": { create: false, read: true, update: false, archived: false },
+        Notifications: { create: false, read: true, update: false, archived: false },
+        Analytics: { create: false, read: true, update: false, archived: false }
       }
     },
     {
@@ -41,13 +42,13 @@ const CreateRoles = ({ onCancel }) => {
       name: "Editor",
       description: "Content management permissions",
       permissions: {
-        Dashboard: { create: false, read: true, update: false, delete: false },
-        Reports: { create: false, read: true, update: false, delete: false },
-        "Data Export": { create: false, read: true, update: false, delete: false },
-        Settings: { create: false, read: false, update: false, delete: false },
-        "API Access": { create: false, read: false, update: false, delete: false },
-        Notifications: { create: true, read: true, update: true, delete: false },
-        Analytics: { create: false, read: true, update: false, delete: false }
+        Dashboard: { create: false, read: true, update: false, archived: false },
+        Reports: { create: false, read: true, update: false, archived: false },
+        "Data Export": { create: false, read: true, update: false, archived: false },
+        Settings: { create: false, read: false, update: false, archived: false },
+        "API Access": { create: false, read: false, update: false, archived: false },
+        Notifications: { create: true, read: true, update: true, archived: false },
+        Analytics: { create: false, read: true, update: false, archived: false }
       }
     }
   ];
@@ -76,7 +77,7 @@ const CreateRoles = ({ onCancel }) => {
       create: false,
       read: true, // Default to read permission
       update: false,
-      delete: false
+      archived: false
     }))
   );
 
@@ -138,7 +139,7 @@ const CreateRoles = ({ onCancel }) => {
       if (module.create) totalPermissions++;
       if (module.read) totalPermissions++;
       if (module.update) totalPermissions++;
-      if (module.delete) totalPermissions++;
+      if (module.archived) totalPermissions++;
     });
     
     // Update form data and validation
@@ -159,13 +160,32 @@ const CreateRoles = ({ onCancel }) => {
 
   // Handle create role button click
   const handleCreateRole = () => {
-    setShowToast(true);
-    setCreationComplete(true);
-    // Hide toast after 5 seconds
-    setTimeout(() => {
-      setShowToast(false);
-    }, 5000);
+  // Convert permission matrix to permissions object (matching your predefined roles structure)
+  const permissions = permissionMatrix.reduce((acc, module) => {
+    acc[module.name] = {
+      create: module.create,
+      read: module.read,
+      update: module.update,
+      archived: module.archived
+    };
+    return acc;
+  }, {});
+
+  // Add the new role to the roles array
+  const newRole = {
+    name: formData.details.name,
+    description: formData.details.description,
+    permissions: permissions  // Use the new permissions object
   };
+
+  setRoles([...roles, newRole]);
+  
+  setShowToast(true);
+  setCreationComplete(true);
+  setTimeout(() => {
+    setShowToast(false);
+  }, 5000);
+};
 
   // Function to handle tab navigation with validation
   const handleTabChange = (tabId) => {
@@ -194,7 +214,7 @@ const CreateRoles = ({ onCancel }) => {
       // Convert permission object to matrix format
       const newMatrix = modules.map(moduleName => {
         const modulePermissions = selectedRole.permissions[moduleName] || { 
-          create: false, read: true, update: false, delete: false 
+          create: false, read: true, update: false, archived: false 
         };
         
         return {
@@ -211,7 +231,7 @@ const CreateRoles = ({ onCancel }) => {
         if (module.create) totalPermissions++;
         if (module.read) totalPermissions++;
         if (module.update) totalPermissions++;
-        if (module.delete) totalPermissions++;
+        if (module.archived) totalPermissions++;
       });
       
       // Update form data with the template role's details (optionally)
@@ -261,37 +281,49 @@ const CreateRoles = ({ onCancel }) => {
           </div>
         )}
         
-        <div className="bg-white border border-gray-200 rounded-lg p-12 shadow-sm text-center">
-          <div className="bg-green-100 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
-            <Check size={32} className="text-green-600" />
-          </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Role Created Successfully</h2>
-          <p className="text-gray-600 mb-8">
-            Role "{formData.details.name}" has been created.
-          </p>
-          <button 
-            onClick={() => {
-              // Reset form and start fresh
-              setFormData({
-                details: { name: "", description: "" },
-                permissions: { selectedPermissions: modules.length, copiedFrom: null }
-              });
-              setPermissionMatrix(modules.map(module => ({
-                name: module,
-                create: false,
-                read: true,
-                update: false,
-                delete: false
-              })));
-              setIsValid({ details: false, permissions: true});
-              setActiveTab("details");
-              setCreationComplete(false);
-            }}
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Create Another Role
-          </button>
-        </div>
+        <Card className="shadow-sm">
+          <CardBody className="text-center p-12">
+            <div className="bg-green-100 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
+              <Check size={32} className="text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-semibold text-gray-800 mb-2">
+              Role Created Successfully
+            </CardTitle>
+            <CardSubtitle className="text-gray-600 !mb-18">
+              Role "{formData.details.name}" has been created.
+            </CardSubtitle>
+            <CardActions className="!justify-between">
+              <button 
+                onClick={() => {
+                  // Reset form and start fresh
+                  setFormData({
+                    details: { name: "", description: "" },
+                    permissions: { selectedPermissions: modules.length, copiedFrom: null }
+                  });
+                  setPermissionMatrix(modules.map(module => ({
+                    name: module,
+                    create: false,
+                    read: true,
+                    update: false,
+                    archived: false
+                  })));
+                  setIsValid({ details: false, permissions: true});
+                  setActiveTab("details");
+                  setCreationComplete(false);
+                }}
+                className="px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+              >
+                Create Another Role
+              </button>
+              <button 
+                onClick={onCancel}
+                className="px-4 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </CardActions>
+          </CardBody>
+        </Card>
       </div>
     );
   }
@@ -362,60 +394,63 @@ const CreateRoles = ({ onCancel }) => {
       
       {/* Tab Content */}
       {activeTab === "details" && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-1">
-                Role Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="role-name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Marketing Analyst"
-                value={formData.details.name}
-                onChange={handleDetailsChange}
-              />
-              {!isValid.details && formData.details.name.trim() === "" && (
-                <p className="mt-1 text-sm text-red-500">Role name is required</p>
-              )}
+        <Card className="shadow-sm">
+          <CardBody>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Role Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="role-name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Marketing Analyst"
+                  value={formData.details.name}
+                  onChange={handleDetailsChange}
+                />
+                {!isValid.details && formData.details.name.trim() === "" && (
+                  <p className="mt-1 text-sm text-red-500">Role name is required</p>
+                )}
+              </div>
+              
+              <div>
+                <label htmlFor="role-description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="role-description"
+                  rows="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe the purpose and scope of this role..."
+                  value={formData.details.description}
+                  onChange={handleDetailsChange}
+                ></textarea>
+              </div>
+              
+              <div className="flex items-center justify-end pt-4">
+                <button 
+                  onClick={() => handleTabChange("permissions")}
+                  className={`px-4 py-2 ${isValid.details ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
+                  disabled={!isValid.details}
+                >
+                  Next: Set Permissions
+                </button>
+              </div>
             </div>
-            
-            <div>
-              <label htmlFor="role-description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                id="role-description"
-                rows="4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe the purpose and scope of this role..."
-                value={formData.details.description}
-                onChange={handleDetailsChange}
-              ></textarea>
-            </div>
-            
-            <div className="flex items-center justify-end pt-4">
-              <button 
-                onClick={() => handleTabChange("permissions")}
-                className={`px-4 py-2 ${isValid.details ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
-                disabled={!isValid.details}
-              >
-                Next: Set Permissions
-              </button>
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       )}
       
       {activeTab === "permissions" && (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-lg font-medium text-gray-800">Permission Matrix</h3>
-            <p className="text-sm text-gray-500">Configure access levels for each system module <span className="text-red-500">*</span></p>
-          </div>
-          
-          <div className="p-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-gray-200 bg-gray-50">
+            <CardTitle className="text-lg font-medium text-gray-800">Permission Matrix</CardTitle>
+            <CardSubtitle className="text-sm text-gray-500">
+              Configure access levels for each system module <span className="text-red-500">*</span>
+            </CardSubtitle>
+          </CardHeader>
+          <CardBody className="p-6">
             {/* Template selector button */}
             <div className="mb-6">
               <button
@@ -428,22 +463,24 @@ const CreateRoles = ({ onCancel }) => {
               
               {/* Template selector dropdown */}
               {showTemplateSelector && (
-                <div className="mt-2 bg-white border border-gray-200 rounded-md shadow-sm p-2">
-                  <p className="text-xs text-gray-500 mb-2 px-2">Select a role to copy permissions from:</p>
-                  <ul className="divide-y divide-gray-100">
-                    {existingRoles.map(role => (
-                      <li key={role.id}>
-                        <button
-                          onClick={() => handleCopyFromTemplate(role.id)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors"
-                        >
-                          <p className="text-sm font-medium text-gray-800">{role.name}</p>
-                          <p className="text-xs text-gray-500">{role.description}</p>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <Card className="mt-2 shadow-sm">
+                  <CardBody className="p-2">
+                    <p className="text-xs text-gray-500 mb-2 px-2">Select a role to copy permissions from:</p>
+                    <ul className="divide-y divide-gray-100">
+                      {existingRoles.map(role => (
+                        <li key={role.id}>
+                          <button
+                            onClick={() => handleCopyFromTemplate(role.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors"
+                          >
+                            <p className="text-sm font-medium text-gray-800">{role.name}</p>
+                            <p className="text-xs text-gray-500">{role.description}</p>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardBody>
+                </Card>
               )}
               
               {/* Display if permissions were copied from template */}
@@ -474,7 +511,7 @@ const CreateRoles = ({ onCancel }) => {
                       Update
                     </th>
                     <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Delete
+                      Archived
                     </th>
                   </tr>
                 </thead>
@@ -512,8 +549,8 @@ const CreateRoles = ({ onCancel }) => {
                         <input 
                           type="checkbox" 
                           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          checked={module.delete}
-                          onChange={() => handlePermissionChange(idx, 'delete')}
+                          checked={module.archived}
+                          onChange={() => handlePermissionChange(idx, 'archived')}
                         />
                       </td>
                     </tr>
@@ -543,77 +580,82 @@ const CreateRoles = ({ onCancel }) => {
                 Next: Review
               </button>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       )}
 
       {activeTab === "review" && (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-lg font-medium text-gray-800">Review and Create Role</h3>
-            <p className="text-sm text-gray-500">Review role details before creation</p>
-          </div>
-          
-          <div className="p-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-gray-200 bg-gray-50">
+            <CardTitle className="text-lg font-medium text-gray-800">Review and Create Role</CardTitle>
+            <CardSubtitle className="text-sm text-gray-500">Review role details before creation</CardSubtitle>
+          </CardHeader>
+          <CardBody className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Role Details</h4>
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <div className="mb-3">
-                    <span className="block text-xs text-gray-500">Name</span>
-                    <span className="block text-sm text-gray-800">{formData.details.name || "Marketing Analyst"}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-500">Description</span>
-                    <span className="block text-sm text-gray-800">{formData.details.description || "Role for marketing team members who need to analyze campaign data and create reports."}</span>
-                  </div>
-                </div>
+                <Card className="bg-gray-50">
+                  <CardBody className="p-4">
+                    <div className="mb-3">
+                      <span className="block text-xs text-gray-500">Name</span>
+                      <span className="block text-sm text-gray-800">{formData.details.name}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-gray-500">Description</span>
+                      <span className="block text-sm text-gray-800">{formData.details.description}</span>
+                    </div>
+                  </CardBody>
+                </Card>
               </div>
               
               {formData.permissions.copiedFrom && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Template Source</h4>
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <div className="flex items-center">
-                      <Copy size={16} className="text-blue-500 mr-2" />
-                      <span className="text-sm text-gray-800">
-                        Based on <strong>{formData.permissions.copiedFrom}</strong> role with modifications
-                      </span>
-                    </div>
-                  </div>
+                  <Card className="bg-gray-50">
+                    <CardBody className="p-4">
+                      <div className="flex items-center">
+                        <Copy size={16} className="text-blue-500 mr-2" />
+                        <span className="text-sm text-gray-800">
+                          Based on <strong>{formData.permissions.copiedFrom}</strong> role with modifications
+                        </span>
+                      </div>
+                    </CardBody>
+                  </Card>
                 </div>
               )}
             </div>
             
             <div className="mt-6">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Permission Summary</h4>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {permissionMatrix.map((module, idx) => (
-                    <div key={idx}>
-                      <h5 className="text-xs font-medium text-gray-700 mb-1">{module.name}</h5>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        <li className="flex items-center">
-                          <span className={`h-2 w-2 ${module.create ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                          Create
-                        </li>
-                        <li className="flex items-center">
-                          <span className={`h-2 w-2 ${module.read ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                          View
-                        </li>
-                        <li className="flex items-center">
-                          <span className={`h-2 w-2 ${module.update ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                          Update
-                        </li>
-                        <li className="flex items-center">
-                          <span className={`h-2 w-2 ${module.delete ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                          Delete
-                        </li>
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Card className="bg-gray-50">
+                <CardBody className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {permissionMatrix.map((module, idx) => (
+                      <div key={idx}>
+                        <h5 className="text-xs font-medium text-gray-700 mb-1">{module.name}</h5>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          <li className="flex items-center">
+                            <span className={`h-2 w-2 ${module.create ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
+                            Create
+                          </li>
+                          <li className="flex items-center">
+                            <span className={`h-2 w-2 ${module.read ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
+                            View
+                          </li>
+                          <li className="flex items-center">
+                            <span className={`h-2 w-2 ${module.update ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
+                            Update
+                          </li>
+                          <li className="flex items-center">
+                            <span className={`h-2 w-2 ${module.archived ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
+                            Archived
+                          </li>
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
             </div>
             
             <div className="flex items-center justify-between mt-6">
@@ -630,8 +672,8 @@ const CreateRoles = ({ onCancel }) => {
                 Create Role
               </button>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       )}
     </div>
   );
