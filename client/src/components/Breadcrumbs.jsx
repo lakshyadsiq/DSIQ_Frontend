@@ -15,7 +15,6 @@ const Breadcrumbs = () => {
     'workspaceCreate': 'Create Workspace',
     'ModifyWorkspace': 'Edit Workspace',
     'profile': 'Profile',
-    'viewUsersList': 'Users List'
   };
 
   // If we're on the root path
