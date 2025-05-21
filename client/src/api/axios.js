@@ -37,6 +37,8 @@ api.interceptors.response.use(
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('isLoggedIn');
+        localStorage.setItem('hasWorkspace', 'false');
+
         window.location.href = '/login'; // force logout
         return Promise.reject(err);
       }
