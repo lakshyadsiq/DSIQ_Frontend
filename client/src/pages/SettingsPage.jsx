@@ -12,13 +12,14 @@ import {
   ChevronLeft,
   Menu,
   X,
-  Plus
 } from 'lucide-react';
 import UsersList from './UsersList';
 import DataExport from '../components/DataExport';
 import ActivityLogs from '../components/ActivityLogs';
 import CreateRoles from '../components/CreateRoles';
 import Navbar from '../components/Navbar';
+import { Card, CardTitle, CardBody, CardSubtitle } from '@progress/kendo-react-layout';
+import '@progress/kendo-theme-default/dist/all.css'; 
 
 // Main Settings Component
 export default function SettingsPage() {
@@ -31,6 +32,60 @@ export default function SettingsPage() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showCreateRoleForm, setShowCreateRoleForm] = useState(false);
+  const [roles, setRoles] = useState([
+  {
+    name: 'Administrator',
+    description: 'Full access to all system features and settings',
+    permissions: {
+        Dashboard: { create: true, read: true, update: true, archived: true },
+        Reports: { create: true, read: true, update: true, archived: true },
+        "Data Export": { create: true, read: true, update: true, archived: true },
+        Settings: { create: true, read: true, update: true, archived: true },
+        "API Access": { create: true, read: true, update: true, archived: true },
+        Notifications: { create: true, read: true, update: true, archived: true },
+        Analytics: { create: true, read: true, update: true, archived: true }
+      }
+  },
+  {
+    name: 'Analyst',
+    description: 'Can create dashboards and analyze data but cannot modify system settings',
+    permissions: {
+        Dashboard: { create: false, read: true, update: false, archived: false },
+        Reports: { create: true, read: true, update: true, archived: false },
+        "Data Export": { create: true, read: true, update: false, archived: false },
+        Settings: { create: false, read: false, update: false, archived: false },
+        "API Access": { create: false, read: true, update: false, archived: false },
+        Notifications: { create: false, read: true, update: false, archived: false },
+        Analytics: { create: false, read: true, update: false, archived: false }
+      }
+  },
+  {
+    name: 'Viewer',
+    description: 'View-only access to dashboards and reports',
+    permissions: {
+        Dashboard: { create: false, read: true, update: false, archived: false },
+        Reports: { create: true, read: true, update: true, archived: false },
+        "Data Export": { create: true, read: true, update: false, archived: false },
+        Settings: { create: false, read: false, update: false, archived: false },
+        "API Access": { create: false, read: true, update: false, archived: false },
+        Notifications: { create: false, read: true, update: false, archived: false },
+        Analytics: { create: false, read: true, update: false, archived: false }
+      }
+  },
+  {
+    name: 'Report Creator',
+    description: 'Can create and share reports based on existing dashboards',
+    permissions: {
+        Dashboard: { create: false, read: true, update: false, archived: false },
+        Reports: { create: false, read: true, update: false, archived: false },
+        "Data Export": { create: false, read: true, update: false, archived: false },
+        Settings: { create: false, read: false, update: false, archived: false },
+        "API Access": { create: false, read: false, update: false, archived: false },
+        Notifications: { create: true, read: true, update: true, archived: false },
+        Analytics: { create: false, read: true, update: false, archived: false }
+      }
+  }
+]);
   const navigate = useNavigate();
 
   const toggleSection = (section) => {
@@ -68,14 +123,14 @@ export default function SettingsPage() {
   // Render the appropriate component based on active section/subsection
   const renderContent = () => {
     if (activeSubSection === 'roles' && showCreateRoleForm) {
-      return <CreateRoles onCancel={() => setShowCreateRoleForm(false)} />;
+      return <CreateRoles onCancel={() => setShowCreateRoleForm(false)} roles={roles} setRoles={setRoles} />;
     }
 
     switch (activeSubSection) {
       case 'users':
         return <UsersList />;
       case 'roles':
-        return <RolesManagement onCreateRole={handleCreateRole} />;
+        return <RolesManagement onCreateRole={handleCreateRole} roles={roles} />;
       case 'activity-logs':
         return <ActivityLogs />;
       case 'data-export':
@@ -266,6 +321,7 @@ const WelcomeScreen = ({ onGetStarted }) => {
     </div>
   );
 };
+
 const createRoleButtonStyles = `
   .floating-create-role-btn {
     position: fixed;
@@ -350,77 +406,71 @@ const createRoleButtonStyles = `
     opacity: 0;
   }
 `;
-
 // Roles Management Component with Create Role Button
-const RolesManagement = ({ onCreateRole }) => {
-  const roles = [
-    {
-      name: 'Administrator',
-      description: 'Full access to all system features and settings',
-      permissions: [
-        'User Management', 'Role Management', 'Data Management',
-        'Dashboard Creation', 'Analytics Access', 'Report Generation',
-        'System Configuration', 'API Access', 'Data Export'
-      ]
-    },
-    {
-      name: 'Analyst',
-      description: 'Can create dashboards and analyze data but cannot modify system settings',
-      permissions: [
-        'Dashboard Creation', 'Analytics Access', 'Report Generation',
-        'Data Export'
-      ]
-    },
-    {
-      name: 'Viewer',
-      description: 'View-only access to dashboards and reports',
-      permissions: [
-        'Analytics Access', 'View Reports'
-      ]
-    },
-    {
-      name: 'Report Creator',
-      description: 'Can create and share reports based on existing dashboards',
-      permissions: [
-        'Analytics Access', 'Report Generation', 'Data Export'
-      ]
-    }
-  ];
+const RolesManagement = ({ onCreateRole, roles }) => {
+  // Helper function to render permission letters with color coding
+  const renderPermissionLetters = (permissions) => {
+    return Object.entries(permissions).map(([category, actions]) => {
+      return (
+        <div 
+          key={category}
+          className="mb-1 last:mb-0"
+        >
+          <h4 className="text-sm font-medium text-gray-600">{category}</h4>
+          <div className="flex space-x-1">
+            {Object.entries(actions).map(([action, enabled]) => (
+              <span 
+                key={`${category}-${action}`}
+                className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                  enabled 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-50 text-red-400'
+                }`}
+                title={`${action.toUpperCase()} permission ${enabled ? 'enabled' : 'disabled'}`}
+              >
+                {action.charAt(0).toUpperCase()}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    });
+  };
 
   return (
-    <div className="relative">
+    <div className="relative p-4">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Roles Management</h2>
       <p className="text-gray-600 mb-6">
         Review existing roles and their assigned permissions. Create new roles or modify existing ones.
       </p>
 
-      <div className="grid gap-6 md:grid-cols-2 mb-16">
+      <div className="grid gap-4 md:grid-cols-2 mb-16">
         {roles.map((role, index) => (
-          <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <Card key={index} className="h-full">
+            {/* Card Header */}
+            <div className="k-card-header border-b border-gray-200 bg-gray-50 flex justify-between items-center p-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-800">{role.name}</h3>
-                <p className="text-sm text-gray-600">{role.description}</p>
+                <CardTitle className="!text-xl font-medium text-gray-800 mb-1">
+                  {role.name}
+                </CardTitle>
+                <CardSubtitle className="!text-sm text-gray-600">
+                  {role.description}
+                </CardSubtitle>
               </div>
               <Shield className="h-6 w-6 text-gray-400" />
             </div>
-            <div className="px-6 py-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Permissions</h4>
-              <div className="flex flex-wrap gap-2">
-                {role.permissions.map((permission, permIndex) => (
-                  <span
-                    key={permIndex}
-                    className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                  >
-                    {permission}
-                  </span>
-                ))}
+
+            {/* Card Body with Permissions */}
+            <CardBody>
+              <h4 className="k-text-sm k-font-medium k-mb-1 mb-3 text-gray-900">Permissions</h4>
+              <div className="k-d-flex k-gap-5 !k-flex-wrap">
+                {renderPermissionLetters(role.permissions)}
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         ))}
       </div>
-
+      
       {/* Fixed create role button */}
       <div className="fixed bottom-6 right-6 z-10">
         <style>{createRoleButtonStyles}</style>
