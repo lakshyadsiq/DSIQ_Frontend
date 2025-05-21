@@ -16,6 +16,7 @@ import ResetPassword from './pages/ResetPassword';
 import { Toaster } from 'react-hot-toast';
 import UsersList from './pages/UsersList';
 import SettingsPage from './pages/SettingsPage'
+import WorkspaceDetailsPage from './pages/WorkspaceDetailsPage'
 
 const App = () => {
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ const App = () => {
               {/* Adding nested routes for profile and help to work with breadcrumbs */}
               <Route path="profile" element={<Profile isLoggedIn={isLoggedIn} />} />
               <Route path="ModifyWorkspace/:id" element={<ModifyWorkspace isLoggedIn={isLoggedIn} />} />
+              <Route path="workspace/:id" element={<WorkspaceDetailsPage />} />
             </>
           )}
         </Route>
@@ -62,7 +64,7 @@ const App = () => {
         {/* These routes are now nested inside the Home layout */}
         {/* We still keep these routes for direct access but they should redirect to nested routes */}
         <Route path="/workspaceCreate" element={isLoggedIn ? <WorkspaceForm hasWorkspace={hasWorkspace} setHasWorkspace={setHasWorkspace}  isLoggedIn={isLoggedIn} /> : <Navigate to="/login" />} />
-        <Route path="/ModifyWorkspace/:id" element={isLoggedIn ? <Navigate to={<ModifyWorkspace isLoggedIn={isLoggedIn} />} /> : <Navigate to="/login" />} />
+        {/* <Route path="/ModifyWorkspace/:id" element={isLoggedIn ? <Navigate to={<ModifyWorkspace isLoggedIn={isLoggedIn} />} /> : <Navigate to="/login" />} /> */}
         <Route path="/help" element={isLoggedIn ? <HelpPage /> : <Navigate to="/login" />} />
         <Route path="/settings" element={isLoggedIn ? <SettingsPage /> : <Navigate to="/login" />} />
         {/* <Route path="/viewUsersList" element={<UsersList/>}/> */}

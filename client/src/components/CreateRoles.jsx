@@ -1,14 +1,48 @@
-import { useState } from "react";
-import { Check, X, Copy } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Check, X, Copy, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardBody, CardTitle, CardSubtitle, CardActions } from '@progress/kendo-react-layout';
+import { useDebounce } from 'use-debounce';
 
 const CreateRoles = ({ onCancel, roles, setRoles }) => {
+  // State for wizard flow
   const [activeTab, setActiveTab] = useState("details");
   const [showToast, setShowToast] = useState(false);
   const [creationComplete, setCreationComplete] = useState(false);
   
-  // Predefined existing roles for template selection
-  const existingRoles = [
+  // Form state
+  const [formData, setFormData] = useState({
+    details: {
+      name: "",
+      description: "",
+    },
+    permissions: {
+      copiedFrom: null
+    },
+  });
+
+  // Validation state
+  const [validation, setValidation] = useState({
+    details: {
+      isValid: false,
+      message: ""
+    },
+    permissions: {
+      isValid: true,
+      message: "Please select at least one permission"
+    }
+  });
+
+  // API states
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [nameAvailability, setNameAvailability] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Debounce the role name for API checking
+  const [debouncedName] = useDebounce(formData.details.name, 500);
+  
+  // Predefined existing roles (would normally come from API)
+  const [existingRoles, setExistingRoles] = useState([
     {
       id: 1,
       name: "Admin",
@@ -23,36 +57,9 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
         Analytics: { create: true, read: true, update: true, archived: true }
       }
     },
-    {
-      id: 2,
-      name: "Analyst",
-      description: "Access to view reports and analytics data",
-      permissions: {
-        Dashboard: { create: false, read: true, update: false, archived: false },
-        Reports: { create: true, read: true, update: true, archived: false },
-        "Data Export": { create: true, read: true, update: false, archived: false },
-        Settings: { create: false, read: false, update: false, archived: false },
-        "API Access": { create: false, read: true, update: false, archived: false },
-        Notifications: { create: false, read: true, update: false, archived: false },
-        Analytics: { create: false, read: true, update: false, archived: false }
-      }
-    },
-    {
-      id: 3,
-      name: "Editor",
-      description: "Content management permissions",
-      permissions: {
-        Dashboard: { create: false, read: true, update: false, archived: false },
-        Reports: { create: false, read: true, update: false, archived: false },
-        "Data Export": { create: false, read: true, update: false, archived: false },
-        Settings: { create: false, read: false, update: false, archived: false },
-        "API Access": { create: false, read: false, update: false, archived: false },
-        Notifications: { create: true, read: true, update: true, archived: false },
-        Analytics: { create: false, read: true, update: false, archived: false }
-      }
-    }
-  ];
-  
+    // ... other roles ...
+  ]);
+
   const modules = [
     "Dashboard",
     "Reports",
@@ -63,14 +70,7 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
     "Analytics"
   ];
 
-  // Define steps for the progress path
-  const steps = [
-    { id: "details", label: "Role Details" },
-    { id: "permissions", label: "Permissions" },
-    { id: "review", label: "Review & Create" }
-  ];
-
-  // Permission structure to preserve selections
+  // Permission matrix state
   const [permissionMatrix, setPermissionMatrix] = useState(
     modules.map(module => ({
       name: module,
@@ -81,137 +81,178 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
     }))
   );
 
-  // Form data state
-  const [formData, setFormData] = useState({
-    details: {
-      name: "",
-      description: "",
-    },
-    permissions: {
-      selectedPermissions: modules.length,
-      copiedFrom: null
-    },
-  });
+  // Steps for the progress path
+  const steps = [
+    { id: "details", label: "Role Details" },
+    { id: "permissions", label: "Permissions" },
+    { id: "review", label: "Review & Create" }
+  ];
 
-  // State for template selection
+  // UI state
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
-  // Validation state
-  const [isValid, setIsValid] = useState({
-    details: false,
-    permissions: true, // Initially true because we set read permissions by default
-  });
+  // Calculate total permissions (memoized for performance)
+  const totalPermissions = useMemo(() => {
+    return permissionMatrix.reduce((total, module) => {
+      return total + 
+        (module.create ? 1 : 0) +
+        (module.read ? 1 : 0) +
+        (module.update ? 1 : 0) +
+        (module.archived ? 1 : 0);
+    }, 0);
+  }, [permissionMatrix]);
+
+  // Check role name availability when debounced name changes
+  useEffect(() => {
+    const checkNameAvailability = async () => {
+      if (debouncedName.trim() === "") {
+        setNameAvailability(null);
+        setValidation(prev => ({
+          ...prev,
+          details: {
+            isValid: false,
+            message: ""
+          }
+        }));
+        return;
+      }
+
+      setIsCheckingName(true);
+      try {
+        // Simulate API call - replace with actual API call
+        const isAvailable = !existingRoles.some(role => 
+          role.name.toLowerCase() === debouncedName.toLowerCase()
+        );
+        
+        setNameAvailability(isAvailable);
+        setValidation(prev => ({
+          ...prev,
+          details: {
+            isValid: isAvailable && debouncedName.trim() !== "",
+            message: isAvailable ? "" : "Role name already exists"
+          }
+        }));
+      } catch (err) {
+        setError({ message: "Failed to check role name availability" });
+      } finally {
+        setIsCheckingName(false);
+      }
+    };
+
+    checkNameAvailability();
+  }, [debouncedName, existingRoles]);
 
   // Handle role name and description change
   const handleDetailsChange = (e) => {
     const { id, value } = e.target;
     const fieldName = id === "role-name" ? "name" : "description";
     
-    const updatedDetails = {
-      ...formData.details,
-      [fieldName]: value
-    };
-    
-    setFormData({
-      ...formData,
-      details: updatedDetails
-    });
-    
-    // Validate details form
-    setIsValid({
-      ...isValid,
-      details: updatedDetails.name.trim() !== "" 
-    });
-  };
-
-  // Handle permission selection with preserved state
-  const handlePermissionChange = (moduleIndex, permType) => {
-    const updatedMatrix = [...permissionMatrix];
-    const currentValue = updatedMatrix[moduleIndex][permType];
-    
-    // Toggle the permission
-    updatedMatrix[moduleIndex][permType] = !currentValue;
-    setPermissionMatrix(updatedMatrix);
-    
-    // Count total selected permissions to validate
-    let totalPermissions = 0;
-    updatedMatrix.forEach(module => {
-      if (module.create) totalPermissions++;
-      if (module.read) totalPermissions++;
-      if (module.update) totalPermissions++;
-      if (module.archived) totalPermissions++;
-    });
-    
-    // Update form data and validation
-    setFormData({
-      ...formData,
-      permissions: {
-        ...formData.permissions,
-        selectedPermissions: totalPermissions,
-        copiedFrom: null // Clear template source if manually modified
+    setFormData(prev => ({
+      ...prev,
+      details: {
+        ...prev.details,
+        [fieldName]: value
       }
-    });
-    
-    setIsValid({
-      ...isValid,
-      permissions: totalPermissions > 0
-    });
-  };
+    }));
 
-  // Handle create role button click
-  const handleCreateRole = () => {
-  // Convert permission matrix to permissions object (matching your predefined roles structure)
-  const permissions = permissionMatrix.reduce((acc, module) => {
-    acc[module.name] = {
-      create: module.create,
-      read: module.read,
-      update: module.update,
-      archived: module.archived
-    };
-    return acc;
-  }, {});
-
-  // Add the new role to the roles array
-  const newRole = {
-    name: formData.details.name,
-    description: formData.details.description,
-    permissions: permissions  // Use the new permissions object
-  };
-
-  setRoles([...roles, newRole]);
-  
-  setShowToast(true);
-  setCreationComplete(true);
-  setTimeout(() => {
-    setShowToast(false);
-  }, 5000);
-};
-
-  // Function to handle tab navigation with validation
-  const handleTabChange = (tabId) => {
-    // Validate current tab before changing
-    if (tabId === "details") {
-      // Always allow going back to details
-      setActiveTab(tabId);
-    } else if (tabId === "permissions") {
-      // Only allow going to permissions if details are valid
-      if (isValid.details) {
-        setActiveTab(tabId);
-      }
-    } else if (tabId === "review") {
-      // Only allow going to review if both details and permissions are valid
-      if (isValid.details && isValid.permissions) {
-        setActiveTab(tabId);
+    // Immediate validation for empty name
+    if (fieldName === "name") {
+      if (value.trim() === "") {
+        setValidation(prev => ({
+          ...prev,
+          details: {
+            isValid: false,
+            message: "Role name is required"
+          }
+        }));
       }
     }
   };
 
-  // Handle copying an existing role's permissions
+  // Handle permission selection
+  const handlePermissionChange = (moduleIndex, permType) => {
+    const updatedMatrix = permissionMatrix.map((module, idx) => 
+      idx === moduleIndex ? { ...module, [permType]: !module[permType] } : module
+    );
+    
+    setPermissionMatrix(updatedMatrix);
+    
+    // Update form data and validation
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        copiedFrom: null // Clear template source if manually modified
+      }
+    }));
+    
+    // Calculate new total after update
+    const newTotal = updatedMatrix.reduce((total, module) => {
+      return total + 
+        (module.create ? 1 : 0) +
+        (module.read ? 1 : 0) +
+        (module.update ? 1 : 0) +
+        (module.archived ? 1 : 0);
+    }, 0);
+    
+    setValidation(prev => ({
+      ...prev,
+      permissions: {
+        isValid: newTotal > 0,
+        message: newTotal > 0 ? "" : "Please select at least one permission"
+      }
+    }));
+  };
+
+  // Handle create role submission
+  const handleCreateRole = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Convert permission matrix to permissions object
+      const permissions = permissionMatrix.reduce((acc, module) => {
+        acc[module.name] = {
+          create: module.create,
+          read: module.read,
+          update: module.update,
+          archived: module.archived
+        };
+        return acc;
+      }, {});
+
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newRole = {
+        id: Math.max(...existingRoles.map(r => r.id), 0) + 1,
+        name: formData.details.name,
+        description: formData.details.description,
+        permissions
+      };
+
+      // Update state with new role
+      setExistingRoles(prev => [...prev, newRole]);
+      setRoles(prev => [...prev, newRole]);
+      
+      // Show success
+      setShowToast(true);
+      setCreationComplete(true);
+      setTimeout(() => setShowToast(false), 5000);
+    } catch (err) {
+      setError({ 
+        message: "Failed to create role. Please try again later." 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle copying permissions from template
   const handleCopyFromTemplate = (roleId) => {
     const selectedRole = existingRoles.find(role => role.id === roleId);
     
     if (selectedRole) {
-      // Convert permission object to matrix format
       const newMatrix = modules.map(moduleName => {
         const modulePermissions = selectedRole.permissions[moduleName] || { 
           create: false, read: true, update: false, archived: false 
@@ -224,42 +265,33 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
       });
       
       setPermissionMatrix(newMatrix);
-      
-      // Count total permissions
-      let totalPermissions = 0;
-      newMatrix.forEach(module => {
-        if (module.create) totalPermissions++;
-        if (module.read) totalPermissions++;
-        if (module.update) totalPermissions++;
-        if (module.archived) totalPermissions++;
-      });
-      
-      // Update form data with the template role's details (optionally)
-      setFormData({
-        ...formData,
-        details: {
-          ...formData.details,
-          // Don't copy the name or description to encourage unique names
-        },
+      setFormData(prev => ({
+        ...prev,
         permissions: {
-          selectedPermissions: totalPermissions,
           copiedFrom: selectedRole.name
         }
-      });
-      
-      // Close the template selector
+      }));
       setShowTemplateSelector(false);
     }
+  };
+
+  // Handle tab navigation with validation
+  const handleTabChange = (tabId) => {
+    if (tabId === "permissions" && !validation.details.isValid) return;
+    if (tabId === "review" && (!validation.details.isValid || !validation.permissions.isValid)) return;
+    
+    setActiveTab(tabId);
+    setError(null);
   };
 
   // Determine current step index
   const currentStepIndex = steps.findIndex(step => step.id === activeTab);
 
-  // If role creation is complete, show success view
+  // Success view after creation
   if (creationComplete) {
     return (
       <div className="max-w-6xl mx-auto">
-        {/* Toast Message */}
+        {/* Success Toast */}
         {showToast && (
           <div className="fixed top-4 right-4 z-50 bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-lg flex items-center justify-between">
             <div className="flex items-center">
@@ -275,6 +307,7 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
             <button 
               onClick={() => setShowToast(false)}
               className="text-green-500 hover:text-green-700 ml-4"
+              aria-label="Close notification"
             >
               <X size={18} />
             </button>
@@ -289,16 +322,16 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
             <CardTitle className="text-2xl font-semibold text-gray-800 mb-2">
               Role Created Successfully
             </CardTitle>
-            <CardSubtitle className="text-gray-600 !mb-18">
+            <CardSubtitle className="text-gray-600 mb-6">
               Role "{formData.details.name}" has been created.
             </CardSubtitle>
-            <CardActions className="!justify-between">
+            <CardActions className="!justify-between gap-4">
               <button 
                 onClick={() => {
-                  // Reset form and start fresh
+                  // Reset form
                   setFormData({
                     details: { name: "", description: "" },
-                    permissions: { selectedPermissions: modules.length, copiedFrom: null }
+                    permissions: { copiedFrom: null }
                   });
                   setPermissionMatrix(modules.map(module => ({
                     name: module,
@@ -307,11 +340,15 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                     update: false,
                     archived: false
                   })));
-                  setIsValid({ details: false, permissions: true});
+                  setValidation({
+                    details: { isValid: false, message: "" },
+                    permissions: { isValid: true, message: "" }
+                  });
                   setActiveTab("details");
                   setCreationComplete(false);
+                  setError(null);
                 }}
-                className="px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 Create Another Role
               </button>
@@ -319,7 +356,7 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                 onClick={onCancel}
                 className="px-4 py-3 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
               >
-                Cancel
+                Return to Roles
               </button>
             </CardActions>
           </CardBody>
@@ -335,27 +372,42 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
         <button 
           onClick={onCancel}
           className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+          aria-label="Cancel role creation"
         >
           Cancel
         </button>
       </div>
       
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <X className="h-5 w-5 text-red-500" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Progress Path */}
-      <div className="mb-9">
-        <div className="flex items-center justify-between">
+      <nav aria-label="Progress">
+        <div className="flex items-center justify-between mb-9">
           {steps.map((step, index) => (
             <div key={step.id} className="flex flex-col items-center relative w-full">
               {/* Connector line */}
               {index < steps.length - 1 && (
                 <div 
-                  className={`absolute top-4 left-1 w-full h-0.5 ${
+                  className={`absolute top-4 left-1/2 w-full h-0.5 ${
                     index < currentStepIndex ? "bg-blue-500" : "bg-gray-200"
                   }`}
-                  style={{ transform: "translateX(50%)" }}
+                  aria-hidden="true"
                 ></div>
               )}
               
-              {/* Step circle - now using handleTabChange for validation */}
+              {/* Step circle */}
               <button
                 onClick={() => handleTabChange(step.id)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
@@ -365,17 +417,22 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-500"
                 } ${
-                  // Add cursor-not-allowed for steps that can't be accessed yet
-                  (index === 1 && !isValid.details) || 
-                  (index === 2 && (!isValid.details || !isValid.permissions))
+                  (index === 1 && !validation.details.isValid) || 
+                  (index === 2 && (!validation.details.isValid || !validation.permissions.isValid))
                     ? "cursor-not-allowed"
                     : "cursor-pointer"
                 }`}
+                disabled={
+                  (index === 1 && !validation.details.isValid) || 
+                  (index === 2 && (!validation.details.isValid || !validation.permissions.isValid))
+                }
+                aria-current={index === currentStepIndex ? "step" : undefined}
+                aria-label={step.label}
               >
                 {index < currentStepIndex ? (
-                  <Check size={16} />
+                  <Check size={16} aria-hidden="true" />
                 ) : (
-                  <span>{index + 1}</span>
+                  <span aria-hidden="true">{index + 1}</span>
                 )}
               </button>
               
@@ -390,7 +447,7 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
             </div>
           ))}
         </div>
-      </div>
+      </nav>
       
       {/* Tab Content */}
       {activeTab === "details" && (
@@ -401,17 +458,31 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                 <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-1">
                   Role Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  id="role-name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Marketing Analyst"
-                  value={formData.details.name}
-                  onChange={handleDetailsChange}
-                />
-                {!isValid.details && formData.details.name.trim() === "" && (
-                  <p className="mt-1 text-sm text-red-500">Role name is required</p>
-                )}
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="role-name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Marketing Analyst"
+                    value={formData.details.name}
+                    onChange={handleDetailsChange}
+                    aria-describedby="name-validation"
+                  />
+                  {isCheckingName && (
+                    <div className="absolute right-3 top-2.5">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    </div>
+                  )}
+                </div>
+                {/* FIXED: Combined validation messages into a single view */}
+                <div id="name-validation" className="mt-1">
+                  {validation.details.message && (
+                    <p className="text-sm text-red-500">{validation.details.message}</p>
+                  )}
+                  {formData.details.name.trim() !== "" && nameAvailability === true && !validation.details.message && (
+                    <p className="text-sm text-green-600">Name is available</p>
+                  )}
+                </div>
               </div>
               
               <div>
@@ -425,14 +496,23 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                   placeholder="Describe the purpose and scope of this role..."
                   value={formData.details.description}
                   onChange={handleDetailsChange}
+                  aria-describedby="description-help"
                 ></textarea>
+                <p id="description-help" className="mt-1 text-xs text-gray-500">
+                  Optional description to explain this role's purpose
+                </p>
               </div>
               
               <div className="flex items-center justify-end pt-4">
                 <button 
                   onClick={() => handleTabChange("permissions")}
-                  className={`px-4 py-2 ${isValid.details ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
-                  disabled={!isValid.details}
+                  className={`px-4 py-2 ${
+                    validation.details.isValid 
+                      ? "bg-blue-600 hover:bg-blue-700" 
+                      : "bg-blue-300 cursor-not-allowed"
+                  } text-white rounded-md transition-colors`}
+                  disabled={!validation.details.isValid}
+                  aria-disabled={!validation.details.isValid}
                 >
                   Next: Set Permissions
                 </button>
@@ -451,19 +531,20 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
             </CardSubtitle>
           </CardHeader>
           <CardBody className="p-6">
-            {/* Template selector button */}
+            {/* Template selector */}
             <div className="mb-6">
               <button
                 onClick={() => setShowTemplateSelector(!showTemplateSelector)}
                 className="flex items-center px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+                aria-expanded={showTemplateSelector}
+                aria-controls="template-selector"
               >
-                <Copy size={16} className="mr-2" />
+                <Copy size={16} className="mr-2" aria-hidden="true" />
                 Copy from existing role
               </button>
               
-              {/* Template selector dropdown */}
               {showTemplateSelector && (
-                <Card className="mt-2 shadow-sm">
+                <Card id="template-selector" className="mt-2 shadow-sm">
                   <CardBody className="p-2">
                     <p className="text-xs text-gray-500 mb-2 px-2">Select a role to copy permissions from:</p>
                     <ul className="divide-y divide-gray-100">
@@ -483,10 +564,9 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                 </Card>
               )}
               
-              {/* Display if permissions were copied from template */}
               {formData.permissions.copiedFrom && (
                 <div className="mt-2 text-xs text-gray-600 flex items-center">
-                  <Check size={14} className="text-green-500 mr-1" />
+                  <Check size={14} className="text-green-500 mr-1" aria-hidden="true" />
                   <span>
                     Permissions copied from <strong>{formData.permissions.copiedFrom}</strong>. You can modify them below.
                   </span>
@@ -494,23 +574,24 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
               )}
             </div>
             
+            {/* Permissions Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Module
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Create
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Read
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Update
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Archived
                     </th>
                   </tr>
@@ -521,61 +602,45 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                         {module.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          checked={module.create}
-                          onChange={() => handlePermissionChange(idx, 'create')}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
-                          checked={module.read}
-                          onChange={() => handlePermissionChange(idx, 'read')}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          checked={module.update}
-                          onChange={() => handlePermissionChange(idx, 'update')}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          checked={module.archived}
-                          onChange={() => handlePermissionChange(idx, 'archived')}
-                        />
-                      </td>
+                      {['create', 'read', 'update', 'archived'].map((perm) => (
+                        <td key={perm} className="px-6 py-4 whitespace-nowrap text-center">
+                          <input 
+                            type="checkbox" 
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            checked={module[perm]}
+                            onChange={() => handlePermissionChange(idx, perm)}
+                            aria-label={`${perm} permission for ${module.name}`}
+                          />
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             
-            {!isValid.permissions && (
+            {!validation.permissions.isValid && (
               <div className="mt-3">
-                <p className="text-sm text-red-500">Please select at least one permission</p>
+                <p className="text-sm text-red-500">{validation.permissions.message}</p>
               </div>
             )}
             
             <div className="flex items-center justify-between mt-6">
               <button 
                 onClick={() => handleTabChange("details")}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Back
               </button>
               <button 
                 onClick={() => handleTabChange("review")}
-                className={`px-4 py-2 ${isValid.permissions ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"} text-white rounded-md`}
-                disabled={!isValid.permissions}
+                className={`px-4 py-2 ${
+                  validation.permissions.isValid 
+                    ? "bg-blue-600 hover:bg-blue-700" 
+                    : "bg-blue-300 cursor-not-allowed"
+                } text-white rounded-md transition-colors`}
+                disabled={!validation.permissions.isValid}
+                aria-disabled={!validation.permissions.isValid}
               >
                 Next: Review
               </button>
@@ -602,7 +667,9 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                     </div>
                     <div>
                       <span className="block text-xs text-gray-500">Description</span>
-                      <span className="block text-sm text-gray-800">{formData.details.description}</span>
+                      <span className="block text-sm text-gray-800">
+                        {formData.details.description || "No description provided"}
+                      </span>
                     </div>
                   </CardBody>
                 </Card>
@@ -614,7 +681,7 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                   <Card className="bg-gray-50">
                     <CardBody className="p-4">
                       <div className="flex items-center">
-                        <Copy size={16} className="text-blue-500 mr-2" />
+                        <Copy size={16} className="text-blue-500 mr-2" aria-hidden="true" />
                         <span className="text-sm text-gray-800">
                           Based on <strong>{formData.permissions.copiedFrom}</strong> role with modifications
                         </span>
@@ -634,22 +701,17 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
                       <div key={idx}>
                         <h5 className="text-xs font-medium text-gray-700 mb-1">{module.name}</h5>
                         <ul className="text-xs text-gray-600 space-y-1">
-                          <li className="flex items-center">
-                            <span className={`h-2 w-2 ${module.create ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                            Create
-                          </li>
-                          <li className="flex items-center">
-                            <span className={`h-2 w-2 ${module.read ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                            View
-                          </li>
-                          <li className="flex items-center">
-                            <span className={`h-2 w-2 ${module.update ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                            Update
-                          </li>
-                          <li className="flex items-center">
-                            <span className={`h-2 w-2 ${module.archived ? "bg-green-500" : "bg-red-500"} rounded-full mr-1`}></span>
-                            Archived
-                          </li>
+                          {['create', 'read', 'update', 'archived'].map((perm) => (
+                            <li key={perm} className="flex items-center">
+                              <span 
+                                className={`h-2 w-2 ${
+                                  module[perm] ? "bg-green-500" : "bg-red-500"
+                                } rounded-full mr-1`}
+                                aria-hidden="true"
+                              ></span>
+                              {perm.charAt(0).toUpperCase() + perm.slice(1)}
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     ))}
@@ -661,15 +723,20 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
             <div className="flex items-center justify-between mt-6">
               <button 
                 onClick={() => handleTabChange("permissions")}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Back
               </button>
               <button 
                 onClick={handleCreateRole}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                disabled={isSubmitting}
+                aria-disabled={isSubmitting}
               >
-                Create Role
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                )}
+                {isSubmitting ? "Creating..." : "Create Role"}
               </button>
             </div>
           </CardBody>
@@ -679,4 +746,5 @@ const CreateRoles = ({ onCancel, roles, setRoles }) => {
   );
 };
 
-export default CreateRoles;
+
+export default CreateRoles;     

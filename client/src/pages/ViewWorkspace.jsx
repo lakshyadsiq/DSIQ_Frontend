@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux" // Import Redux hooks
 import {
@@ -17,8 +15,7 @@ import {
   Filter,
   ChevronDown,
   Clock,
-  Tag,
-  ArrowLeft,
+  ArrowRight
 } from "lucide-react"
 import { MdArchive } from "react-icons/md"
 import toast from "react-hot-toast"
@@ -203,6 +200,10 @@ export default function WorkspacesPage({ isLoggedIn }) {
     { text: "Retailer", value: "retailer" },
   ]
 
+  const handleViewDetails = (id) => {
+  console.log(`Viewing details for workspace ${id}`)
+  navigate(`/workspace/${id}`)
+}
   // Handle workspace actions
   const handleEdit = (id) => {
     console.log(`Editing workspace ${id}`)
@@ -503,17 +504,6 @@ export default function WorkspacesPage({ isLoggedIn }) {
                 {viewMode === "grid" && (
                   <div className="space-y-3 mt-5 pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Tag className="h-4 w-4 text-gray-400" />
-                      <span>Brands:</span>
-                      <span className="font-medium">
-                        {Object.values(workspace.brands || {})
-                          .flat()
-                          .slice(0, 3)
-                          .join(", ")}
-                        {Object.values(workspace.brands || {}).flat().length > 3 && "..."}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Briefcase className="h-4 w-4 text-gray-400" />
                       <span>Retailers:</span>
                       <span className="font-medium">
@@ -563,6 +553,17 @@ export default function WorkspacesPage({ isLoggedIn }) {
                     </button>
                   </div>
                 </Tooltip>
+
+                <Tooltip content="View Workspace Details" position="top">
+    <div>
+      <button
+        className="p-2 rounded hover:bg-purple-50 flex items-center justify-center"
+        onClick={() => handleViewDetails(workspace.id)}
+      >
+        <ArrowRight className="h-4 w-4 text-gray-500" />
+      </button>
+    </div>
+  </Tooltip>
               </div>
             </div>
           ))}
