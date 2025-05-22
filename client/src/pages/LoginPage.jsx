@@ -62,29 +62,29 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-cream font-sans">
       <div className="flex flex-1">
+        {/* Left Side - Login Form */}
         <div className="flex flex-col items-center justify-center w-full md:w-1/2 p-8">
           <div className="w-full max-w-md">
             {/* Logo */}
             <div className="flex justify-center mb-8">
-              <div className="h-23 w-23 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center shadow-sm">
                 <img src="/icon.png" alt="DSIQ Logo" className="h-16 w-auto" />
               </div>
             </div>
       
             {/* Form Container */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
-            
+            <div className="bg-white rounded-lg shadow-sm border border-light-gray p-8 w-full">
               {showReset ? (
                 <>
-                  <h2 className="text-xl font-semibold text-gray-700 mb-6">Reset your password</h2>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                  <h2 className="text-h3 text-dark-gray mb-6 font-medium">Reset your password</h2>
+                  <div className="mb-6">
+                    <label className="block text-body font-medium text-dark-gray mb-2">Email</label>
                     <input
                       type="email"
                       placeholder="you@example.com"
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full p-3 border border-light-gray rounded-md text-body focus:outline-none focus:ring-2 focus:ring-primary-orange focus:border-transparent"
                       value={resetEmail}
                       onChange={(e) => {
                         setResetEmail(e.target.value);
@@ -97,12 +97,12 @@ const LoginPage = () => {
                   <button
                     onClick={handleResetSubmit}
                     disabled={resetStatus !== 'idle'}
-                    className={`w-full py-2.5 px-4 text-white font-medium rounded transition ${
+                    className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all duration-200 ${
                       resetStatus === 'sending'
-                        ? 'bg-gray-400 cursor-not-allowed'
+                        ? 'bg-gray cursor-not-allowed'
                         : resetStatus === 'sent'
-                        ? 'bg-green-500 cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700'
+                        ? 'bg-success-green cursor-not-allowed'
+                        : 'bg-primary-orange hover:bg-accent-magenta'
                     }`}
                   >
                     {resetStatus === 'sending'
@@ -117,40 +117,40 @@ const LoginPage = () => {
                       setShowReset(false);
                       setResetStatus('idle');
                     }}
-                    className="mt-4 w-full text-sm text-indigo-600 hover:underline"
+                    className="mt-4 w-full text-body text-primary-orange hover:text-accent-magenta hover:underline transition-colors"
                   >
                     Return to Login
                   </button>
                 </>
               ) : (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-700 mb-6">Sign in to your account</h2>
+                  <h2 className="text-h3 text-dark-gray mb-8 font-medium">Sign in to your account</h2>
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                    <label className="block text-body font-medium text-dark-gray mb-2">Email</label>
                     <input
                       type="email"
                       name="email"
                       placeholder="you@example.com"
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full p-3 border border-light-gray rounded-md text-body focus:outline-none focus:ring-2 focus:ring-primary-orange focus:border-transparent"
                       value={formData.email}
                       onChange={handleLoginChange}
                     />
                   </div>
 
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Password</label>
+                    <label className="block text-body font-medium text-dark-gray mb-2">Password</label>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
                         name="password"
                         placeholder="••••••••"
-                        className="w-full p-2 border border-gray-300 rounded pr-10"
+                        className="w-full p-3 border border-light-gray rounded-md pr-10 text-body focus:outline-none focus:ring-2 focus:ring-primary-orange focus:border-transparent"
                         value={formData.password}
                         onChange={handleLoginChange}
                       />
                       <button
                         type="button"
-                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-gray hover:text-dark-gray transition-colors"
                         onClick={togglePasswordVisibility}
                       >
                         {showPassword ? (
@@ -162,35 +162,41 @@ const LoginPage = () => {
                     </div>
                   </div>
 
-                  <div className="mb-6">
+                  <div className="mb-6 flex items-center justify-between">
                     <label className="flex items-center">
-                      <input type="checkbox" className="h-4 w-4 text-indigo-600" />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                      <input 
+                        type="checkbox" 
+                        className="h-4 w-4 text-primary-orange rounded focus:outline-none focus:ring-2 focus:ring-primary-orange border-light-gray" 
+                      />
+                      <span className="ml-2 text-body text-dark-gray">Remember me</span>
                     </label>
-                  </div>
-
-                  <button
-                    onClick={handleLoginSubmit}
-                    disabled={loading}
-                    className="w-full bg-indigo-600 text-white py-2.5 px-4 rounded hover:bg-indigo-700 transition"
-                  >
-                    {loading ? 'Logging in...' : 'Log In'}
-                  </button>
-
-                  <div className="mt-6 flex justify-between text-sm">
                     <button
                       type="button"
                       onClick={() => {
                         setShowReset(true);
                         setResetStatus('idle');
                       }}
-                      className="text-indigo-600 hover:underline"
+                      className="text-body text-primary-orange hover:text-accent-magenta hover:underline transition-colors"
                     >
-                      Forgot Your Password?
+                      Forgot password?
                     </button>
-                    <a href="/register" className="text-indigo-600 hover:underline">
-                      Create account
-                    </a>
+                  </div>
+
+                  <button
+                    onClick={handleLoginSubmit}
+                    disabled={loading}
+                    className="w-full bg-primary-orange text-white py-3 px-4 rounded-md hover:bg-accent-magenta transition-all duration-200 text-button font-medium"
+                  >
+                    {loading ? 'Logging in...' : 'Log In'}
+                  </button>
+
+                  <div className="mt-6 pt-6 border-t border-light-gray text-center">
+                    <p className="text-body text-gray">
+                      Don't have an account?{' '}
+                      <a href="/register" className="text-primary-orange hover:text-accent-magenta hover:underline transition-colors">
+                        Sign up
+                      </a>
+                    </p>
                   </div>
                 </div>
               )}
@@ -198,24 +204,31 @@ const LoginPage = () => {
             
             {/* Footer */}
             <div className="mt-8 text-center">
-              <div className="text-xs text-gray-500">
-                © 2025 DSIQ, Inc. All rights reserved. | Privacy
+              <div className="text-small text-gray">
+                © 2025 DSIQ, Inc. All rights reserved. |{' '}
+                <a href="#" className="hover:underline">Privacy</a>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Right Side - Advertisement */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
-          <div className="flex flex-col justify-center items-center p-8 w-full">
-            <div className="max-w-lg text-center">
-              <h2 className="text-4xl font-bold mb-6">DSIQ Platform</h2>
-              <div className="h-32 w-32 mx-auto mb-8 bg-white rounded-full flex items-center justify-center">
-                <img src="/icon.png" alt="DSIQ Logo" className="h-24 w-auto" />
+        {/* Right Side - Brand Section */}
+        <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
+          <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
+            <div className="text-center">
+              <h2 className="text-h1 font-bold mb-8">DSIQ Platform</h2>
+              <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
               </div>
               
-              <h3 className="text-2xl font-semibold mb-4">Coming Soon</h3>
-              <p className="text-lg mb-6">Our revolutionary data analytics platform will transform how your business makes decisions.</p>
+              <h3 className="text-h3 font-semibold mb-6">Coming Soon</h3>
+              <p className="text-body-lg mb-8 leading-relaxed">
+                Our revolutionary data analytics platform will transform how your business makes decisions.
+              </p>
+              <div className="h-1 w-24 bg-white opacity-30 mx-auto mb-8"></div>
+              <p className="text-small opacity-80">
+                Unlock the power of your data with intelligent insights
+              </p>
             </div> 
           </div> 
         </div> 

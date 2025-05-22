@@ -1,60 +1,120 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./node_modules/@progress/kendo-react-*/**/*.js",
+    "./src/**/*.{html,js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
+      // Font family setup
+      fontFamily: {
+        sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+      },
+      
+      // Color palette from brand guidelines
       colors: {
-        // Primary Brand Colors
+        // Primary brand colors
         'primary-orange': '#F27A56',
         'accent-magenta': '#9A1A3B',
-        'gradient-blend-start': '#D1442F',
-        'gradient-blend-end': '#E45A2B',
+        'gradient-from': '#D1442F',
+        'gradient-to': '#E45A2B',
         
-        // Neutral UI Colors
+        // Neutral UI colors
         'dark-gray': '#3C3D3D',
         'gray': '#646665',
         'light-gray': '#E5E5E5',
         'white': '#FFFFFF',
         
-        // Data Visualization & Feedback Colors
+        // Data visualization colors
         'info-blue': '#177CF3',
         'success-green': '#1D7A34',
         'warning-yellow': '#FED83A',
-        'error-red': '#DE241E',
+        'danger-red': '#DE241E',
         
-        // Light Gradient
+        // Light gradient colors
         'peach': '#FDE2CF',
         'cream': '#FFF8F4',
       },
-      fontFamily: {
-        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+      
+      // Gradient configuration
+      backgroundImage: {
+        'brand-gradient': 'linear-gradient(135deg, #D1442F 0%, #E45A2B 100%)',
+        'light-gradient': 'linear-gradient(135deg, #FDE2CF 0%, #FFF8F4 100%)',
       },
+      
+      // Typography configuration
       fontSize: {
-        'h1': ['48px', '56px'],
-        'h2': ['32px', '40px'],
-        'h3': ['24px', '32px'],
-        'h4': ['18px', '28px'],
-        'body': ['16px', '24px'],
-        'small': ['14px', '20px'],
-        'button': ['16px', '24px'],
-        'input': ['16px', '24px'],
-        'table': ['14px', '22px'],
-      },
-      fontWeight: {
-        'h1': '700',
-        'h2': '700',
-        'h3': '500',
-        'h4': '500',
-        'body': '400',
-        'small': '300',
-        'button': '500',
-        'input': '400',
-        'table': '500',
+        // Heading sizes
+        'h1': ['3rem', { lineHeight: '3.5rem', fontWeight: '700' }], // 48px/56px
+        'h2': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }], // 32px/40px
+        'h3': ['1.5rem', { lineHeight: '2rem', fontWeight: '500' }], // 24px/32px
+        'h4': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '500' }], // 18px/28px
+        
+        // Body text
+        'body': ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }], // 16px/24px
+        'small': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '300' }], // 14px/20px
+        
+        // Buttons and CTAs
+        'button': ['1rem', { lineHeight: '1.5rem', fontWeight: '500' }], // 16px/24px
+        
+        // Forms and inputs
+        'input': ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }], // 16px/24px
+        
+        // Table content
+        'table': ['0.875rem', { lineHeight: '1.375rem', fontWeight: '500' }], // 14px/22px
       },
     },
   },
-  plugins: [],
-}
+  plugins: [
+    // Plugin for easy typography classes
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.text-h1': {
+          fontSize: '3rem',
+          lineHeight: '3.5rem',
+          fontWeight: '700',
+        },
+        '.text-h2': {
+          fontSize: '2rem',
+          lineHeight: '2.5rem',
+          fontWeight: '700',
+        },
+        '.text-h3': {
+          fontSize: '1.5rem',
+          lineHeight: '2rem',
+          fontWeight: '500',
+        },
+        '.text-h4': {
+          fontSize: '1.125rem',
+          lineHeight: '1.75rem',
+          fontWeight: '500',
+        },
+        '.text-body': {
+          fontSize: '1rem',
+          lineHeight: '1.5rem',
+          fontWeight: '400',
+        },
+        '.text-small': {
+          fontSize: '0.875rem',
+          lineHeight: '1.25rem',
+          fontWeight: '300',
+        },
+        '.text-button': {
+          fontSize: '1rem',
+          lineHeight: '1.5rem',
+          fontWeight: '500',
+        },
+        '.text-input': {
+          fontSize: '1rem',
+          lineHeight: '1.5rem',
+          fontWeight: '400',
+        },
+        '.text-table': {
+          fontSize: '0.875rem',
+          lineHeight: '1.375rem',
+          fontWeight: '500',
+        },
+      };
+      addUtilities(newUtilities);
+    },
+  ],
+};

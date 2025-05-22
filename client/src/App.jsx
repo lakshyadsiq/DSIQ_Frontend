@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -32,6 +32,28 @@ const App = () => {
     if (workspaceFlag === 'true') {
       setHasWorkspace(true);
     }
+  }, []);
+
+   useEffect(() => {
+    const fetchMessage = async () => {
+      try {
+        const response = await fetch('http://172.16.10.9:5000');
+
+        console.log("Raw response:", response);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Response data:", data);
+
+      } catch (error) {
+        console.error("❌ Failed to fetch from backend:", error.message);
+      }
+    };
+
+    fetchMessage();
   }, []);
 
 
