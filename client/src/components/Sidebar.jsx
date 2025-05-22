@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react";
 import {
   BarChart,
   Briefcase,
@@ -19,76 +19,75 @@ import {
   Zap,
   Clipboard,
   Target,
-} from "lucide-react"
+} from "lucide-react";
 
 const Sidebar = ({ isOpen, selectedApp }) => {
-  const [expanded, setExpanded] = useState([])
-  const [hoveredSection, setHoveredSection] = useState(null)
-  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 })
-  const [activeItem, setActiveItem] = useState(null)
-  const sidebarRef = useRef(null)
-  const hoverTimeoutRef = useRef(null)
-  const expandedHeightsRef = useRef({})
-  const subMenuRefs = useRef({})
-  const [mainMenuItems, setMainMenuItems] = useState([])
+  const [expanded, setExpanded] = useState([]);
+  const [hoveredSection, setHoveredSection] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
+  const [activeItem, setActiveItem] = useState(null);
+  const sidebarRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+  const expandedHeightsRef = useRef({});
+  const subMenuRefs = useRef({});
+  const [mainMenuItems, setMainMenuItems] = useState([]);
 
-  // Only show hover popover for items with subitems
   const handleSectionHover = (section, event) => {
-    if (isOpen || !section.isDropdown) return
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    const rect = event.currentTarget.getBoundingClientRect()
+    if (isOpen || !section.isDropdown) return;
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    const rect = event.currentTarget.getBoundingClientRect();
     setHoverPosition({
       top: rect.top,
       left: rect.left + rect.width,
-    })
+    });
     hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredSection(section)
-    }, 150)
-  }
+      setHoveredSection(section);
+    }, 150);
+  };
 
   const handleSectionLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredSection(null)
-    }, 100)
-  }
+      setHoveredSection(null);
+    }, 100);
+  };
 
   const toggleSection = (section) => {
-    setExpanded((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
-  }
+    setExpanded((prev) =>
+      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+    );
+  };
 
   const handleItemClick = (item, subItem = null) => {
     if (subItem) {
-      setActiveItem(`${item}-${subItem}`)
+      setActiveItem(`${item}-${subItem}`);
     } else {
-      setActiveItem(item)
+      setActiveItem(item);
     }
-  }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setHoveredSection(null)
+        setHoveredSection(null);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-  // Measure submenu heights for animations
   useEffect(() => {
     Object.keys(subMenuRefs.current).forEach((key) => {
       if (subMenuRefs.current[key]) {
-        expandedHeightsRef.current[key] = subMenuRefs.current[key].scrollHeight
+        expandedHeightsRef.current[key] = subMenuRefs.current[key].scrollHeight;
       }
-    })
-  }, [expanded, mainMenuItems])
+    });
+  }, [expanded, mainMenuItems]);
 
-  // Define menu items for each app
   const getMainMenuItems = () => {
-    if (!selectedApp) return []
+    if (!selectedApp) return [];
     switch (selectedApp.name) {
       case "Digital Shelf iQ":
         return [
@@ -103,20 +102,20 @@ const Sidebar = ({ isOpen, selectedApp }) => {
             isDropdown: true,
             items: [{ label: "Keyword Tracker" }, { label: "Keyword Planner" }],
           },
-        ]
+        ];
       case "Shopper iQ":
         return [
           { icon: <MessageSquare size={18} />, label: "Review & Content Minor", isDropdown: false, items: [] },
           { icon: <BookOpen size={18} />, label: "Brand & Category Insights", isDropdown: false, items: [] },
           { icon: <ShoppingBag size={18} />, label: "Ask our AI Chatbot", isDropdown: false, items: [] },
           { icon: <Users size={18} />, label: "Panel Data", isDropdown: false, items: [] },
-        ]
+        ];
       case "Promotion iQ":
         return [
           { icon: <Calendar size={18} />, label: "Promotion Tracker", isDropdown: false, items: [] },
           { icon: <TrendingUp size={18} />, label: "Promotion Planner", isDropdown: false, items: [] },
           { icon: <FileText size={18} />, label: "Activation Partner", isDropdown: false, items: [] },
-        ]
+        ];
       case "Channel AMP":
         return [
           { icon: <BarChart size={18} />, label: "Dashboard", isDropdown: false, items: [] },
@@ -135,15 +134,15 @@ const Sidebar = ({ isOpen, selectedApp }) => {
           },
           { icon: <Zap size={18} />, label: "Automation Rules", isDropdown: false, items: [] },
           { icon: <Clipboard size={18} />, label: "Reporting", isDropdown: false, items: [] },
-        ]
+        ];
       default:
-        return []
+        return [];
     }
-  }
+  };
 
   useEffect(() => {
-    setMainMenuItems(getMainMenuItems())
-  }, [selectedApp])
+    setMainMenuItems(getMainMenuItems());
+  }, [selectedApp]);
 
   const bottomMenuItems = [
     {
@@ -152,7 +151,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
       isDropdown: false,
       items: [],
     },
-  ]
+  ];
 
   return (
     <div className="flex">
@@ -160,16 +159,16 @@ const Sidebar = ({ isOpen, selectedApp }) => {
         ref={sidebarRef}
         className={`
           ${isOpen ? "w-64" : "w-16"}
-          h-full flex flex-col flex-shrink-0 bg-[#2F2A44] text-white
+          h-full flex flex-col flex-shrink-0 bg-white text-dark-gray
           overflow-hidden overflow-y-auto transition-all duration-300 ease-in-out relative z-10
-          shadow-lg
+          shadow-lg border-r border-gray-200
         `}
         style={{
           transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {/* Logo */}
-        <div className="p-4 h-[64px] border-b border-[#4A4561] flex items-center justify-center relative">
+        <div className="p-4 h-[64px] border-b border-gray-200 hover:bg-peach flex items-center justify-center relative">
           <div
             className={`
               absolute inset-0 flex items-center justify-center
@@ -180,7 +179,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
               transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
-            <img src="./1.png" alt="Full Logo" className="h-28 w-auto" />
+            <img src="./1.png" alt="Full Logo" className="h-33 w-auto" />
           </div>
           <div
             className={`
@@ -191,7 +190,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
               transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
-            <img src="./icon.png" alt="Logo Icon" className="h-8 w-8" />
+            <img src="./icon.png" alt="Logo Icon" className="h-10 w-10" />
           </div>
         </div>
 
@@ -204,16 +203,22 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                   <>
                     <div
                       className={`
-                        relative flex items-center justify-between px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1]
-                        hover:bg-[#3D3850] rounded mx-2 group
-                        ${activeItem === item.label || (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`)) ? "bg-[#3D3850]" : ""}
+                        relative flex items-center justify-between px-4 py-2 cursor-pointer text-sm font-medium text-gray-600
+                        hover:bg-peach rounded mx-2 group
+                        ${
+                          activeItem === item.label ||
+                          (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))
+                            ? "bg-peach"
+                            : ""
+                        }
                         transition-all duration-200 ease-in-out
                       `}
                       onClick={() => (item.isDropdown ? toggleSection(item.label) : handleItemClick(item.label))}
                     >
                       {(activeItem === item.label ||
-                        (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
-                        <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                        (item.isDropdown &&
+                          item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
+                        <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                       )}
                       <div
                         className={`
@@ -225,7 +230,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                           transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                         }}
                       >
-                        <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110">
+                        <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                           {item.icon}
                         </span>
                         <span className="transition-transform duration-200 ease-in-out group-hover:translate-x-1">
@@ -233,7 +238,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                         </span>
                       </div>
                       {item.isDropdown && (
-                        <div className="transition-transform duration-200 ease-in-out">
+                        <div className="transition-transform duration-200 ease-in-out text-gray-500">
                           {expanded.includes(item.label) ? (
                             <ChevronDown
                               size={16}
@@ -272,11 +277,11 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                               }}
                             >
                               {activeItem === `${item.label}-${subItem.label}` && (
-                                <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                                <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                               )}
                               <div
                                 className={`
-                                  pl-12 pr-4 py-2 text-[#A3A1B1] hover:bg-[#3D3850] cursor-pointer flex items-center group
+                                  pl-12 pr-4 py-2 text-gray-600 hover:bg-peach cursor-pointer flex items-center group
                                   transition-all duration-200 ease-in-out
                                   ${isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
                                 `}
@@ -299,13 +304,19 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                     onMouseLeave={handleSectionLeave}
                   >
                     {(activeItem === item.label ||
-                      (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
-                      <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                      (item.isDropdown &&
+                        item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
+                      <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                     )}
                     <div
                       className={`
                         p-2 rounded-md group
-                        ${activeItem === item.label || (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`)) ? "bg-[#3D3850]" : "hover:bg-[#3D3850]"}
+                        ${
+                          activeItem === item.label ||
+                          (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))
+                            ? "bg-peach"
+                            : "hover:bg-peach"
+                        }
                         cursor-pointer my-1
                         transition-all duration-200 ease-in-out
                         ${!isOpen ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"}
@@ -317,7 +328,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                       title={item.label}
                       onClick={() => !item.isDropdown && handleItemClick(item.label)}
                     >
-                      <div className="transition-transform duration-200 ease-in-out group-hover:scale-110">
+                      <div className="transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                         {item.icon}
                       </div>
                     </div>
@@ -335,15 +346,15 @@ const Sidebar = ({ isOpen, selectedApp }) => {
               {isOpen ? (
                 <div
                   className={`
-                    relative flex items-center px-4 py-2 cursor-pointer text-sm font-medium text-[#A3A1B1]
-                    hover:bg-[#3D3850] rounded mx-2 group
-                    ${activeItem === item.label ? "bg-[#3D3850]" : ""}
+                    relative flex items-center px-4 py-2 cursor-pointer text-sm font-medium text-gray-700
+                    hover:bg-peach rounded mx-2 group
+                    ${activeItem === item.label ? "bg-peach" : ""}
                     transition-all duration-200 ease-in-out
                   `}
                   onClick={() => handleItemClick(item.label)}
                 >
                   {activeItem === item.label && (
-                    <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                    <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                   )}
                   <div
                     className={`
@@ -355,7 +366,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                       transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     }}
                   >
-                    <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110">
+                    <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                       {item.icon}
                     </span>
                     <span className="transition-transform duration-200 ease-in-out group-hover:translate-x-1">
@@ -370,12 +381,12 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                   onMouseLeave={handleSectionLeave}
                 >
                   {activeItem === item.label && (
-                    <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                    <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                   )}
                   <div
                     className={`
                       p-2 rounded-md group
-                      ${activeItem === item.label ? "bg-[#3D3850]" : "hover:bg-[#3D3850]"}
+                      ${activeItem === item.label ? "bg-peach" : "hover:bg-peach"}
                       cursor-pointer my-1
                       transition-all duration-200 ease-in-out
                       ${!isOpen ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"}
@@ -387,7 +398,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                     title={item.label}
                     onClick={() => handleItemClick(item.label)}
                   >
-                    <div className="transition-transform duration-200 ease-in-out group-hover:scale-110">
+                    <div className="transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                       {item.icon}
                     </div>
                   </div>
@@ -398,10 +409,10 @@ const Sidebar = ({ isOpen, selectedApp }) => {
         </div>
       </aside>
 
-      {/* Hover Popover for collapsed sidebar: only for items with subitems */}
+      {/* Hover Popover for collapsed sidebar */}
       {!isOpen && hoveredSection && hoveredSection.isDropdown && (
         <div
-          className="fixed bg-[#2F2A44] text-white rounded shadow-lg z-50 py-2 min-w-[200px] border border-[#4A4561] animate-fadeIn"
+          className="fixed bg-white text-dark-gray rounded shadow-lg z-50 py-2 min-w-[200px] border border-gray-200 animate-fadeIn"
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left + 1}px`,
@@ -411,15 +422,15 @@ const Sidebar = ({ isOpen, selectedApp }) => {
           onMouseEnter={() => setHoveredSection(hoveredSection)}
           onMouseLeave={handleSectionLeave}
         >
-          <div className="px-4 py-2 text-[#A3A1B1] font-medium text-sm border-b border-[#4A4561]">
+          <div className="px-4 py-2 text-primary-orange font-medium text-sm border-b border-gray-200">
             {hoveredSection.label}
           </div>
           <div className="mt-1">
             {hoveredSection.items.map((item, itemIndex) => (
               <div
                 key={itemIndex}
-                className={`px-4 py-2 hover:bg-[#3D3850] cursor-pointer flex items-center relative group
-                  ${activeItem === `${hoveredSection.label}-${item.label}` ? "bg-[#3D3850]" : ""}
+                className={`px-4 py-2 hover:bg-peach cursor-pointer flex items-center relative group
+                  ${activeItem === `${hoveredSection.label}-${item.label}` ? "bg-peach" : ""}
                 `}
                 style={{
                   animation: `slideIn 0.3s ease-out ${itemIndex * 0.05}s both`,
@@ -427,7 +438,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                 onClick={() => handleItemClick(hoveredSection.label, item.label)}
               >
                 {activeItem === `${hoveredSection.label}-${item.label}` && (
-                  <div className="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-r"></div>
+                  <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                 )}
                 <span className="transition-transform duration-200 ease-in-out group-hover:translate-x-1">
                   {item.label}
@@ -462,7 +473,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

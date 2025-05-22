@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // DUMMY DATA FOR DEVELOPMENT/TESTING
-const USE_DUMMY_DATA = true; // flase for testing with API
+const USE_DUMMY_DATA = true; // false for testing with API
 
 // Mock data for development/testing
 const DUMMY_DATA = {
@@ -63,12 +63,23 @@ const DUMMY_DATA = {
     { id: "b11", name: "Levi's", categoryId: "cat3" },
     { id: "b12", name: "Nike", categoryId: "cat3" },
     
-    // More brands for various categories...
+    // Walmart Home & Garden Brands
+    { id: "b13", name: "Better Homes & Gardens", categoryId: "cat4" },
+    { id: "b14", name: "Mainstays", categoryId: "cat4" },
+    { id: "b15", name: "Hyper Tough", categoryId: "cat4" },
+    { id: "b16", name: "Ozark Trail", categoryId: "cat4" },
+    
     // Target Electronics Brands
     { id: "b17", name: "Apple", categoryId: "cat5" },
     { id: "b18", name: "Beats", categoryId: "cat5" },
     { id: "b19", name: "JBL", categoryId: "cat5" },
     { id: "b20", name: "Samsung", categoryId: "cat5" },
+    
+    // Target Home Decor Brands
+    { id: "b21", name: "Hearth & Hand", categoryId: "cat6" },
+    { id: "b22", name: "Project 62", categoryId: "cat6" },
+    { id: "b23", name: "Opalhouse", categoryId: "cat6" },
+    { id: "b24", name: "Threshold", categoryId: "cat6" },
     
     // Amazon Books Brands
     { id: "b25", name: "Penguin Random House", categoryId: "cat9" },
@@ -79,7 +90,25 @@ const DUMMY_DATA = {
     { id: "b28", name: "HP", categoryId: "cat13" },
     { id: "b29", name: "Dell", categoryId: "cat13" },
     { id: "b30", name: "Lenovo", categoryId: "cat13" },
-    { id: "b31", name: "ASUS", categoryId: "cat13" }
+    { id: "b31", name: "ASUS", categoryId: "cat13" },
+    
+    // Amazon Electronics Brands
+    { id: "b32", name: "Amazon Basics", categoryId: "cat10" },
+    { id: "b33", name: "Kindle", categoryId: "cat10" },
+    { id: "b34", name: "Echo", categoryId: "cat10" },
+    { id: "b35", name: "Fire TV", categoryId: "cat10" },
+    
+    // Target Beauty Brands
+    { id: "b36", name: "CeraVe", categoryId: "cat7" },
+    { id: "b37", name: "The Ordinary", categoryId: "cat7" },
+    { id: "b38", name: "Good & Gather", categoryId: "cat7" },
+    { id: "b39", name: "Honest Beauty", categoryId: "cat7" },
+    
+    // Target Kids Brands
+    { id: "b40", name: "Cat & Jack", categoryId: "cat8" },
+    { id: "b41", name: "Art Class", categoryId: "cat8" },
+    { id: "b42", name: "Pillowfort", categoryId: "cat8" },
+    { id: "b43", name: "Brightroom", categoryId: "cat8" }
   ],
   existingWorkspaces: ["Marketing Analysis", "Product Research", "Q1 Planning"]
 };
@@ -95,7 +124,9 @@ const simulateApiDelay = (data, delay = 500) => {
 const API_ENDPOINTS = {
   RETAILERS: '/api/retailers',
   CATEGORIES: '/api/categories',
+  CATEGORIES_BY_RETAILERS: '/api/categories/by-retailers',
   BRANDS: '/api/brands',
+  BRANDS_BY_CATEGORIES: '/api/brands/by-categories',
   CREATE_WORKSPACE: '/api/workspaces',
 };
 
@@ -135,6 +166,29 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
+// NEW: Dynamic category fetching based on selected retailers
+export const fetchCategoriesByRetailers = createAsyncThunk(
+  'workspace/fetchCategoriesByRetailers',
+  async (retailerIds, { rejectWithValue }) => {
+    try {
+      if (USE_DUMMY_DATA) {
+        // Filter dummy categories by selected retailers
+        const filteredCategories = DUMMY_DATA.categories.filter(category => 
+          retailerIds.includes(category.retailerId)
+        );
+        console.log('Fetching categories for retailers:', retailerIds);
+        console.log('Filtered categories:', filteredCategories);
+        return await simulateApiDelay(filteredCategories, 700);
+      }
+      
+      const response = await axios.post(API_ENDPOINTS.CATEGORIES_BY_RETAILERS, { retailerIds });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch categories');
+    }
+  }
+);
+
 export const fetchBrands = createAsyncThunk(
   'workspace/fetchBrands',
   async (_, { rejectWithValue }) => {
@@ -145,6 +199,29 @@ export const fetchBrands = createAsyncThunk(
       }
       
       const response = await axios.get(API_ENDPOINTS.BRANDS);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to fetch brands');
+    }
+  }
+);
+
+// NEW: Dynamic brand fetching based on selected categories
+export const fetchBrandsByCategories = createAsyncThunk(
+  'workspace/fetchBrandsByCategories',
+  async (categoryIds, { rejectWithValue }) => {
+    try {
+      if (USE_DUMMY_DATA) {
+        // Filter dummy brands by selected categories
+        const filteredBrands = DUMMY_DATA.brands.filter(brand => 
+          categoryIds.includes(brand.categoryId)
+        );
+        console.log('Fetching brands for categories:', categoryIds);
+        console.log('Filtered brands:', filteredBrands);
+        return await simulateApiDelay(filteredBrands, 600);
+      }
+      
+      const response = await axios.post(API_ENDPOINTS.BRANDS_BY_CATEGORIES, { categoryIds });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to fetch brands');
@@ -193,12 +270,16 @@ const initialState = {
   isLoadingRetailers: false,
   isLoadingCategories: false,
   isLoadingBrands: false,
+  isFetchingCategories: false, // NEW: For dynamic category fetching
+  isFetchingBrands: false, // NEW: For dynamic brand fetching
   isCreatingWorkspace: false,
   
   // Error states
   retailersError: null,
   categoriesError: null,
   brandsError: null,
+  categoriesFetchError: null, // NEW: For dynamic category fetch errors
+  brandsFetchError: null, // NEW: For dynamic brand fetch errors
   createWorkspaceError: null,
   
   // Form state
@@ -404,7 +485,7 @@ const workspaceSlice = createSlice({
         state.retailersError = action.payload || 'Failed to fetch retailers';
       })
       
-      // Handle categories fetch
+      // Handle categories fetch (original - for fallback)
       .addCase(fetchCategories.pending, (state) => {
         state.isLoadingCategories = true;
         state.categoriesError = null;
@@ -418,7 +499,22 @@ const workspaceSlice = createSlice({
         state.categoriesError = action.payload || 'Failed to fetch categories';
       })
       
-      // Handle brands fetch
+      // NEW: Handle dynamic categories fetch by retailers
+      .addCase(fetchCategoriesByRetailers.pending, (state) => {
+        state.isFetchingCategories = true;
+        state.categoriesFetchError = null;
+      })
+      .addCase(fetchCategoriesByRetailers.fulfilled, (state, action) => {
+        state.isFetchingCategories = false;
+        state.allCategories = action.payload;
+        state.categoriesFetchError = null;
+      })
+      .addCase(fetchCategoriesByRetailers.rejected, (state, action) => {
+        state.isFetchingCategories = false;
+        state.categoriesFetchError = action.payload || 'Failed to fetch categories';
+      })
+      
+      // Handle brands fetch (original - for fallback)
       .addCase(fetchBrands.pending, (state) => {
         state.isLoadingBrands = true;
         state.brandsError = null;
@@ -430,6 +526,21 @@ const workspaceSlice = createSlice({
       .addCase(fetchBrands.rejected, (state, action) => {
         state.isLoadingBrands = false;
         state.brandsError = action.payload || 'Failed to fetch brands';
+      })
+      
+      // NEW: Handle dynamic brands fetch by categories
+      .addCase(fetchBrandsByCategories.pending, (state) => {
+        state.isFetchingBrands = true;
+        state.brandsFetchError = null;
+      })
+      .addCase(fetchBrandsByCategories.fulfilled, (state, action) => {
+        state.isFetchingBrands = false;
+        state.allBrands = action.payload;
+        state.brandsFetchError = null;
+      })
+      .addCase(fetchBrandsByCategories.rejected, (state, action) => {
+        state.isFetchingBrands = false;
+        state.brandsFetchError = action.payload || 'Failed to fetch brands';
       })
       
       // Handle workspace creation
@@ -474,10 +585,14 @@ export const selectRetailersError = (state) => state.workspace.retailersError;
 export const selectAllCategories = (state) => state.workspace.allCategories;
 export const selectIsLoadingCategories = (state) => state.workspace.isLoadingCategories;
 export const selectCategoriesError = (state) => state.workspace.categoriesError;
+export const selectIsFetchingCategories = (state) => state.workspace.isFetchingCategories; // NEW
+export const selectCategoriesFetchError = (state) => state.workspace.categoriesFetchError; // NEW
 
 export const selectAllBrands = (state) => state.workspace.allBrands;
 export const selectIsLoadingBrands = (state) => state.workspace.isLoadingBrands;
 export const selectBrandsError = (state) => state.workspace.brandsError;
+export const selectIsFetchingBrands = (state) => state.workspace.isFetchingBrands; // NEW
+export const selectBrandsFetchError = (state) => state.workspace.brandsFetchError; // NEW
 
 export const selectStep = (state) => state.workspace.step;
 export const selectWorkspaceName = (state) => state.workspace.workspaceName;
