@@ -34,27 +34,27 @@ const App = () => {
     }
   }, []);
 
-   useEffect(() => {
-    const fetchMessage = async () => {
-      try {
-        const response = await fetch('http://172.16.10.9:5000');
+  //  useEffect(() => {
+  //   const fetchMessage = async () => {
+  //     try {
+  //       const response = await fetch('http://172.16.10.9:5000');
 
-        console.log("Raw response:", response);
+  //       console.log("Raw response:", response);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! status: ${response.status}`);
+  //       }
 
-        const data = await response.json();
-        console.log("Response data:", data);
+  //       const data = await response.json();
+  //       console.log("Response data:", data);
 
-      } catch (error) {
-        console.error("❌ Failed to fetch from backend:", error.message);
-      }
-    };
+  //     } catch (error) {
+  //       console.error("❌ Failed to fetch from backend:", error.message);
+  //     }
+  //   };
 
-    fetchMessage();
-  }, []);
+  //   fetchMessage();
+  // }, []);
 
 
   return (
@@ -80,7 +80,7 @@ const App = () => {
         </Route>
 
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/resetPassword" element={<ResetPassword />} />
+        <Route path="/resetPassword/:token" element={<ResetPassword />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* These routes are now nested inside the Home layout */}

@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/slices/authSlice';
 import { Eye, EyeOff } from 'lucide-react';
+import { forgotPassword } from '../redux/slices/authSlice';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
-  
+
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -24,17 +26,17 @@ const LoginPage = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
-  
+
     if (!email || !password) {
       toast.error('Please fill in all fields.');
       return;
     }
-  
+
     console.log('Dispatching loginUser...');
     const resultAction = await dispatch(loginUser({ email, password }));
-  
+
     console.log('Result Action:', resultAction);
-  
+
     if (loginUser.fulfilled.match(resultAction)) {
       console.log('Login successful, navigating...');
       navigate('/');
@@ -50,7 +52,7 @@ const LoginPage = () => {
     }
 
     setResetStatus('sending');
-
+    dispatch(forgotPassword(resetEmail));
     setTimeout(() => {
       setResetStatus('sent');
       toast.success(`Reset link sent to ${resetEmail}`);
@@ -73,7 +75,7 @@ const LoginPage = () => {
                 <img src="/icon.png" alt="DSIQ Logo" className="h-16 w-auto" />
               </div>
             </div>
-      
+
             {/* Form Container */}
             <div className="bg-white rounded-lg shadow-sm border border-light-gray p-8 w-full">
               {showReset ? (
@@ -97,19 +99,18 @@ const LoginPage = () => {
                   <button
                     onClick={handleResetSubmit}
                     disabled={resetStatus !== 'idle'}
-                    className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all duration-200 ${
-                      resetStatus === 'sending'
+                    className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all duration-200 ${resetStatus === 'sending'
                         ? 'bg-gray cursor-not-allowed'
                         : resetStatus === 'sent'
-                        ? 'bg-success-green cursor-not-allowed'
-                        : 'bg-primary-orange hover:bg-accent-magenta'
-                    }`}
+                          ? 'bg-success-green cursor-not-allowed'
+                          : 'bg-primary-orange hover:bg-accent-magenta'
+                      }`}
                   >
                     {resetStatus === 'sending'
                       ? 'Sending...'
                       : resetStatus === 'sent'
-                      ? 'Link Sent!'
-                      : 'Send Reset Link'}
+                        ? 'Link Sent!'
+                        : 'Send Reset Link'}
                   </button>
 
                   <button
@@ -164,9 +165,9 @@ const LoginPage = () => {
 
                   <div className="mb-6 flex items-center justify-between">
                     <label className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        className="h-4 w-4 text-primary-orange rounded focus:outline-none focus:ring-2 focus:ring-primary-orange border-light-gray" 
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-primary-orange rounded focus:outline-none focus:ring-2 focus:ring-primary-orange border-light-gray"
                       />
                       <span className="ml-2 text-body text-dark-gray">Remember me</span>
                     </label>
@@ -201,7 +202,7 @@ const LoginPage = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Footer */}
             <div className="mt-8 text-center">
               <div className="text-small text-gray">
@@ -211,7 +212,7 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Right Side - Brand Section */}
         <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
           <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
@@ -220,7 +221,7 @@ const LoginPage = () => {
               <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
                 <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
               </div>
-              
+
               <h3 className="text-h3 font-semibold mb-6">Coming Soon</h3>
               <p className="text-body-lg mb-8 leading-relaxed">
                 Our revolutionary data analytics platform will transform how your business makes decisions.
@@ -229,9 +230,9 @@ const LoginPage = () => {
               <p className="text-small opacity-80">
                 Unlock the power of your data with intelligent insights
               </p>
-            </div> 
-          </div> 
-        </div> 
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
