@@ -9,7 +9,6 @@ import { registerAdmin } from '../redux/slices/authSlice';
 import { Eye, EyeOff } from 'lucide-react';
 
 const countries = [ 
-  // Adding more countries with their phone codes
   { id: 'us', name: 'United States', flag: '🇺🇸', phoneCode: '+1' },
   { id: 'ca', name: 'Canada', flag: '🇨🇦', phoneCode: '+1' },
   { id: 'gb', name: 'United Kingdom', flag: '🇬🇧', phoneCode: '+44' },
@@ -40,7 +39,7 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     countryId: '',
-    });
+  });
 
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +47,6 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Default to US (or your preferred default country)
     const defaultCountry = countries.find(c => c.id === 'us');
     setFormData(prev => ({ 
       ...prev, 
@@ -66,17 +64,13 @@ const RegisterPage = () => {
     const selectedCountry = e.value;
     const countryId = selectedCountry && selectedCountry.id ? selectedCountry.id : '';
     
-    // Update country ID in form data
     setFormData(prev => ({ 
       ...prev, 
       countryId 
     }));
     
-    // Update phone code prefix in contact number if a country is selected
     if (selectedCountry && selectedCountry.phoneCode) {
-      // Get current phone number without any country code
       const currentNumber = formData.contactNumber.replace(/^\+\d+\s*/, '');
-      // Set new phone number with the selected country's code
       setFormData(prev => ({ 
         ...prev, 
         contactNumber: `${selectedCountry.phoneCode} ${currentNumber}`.trim() 
@@ -102,8 +96,6 @@ const RegisterPage = () => {
       return;
     }
 
-    // Phone number validation - accepting country code format
-    // This regex allows a plus sign, followed by digits, optional spaces, and more digits
     const phoneRegex = /^\+\d+[\s\d]{5,14}$/;
     if (!phoneRegex.test(contactNumber)) {
       toast.error('Please enter a valid contact number with country code');
@@ -173,42 +165,72 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Add ToastContainer here */}
+    <div className="flex min-h-screen bg-cream font-sans">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       
       {/* Left Side - Registration Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-white">
         <div className="w-full max-w-md">
           <div className="mb-6 text-center">
-            <img src="/icon.png" alt="DSIQ Logo" className="h-12 w-auto mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Registration</h1>
+            <div className="h-16 w-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+              <img src="/icon.png" alt="DSIQ Logo" className="h-12 w-auto" />
+            </div>
+            <h1 className="text-h2 text-dark-gray mb-2 font-medium">Admin Registration</h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full">
-            <h2 className="text-xl font-semibold text-gray-700 mb-6">Register your company to get started</h2>
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-light-gray p-8 w-full">
+            <h2 className="text-h3 text-dark-gray mb-6 font-medium">Register your company to get started</h2>
+            
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <Input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="John Doe" className="w-full" />
+              <label className="block text-body font-medium text-dark-gray mb-2">Full Name</label>
+              <Input 
+                type="text" 
+                name="fullName" 
+                value={formData.fullName} 
+                onChange={handleChange} 
+                placeholder="John Doe" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+              />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-              <Input type="text" name="companyName" value={formData.companyName} onChange={handleChange} placeholder="Acme Inc." className="w-full" />
+              <label className="block text-body font-medium text-dark-gray mb-2">Company Name</label>
+              <Input 
+                type="text" 
+                name="companyName" 
+                value={formData.companyName} 
+                onChange={handleChange} 
+                placeholder="Acme Inc." 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+              />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Company Email ID</label>
-              <Input type="email" name="companyEmail" value={formData.companyEmail} onChange={handleChange} placeholder="admin@acme.com" className="w-full" />
+              <label className="block text-body font-medium text-dark-gray mb-2">Company Email ID</label>
+              <Input 
+                type="email" 
+                name="companyEmail" 
+                value={formData.companyEmail} 
+                onChange={handleChange} 
+                placeholder="admin@acme.com" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+              />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <Input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="123 Business St, City, State" className="w-full" />
+              <label className="block text-body font-medium text-dark-gray mb-2">Address</label>
+              <Input 
+                type="text" 
+                name="address" 
+                value={formData.address} 
+                onChange={handleChange} 
+                placeholder="123 Business St, City, State" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+              />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">Country</label>
               <ComboBox
                 data={filteredCountries}
                 textField="name"
@@ -220,24 +242,24 @@ const RegisterPage = () => {
                 itemRender={countryItemRender}
                 valueRender={countryValueRender}
                 placeholder="Select Country"
-                className="w-full"
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">Contact Number</label>
               <Input 
                 type="tel" 
                 name="contactNumber" 
                 value={formData.contactNumber} 
                 onChange={handleChange} 
                 placeholder="Phone number" 
-                className="w-full" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">Password</label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
@@ -245,16 +267,20 @@ const RegisterPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full !pr-10"
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
                 />
-                <button type="button" className="absolute inset-y-0 right-0 px-3 text-gray-600" onClick={togglePasswordVisibility}>
+                <button 
+                  type="button" 
+                  className="absolute inset-y-0 right-0 px-3 text-gray hover:text-dark-gray transition-colors"
+                  onClick={togglePasswordVisibility}
+                >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">Confirm Password</label>
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -262,45 +288,60 @@ const RegisterPage = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full !pr-10"
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
                 />
-                <button type="button" className="absolute inset-y-0 right-0 px-3 text-gray-600" onClick={toggleConfirmPasswordVisibility}>
+                <button 
+                  type="button" 
+                  className="absolute inset-y-0 right-0 px-3 text-gray hover:text-dark-gray transition-colors"
+                  onClick={toggleConfirmPasswordVisibility}
+                >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            <button primary type="submit" className="w-full bg-indigo-600 text-white py-2.5 px-4 rounded hover:bg-indigo-700 transition">
+            <button
+              type="submit"
+              className="w-full bg-primary-orange text-white py-3 px-4 rounded-md hover:bg-accent-magenta transition-all duration-200 text-button font-medium"
+            >
               Register
             </button>
 
-            <p className="mt-5 text-center text-sm text-gray-500">
+            <p className="mt-6 pt-6 border-t border-light-gray text-center text-body text-gray">
               Already registered?{' '}
-              <a href="/login" className="text-indigo-600 hover:underline">
+              <a href="/login" className="text-primary-orange hover:text-accent-magenta hover:underline transition-colors">
                 Log in
               </a>
             </p>
           </form>
+
           {/* Footer */}
           <div className="mt-8 text-center">
-            <div className="text-xs text-gray-500">
-              © 2025 DSIQ, Inc. All rights reserved. | Privacy
+            <div className="text-small text-gray">
+              © 2025 DSIQ, Inc. All rights reserved. |{' '}
+              <a href="#" className="hover:underline">Privacy</a>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Right Side - Advertisement */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
-        <div className="flex flex-col justify-center items-center p-8 w-full">
-          <div className="max-w-lg text-center">
-            <h2 className="text-4xl font-bold mb-6">DSIQ Platform</h2>
-            <div className="h-32 w-32 mx-auto mb-8 bg-white rounded-full flex items-center justify-center">
-              <img src="/icon.png" alt="DSIQ Logo" className="h-24 w-auto" />
+      {/* Right Side - Brand Section */}
+      <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
+        <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-h1 font-bold mb-8">DSIQ Platform</h2>
+            <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+              <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
             </div>
             
-            <h3 className="text-2xl font-semibold mb-4">Coming Soon</h3>
-            <p className="text-lg mb-6">Our revolutionary data analytics platform will transform how your business makes decisions.</p>
+            <h3 className="text-h3 font-semibold mb-6">Coming Soon</h3>
+            <p className="text-body-lg mb-8 leading-relaxed">
+              Our revolutionary data analytics platform will transform how your business makes decisions.
+            </p>
+            <div className="h-1 w-24 bg-white opacity-30 mx-auto mb-8"></div>
+            <p className="text-small opacity-80">
+              Unlock the power of your data with intelligent insights
+            </p>
           </div> 
         </div> 
       </div> 

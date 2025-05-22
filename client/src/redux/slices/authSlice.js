@@ -22,7 +22,7 @@ export const loginUser = createAsyncThunk(
         return dummyData;
       }
 
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post('login', { email, password });
       const data = response.data;
 
       localStorage.setItem('authToken', data.accessToken);
@@ -56,7 +56,7 @@ export const registerAdmin = createAsyncThunk(
       }
 
       // Real API call
-      const response = await axios.post('/api/auth/register-admin', {
+      const response = await axios.post('/register-admin', {
         fullName,
         companyName,
         email,
