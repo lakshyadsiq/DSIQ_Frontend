@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './navbar.css'; 
 import {
   TableOfContents,
   Bell,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import ProfileDropdown from './ProfileDropdown';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { gsap } from 'gsap';
 
 const initialApps = [
   { id: 1, name: 'Digital Shelf iQ', icon: '📊', description: 'Product visibility analytics' },
@@ -34,12 +34,9 @@ const mockWorkspaces = [
   { id: 8, name: "Asia Pacific Region" },
 ];
 
-// Mock API function to send pinned app to backend
 const sendPinnedAppToBackend = async (app) => {
-  // In a real implementation, this would be an API call
   try {
     console.log('Sending pinned app to backend:', app);
-    // Mock successful API call
     return { success: true, data: app };
   } catch (error) {
     console.error('Error sending pinned app to backend:', error);
@@ -55,43 +52,158 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const [currentWorkspace, setCurrentWorkspace] = useState({ id: 1, name: "Marketing Team" });
   const [pinnedApp, setPinnedApp] = useState(null);
   const [apps, setApps] = useState([...initialApps]);
-  const [activeApp, setActiveApp] = useState(null); // New state to track the active app
+  const [activeApp, setActiveApp] = useState(null);
+  
+  // Refs for GSAP animations
+  const navRef = useRef(null);
   const workspaceDropdownRef = useRef(null);
   const appDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+  const workspaceDropdownContentRef = useRef(null);
+  const appDropdownContentRef = useRef(null);
+  const profileDropdownContentRef = useRef(null);
+  const sidebarToggleRef = useRef(null);
+  const appButtonRef = useRef(null);
+  const workspaceButtonRef = useRef(null);
+  const createButtonRef = useRef(null);
+  const navButtonsRef = useRef([]);
+  const loginButtonsRef = useRef([]);
+  
   const navigate = useNavigate();
-  const location = useLocation(); // Get current route
+  const location = useLocation(); 
 
-  // Check if we're on home page
   const isSettingOrHelp = location.pathname === '/settings' || location.pathname === '/help';
-  // Determine if we should show the main navigation elements
   const showMainNav = !isLoggedIn || isSettingOrHelp;
 
-  // Load selectedApp from localStorage on mount
+  // GSAP Animation Functions
+  const animateDropdownOpen = (element) => {
+    gsap.fromTo(element, 
+      { 
+        opacity: 0, 
+        y: -10, 
+        scale: 0.95,
+        transformOrigin: "top center"
+      },
+      { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        duration: 0.3, 
+        ease: "back.out(1.7)"
+      }
+    );
+  };
+
+  const animateDropdownClose = (element, onComplete) => {
+    gsap.to(element, {
+      opacity: 0,
+      y: -10,
+      scale: 0.95,
+      duration: 0.2,
+      ease: "power2.in",
+      onComplete
+    });
+  };
+
+  const animateButtonHover = (element, isHovering) => {
+    gsap.to(element, {
+      scale: isHovering ? 1.05 : 1,
+      duration: 0.2,
+      ease: "power2.out"
+    });
+  };
+
+  const animateIconRotation = (element, rotation = 180) => {
+    gsap.to(element, {
+      rotation,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  };
+
+  const animateNavbarEntry = () => {
+    gsap.fromTo(navRef.current,
+      { y: -100, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+    );
+  };
+
+  const animateButtonPress = (element) => {
+    gsap.to(element, {
+      scale: 0.95,
+      duration: 0.1,
+      ease: "power2.out",
+      yoyo: true,
+      repeat: 1
+    });
+    
+  };
+
+  const animatePinIcon = (element, isPinned) => {
+    gsap.to(element, {
+      scale: isPinned ? 1.2 : 1,
+      rotation: isPinned ? 15 : 0,
+      duration: 0.3,
+      ease: "back.out(1.7)"
+    });
+  };
+
   useEffect(() => {
-    // First try to load from localStorage
+    // Animate navbar on mount
+    animateNavbarEntry();
+
+    // Set up hover animations for nav buttons
+    navButtonsRef.current.forEach(button => {
+      if (button) {
+        const handleMouseEnter = () => animateButtonHover(button, true);
+        const handleMouseLeave = () => animateButtonHover(button, false);
+        
+        button.addEventListener('mouseenter', handleMouseEnter);
+        button.addEventListener('mouseleave', handleMouseLeave);
+        
+        return () => {
+          button.removeEventListener('mouseenter', handleMouseEnter);
+          button.removeEventListener('mouseleave', handleMouseLeave);
+        };
+      }
+    });
+
+    // Set up hover animations for login buttons
+    loginButtonsRef.current.forEach(button => {
+      if (button) {
+        const handleMouseEnter = () => animateButtonHover(button, true);
+        const handleMouseLeave = () => animateButtonHover(button, false);
+        
+        button.addEventListener('mouseenter', handleMouseEnter);
+        button.addEventListener('mouseleave', handleMouseLeave);
+        
+        return () => {
+          button.removeEventListener('mouseenter', handleMouseEnter);
+          button.removeEventListener('mouseleave', handleMouseLeave);
+        };
+      }
+    });
+  }, [isLoggedIn]);
+
+  useEffect(() => {
     const storedSelectedApp = localStorage.getItem('selectedApp');
     if (storedSelectedApp) {
       try {
         const parsed = JSON.parse(storedSelectedApp);
-        setSelectedApp(parsed); // Set in parent component
-        setActiveApp(parsed); // Also track locally
+        setSelectedApp(parsed);
+        setActiveApp(parsed);
       } catch (error) {
         console.error('Error parsing stored selected app:', error);
         localStorage.removeItem('selectedApp');
       }
     }
     
-    // Then fetch pinned app (only used if no selectedApp is found)
     const fetchPinnedApp = async () => {
       try {
-        // Simulated backend response
-        const response = { success: true, data: null }; // No pinned app initially
-        
+        const response = { success: true, data: null };
         if (response.success && response.data) {
           setPinnedApp(response.data);
           reorderApps(response.data);
-          
-          // Only use pinned app as active if no selectedApp was found
           if (!storedSelectedApp) {
             setActiveApp(response.data);
           }
@@ -104,7 +216,6 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
     fetchPinnedApp();
   }, []);
 
-  // Update the active app whenever selectedApp changes from props
   useEffect(() => {
     if (selectedApp) {
       setActiveApp(selectedApp);
@@ -115,15 +226,48 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (workspaceDropdownRef.current && !workspaceDropdownRef.current.contains(event.target)) {
-        setIsWorkspaceDropdownOpen(false);
+        if (isWorkspaceDropdownOpen) {
+          animateDropdownClose(workspaceDropdownContentRef.current, () => {
+            setIsWorkspaceDropdownOpen(false);
+          });
+        }
       }
       if (appDropdownRef.current && !appDropdownRef.current.contains(event.target)) {
-        setIsAppDropdownOpen(false);
+        if (isAppDropdownOpen) {
+          animateDropdownClose(appDropdownContentRef.current, () => {
+            setIsAppDropdownOpen(false);
+          });
+        }
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        if (isProfileOpen) {
+          animateDropdownClose(profileDropdownContentRef.current, () => {
+            setIsProfileOpen(false);
+          });
+        }
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isWorkspaceDropdownOpen, isAppDropdownOpen, isProfileOpen]);
+
+  useEffect(() => {
+    if (isWorkspaceDropdownOpen && workspaceDropdownContentRef.current) {
+      animateDropdownOpen(workspaceDropdownContentRef.current);
+    }
+  }, [isWorkspaceDropdownOpen]);
+
+  useEffect(() => {
+    if (isAppDropdownOpen && appDropdownContentRef.current) {
+      animateDropdownOpen(appDropdownContentRef.current);
+    }
+  }, [isAppDropdownOpen]);
+
+  useEffect(() => {
+    if (isProfileOpen && profileDropdownContentRef.current) {
+      animateDropdownOpen(profileDropdownContentRef.current);
+    }
+  }, [isProfileOpen]);
 
   const filteredWorkspaces = mockWorkspaces.filter(workspace =>
     workspace.name.toLowerCase().includes(workspaceSearch.toLowerCase())
@@ -131,14 +275,18 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
 
   const selectWorkspace = (workspace) => {
     setCurrentWorkspace(workspace);
-    setIsWorkspaceDropdownOpen(false);
+    animateDropdownClose(workspaceDropdownContentRef.current, () => {
+      setIsWorkspaceDropdownOpen(false);
+    });
   };
 
   const selectApp = (app) => {
     setSelectedApp(app);
     setActiveApp(app);
     localStorage.setItem('selectedApp', JSON.stringify(app));
-    setIsAppDropdownOpen(false);
+    animateDropdownClose(appDropdownContentRef.current, () => {
+      setIsAppDropdownOpen(false);
+    });
   };
 
   const reorderApps = (pinned) => {
@@ -154,39 +302,88 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const togglePinApp = async (app, e) => {
     e.stopPropagation();
     const isCurrentlyPinned = pinnedApp && pinnedApp.id === app.id;
+    const pinIcon = e.target.closest('button');
 
     if (isCurrentlyPinned) {
-      // Send null to backend to unpin
       const response = await sendPinnedAppToBackend(null);
       if (response.success) {
         setPinnedApp(null);
         setApps([...initialApps]);
+        animatePinIcon(pinIcon, false);
       }
     } else {
-      // Send app to backend to pin
       const response = await sendPinnedAppToBackend(app);
       if (response.success) {
         setPinnedApp(app);
         reorderApps(app);
+        animatePinIcon(pinIcon, true);
       }
     }
   };
 
-  // Use activeApp as the primary source for displaying the selected app
+  const handleSidebarToggle = () => {
+    if (sidebarToggleRef.current) {
+      animateButtonPress(sidebarToggleRef.current);
+    }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleAppDropdownToggle = () => {
+    if (appButtonRef.current) {
+      animateButtonPress(appButtonRef.current);
+      const chevron = appButtonRef.current.querySelector('[data-chevron]');
+      if (chevron) {
+        animateIconRotation(chevron, isAppDropdownOpen ? 0 : 180);
+      }
+    }
+    setIsAppDropdownOpen(!isAppDropdownOpen);
+  };
+
+  const handleWorkspaceDropdownToggle = () => {
+    if (workspaceButtonRef.current) {
+      animateButtonPress(workspaceButtonRef.current);
+      const chevron = workspaceButtonRef.current.querySelector('[data-chevron]');
+      if (chevron) {
+        animateIconRotation(chevron, isWorkspaceDropdownOpen ? 0 : 180);
+      }
+    }
+    setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen);
+  };
+
+  const handleCreateButtonClick = (e) => {
+    e.stopPropagation();
+    gsap.to(e.currentTarget, {
+      rotate: 180,
+      duration: 0.3
+    });
+    if (createButtonRef.current) {
+      animateButtonPress(createButtonRef.current);
+    }
+    navigate('/workspaceCreate');
+  };
+
+  const handleProfileToggle = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
   const displayApp = activeApp || (pinnedApp || { name: "Apps" });
 
   return (
-    <nav className ={`flex !h-[64px] items-center justify-between ${showMainNav ?  "pr-4" : "p-4" } bg-gray-800 border-b border-gray-700 transition-colors duration-300`}>
+    <nav 
+      ref={navRef}
+      className={`flex h-16 items-center justify-between ${showMainNav ? "pr-4" : "px-6"} bg-peach hover:bg-white `}
+    >
       {/* Left Section */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-6">
         {isLoggedIn ? (
           <>
             {!showMainNav ? (
               <>
                 {/* Sidebar Toggle */}
                 <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 rounded-md text-gray-300 hover:bg-gray-700"
+                  ref={sidebarToggleRef}
+                  onClick={handleSidebarToggle}
+                  className="p-2 rounded-md text-gray-600 hover:bg-primary-orange hover:text-white transition-colors"
                 >
                   {isSidebarOpen ? <TableOfContents size={20} /> : <ArrowRightFromLine size={20} />}
                 </button>
@@ -194,41 +391,48 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                 {/* Apps Dropdown */}
                 <div className="relative" ref={appDropdownRef}>
                   <button
-                    onClick={() => setIsAppDropdownOpen(!isAppDropdownOpen)}
-                    className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40 text-gray-200 "
+                    ref={appButtonRef}
+                    onClick={handleAppDropdownToggle}
+                    className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta rounded-md flex items-center justify-between min-w-40 text-white shadow-md hover:shadow-lg transition-all"
                   >
                     <div className="flex items-center space-x-2">
                       {displayApp.icon && <span>{displayApp.icon}</span>}
-                      <span>{displayApp.name}</span>
+                      <span className="font-medium">{displayApp.name}</span>
                     </div>
-                    <ChevronDown size={16} className="ml-2" />
+                    <ChevronDown size={16} className="ml-2" data-chevron />
                   </button>
 
                   {isAppDropdownOpen && (
-                    <div className="absolute left-0 mt-1 w-72 bg-gray-900 rounded-md shadow-lg py-2 z-50 border border-gray-700">
+                    <div 
+                      ref={appDropdownContentRef}
+                      className="absolute left-0 mt-2 w-72 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-200"
+                    >
+                      <div className="px-3 py-2 border-b border-gray-200 bg-cream">
+                        <h3 className="text-sm font-medium text-dark-gray">Applications</h3>
+                      </div>
                       {apps.map((app) => {
                         const isPinned = pinnedApp && pinnedApp.id === app.id;
                         const isActive = activeApp && activeApp.id === app.id;
                         return (
                           <div
                             key={app.id}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-start space-x-2 cursor-pointer ${
-                              isActive ? 'bg-gray-800' : ''
+                            className={`w-full text-left px-4 py-3 hover:bg-peach flex items-start space-x-3 cursor-pointer transition-colors ${
+                              isActive ? 'bg-peach' : ''
                             }`}
                             onClick={() => selectApp(app)}
                           >
                             <span className="text-xl">{app.icon}</span>
                             <div className="flex-1">
-                              <div className="font-medium text-gray-200">{app.name}</div>
-                              <div className="text-xs text-gray-400">{app.description}</div>
+                              <div className="font-medium text-dark-gray">{app.name}</div>
+                              <div className="text-xs text-gray-500">{app.description}</div>
                             </div>
                             <button 
                               onClick={(e) => togglePinApp(app, e)}
-                              className="p-1 text-gray-400 hover:text-gray-300"
+                              className="p-1 text-gray-400 hover:text-primary-orange transition-colors"
                               title={isPinned ? "Unpin app" : "Pin app"}
                             >
                               {isPinned ? 
-                                <Pin size={16} className="fill-blue-500 text-blue-500" /> : 
+                                <Pin size={16} className="fill-primary-orange text-primary-orange" /> : 
                                 <PinOff size={16} />
                               }
                             </button>
@@ -240,27 +444,25 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                 </div>
 
                 {/* Workspace Dropdown */}
-                <div className="relative flex" ref={workspaceDropdownRef}>
+                <div className="relative flex items-center" ref={workspaceDropdownRef}>
                   <button
-                    onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
-                    className="px-4 py-1.5 bg-gray-700 rounded-md flex items-center justify-between min-w-40"
+                    ref={workspaceButtonRef}
+                    onClick={handleWorkspaceDropdownToggle}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-md flex items-center justify-between min-w-40 text-dark-gray hover:border-primary-orange transition-colors"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-200 truncate max-w-32">
+                      <span className="truncate max-w-32 font-medium">
                         {currentWorkspace.name}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <ChevronDown size={16} className="text-gray-200" />
-                    </div>
+                    <ChevronDown size={16} className="text-gray-500" data-chevron />
                   </button>
                   <div className="relative group">
                     <button
-                      className="p-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition duration-200 flex items-center justify-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate('/workspaceCreate');
-                      }}
+                      ref={createButtonRef}
+                      className="ml-2 p-2 bg-primary-orange text-white rounded-md hover:bg-accent-magenta transition-colors shadow-md"
+                      onClick={handleCreateButtonClick}
+                      
                     >
                       <Plus size={16} />
                     </button>
@@ -270,21 +472,24 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   </div>
 
                   {isWorkspaceDropdownOpen && (
-                    <div className="absolute left-0 mt-10 w-72 bg-gray-900 rounded-md shadow-lg z-50 border border-gray-700 flex flex-col">
-                      <div className="px-3 py-2 border-b border-gray-700">
+                    <div 
+                      ref={workspaceDropdownContentRef}
+                      className="absolute left-0 top-12 w-72 bg-white rounded-md shadow-lg z-50 border border-gray-200 flex flex-col"
+                    >
+                      <div className="px-3 py-2 border-b border-gray-200 bg-cream">
                         <div className="relative">
-                          <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
+                          <Search size={16} className="absolute left-3 top-3 text-gray-400" />
                           <input
                             type="text"
                             placeholder="Search workspaces..."
                             value={workspaceSearch}
                             onChange={(e) => setWorkspaceSearch(e.target.value)}
-                            className="pl-8 pr-8 py-2 w-full bg-gray-800 border border-gray-700 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-200"
+                            className="pl-10 pr-3 py-2 w-full bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-orange focus:border-transparent text-dark-gray"
                           />
                           {workspaceSearch && (
                             <button
                               onClick={() => setWorkspaceSearch('')}
-                              className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-300"
+                              className="absolute right-3 top-3 text-gray-400 hover:text-primary-orange"
                             >
                               <X size={16} />
                             </button>
@@ -292,33 +497,35 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                         </div>
                       </div>
 
-                      <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                      <div className="max-h-60 overflow-y-auto">
                         {filteredWorkspaces.length > 0 ? (
                           filteredWorkspaces.map(workspace => (
                             <button
                               key={workspace.id}
                               onClick={() => selectWorkspace(workspace)}
-                              className={`w-full text-left px-4 py-2 hover:bg-gray-800 flex items-center ${
-                                currentWorkspace.id === workspace.id ? 'bg-gray-800' : ''
+                              className={`w-full text-left px-4 py-3 hover:bg-peach flex items-center transition-colors ${
+                                currentWorkspace.id === workspace.id ? 'bg-peach font-medium' : ''
                               }`}
                             >
-                              <span className="text-gray-200">{workspace.name}</span>
+                              <span className="text-dark-gray">{workspace.name}</span>
                             </button>
                           ))
                         ) : (
-                          <div className="px-4 py-2 text-gray-400 text-center">
+                          <div className="px-4 py-3 text-gray-500 text-center">
                             No workspaces found
                           </div>
                         )}
                       </div>
 
-                      <div className="mt-auto border-t border-gray-700">
+                      <div className="mt-auto border-t border-gray-200 bg-cream">
                         <button
                           onClick={() => {
-                            setIsWorkspaceDropdownOpen(false);
+                            animateDropdownClose(workspaceDropdownContentRef.current, () => {
+                              setIsWorkspaceDropdownOpen(false);
+                            });
                             navigate('/viewWorkspace');
                           }}
-                          className="w-full text-center py-2 text-indigo-400 hover:text-indigo-300 font-medium"
+                          className="w-full text-center py-3 text-primary-orange hover:text-accent-magenta font-medium transition-colors"
                         >
                           See all workspaces
                         </button>
@@ -328,74 +535,73 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                 </div>
               </>
             ) : (
-              // Logo for non-homepage routes when logged in
-              <div className="flex items-center justify-center h-full relative w-64 lg:w-72 xl:w-80">
-                <div>
-                  <img src="./1.png" alt="Full Logo" className="h-28 w-auto" />
-                </div>
+              <div className="flex items-center">
+                <img src="./1.png" alt="Full Logo" className="h-30" />
               </div>
             )}
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center">
             <a href="/">
-              <img src="./1.png" alt="Company Logo" className="h-36 w-auto object-contain" />
+              <img src="./1.png" alt="Company Logo" className="h-12" />
             </a>
           </div>
         )}
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center space-x-3">
-        {/* Help button with tooltip */}
-        {location.pathname === '/help' ? (null): (<div className="relative group">
-          <button
-            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200"
-            aria-label="Help"
-            onClick={() => navigate('/help')}
-          >
-            <HelpCircle size={20} />
-          </button>
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
-            Help
-          </div>
-        </div>) }
-        
+      <div className="flex items-center space-x-4">
+        { !isSettingOrHelp && isLoggedIn && (
+          <>
+            <div className="relative group">
+              <button
+                ref={el => navButtonsRef.current[0] = el}
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors"
+                aria-label="Help"
+                onClick={() => navigate('/help')}
+              >
+                <HelpCircle size={20} />
+              </button>
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
+                Help
+              </div>
+            </div>
 
-        {/* Settings button with tooltip */}
-        {location.pathname === '/settings' ? (null): (<div className="relative group">
-          <button 
-            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
-            aria-label="Settings"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings size={20} />
-          </button>
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
-            Settings
-          </div>
-        </div>)}
-        
+            <div className="relative group">
+              <button 
+                ref={el => navButtonsRef.current[1] = el}
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors" 
+                aria-label="Settings"
+                onClick={() => navigate('/settings')}
+              >
+                <Settings size={20} />
+              </button>
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
+                Settings
+              </div>
+            </div>
 
-        {/* Notifications button with tooltip */}
-        <div className="relative group">
-          <button 
-            className="p-2 rounded-md text-gray-200 hover:bg-gray-600 transition-colors duration-200" 
-            aria-label="Notifications"
-          >
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-gray-800"></span>
-          </button>
-          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
-            Notifications
-          </div>
-        </div>
+            <div className="relative group">
+              <button 
+                ref={el => navButtonsRef.current[2] = el}
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors relative" 
+                aria-label="Notifications"
+              >
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-accent-magenta rounded-full border-2 border-white"></span>
+              </button>
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
+                Notifications
+              </div>
+            </div>
+          </>
+        )}
 
         {isLoggedIn ? (
-          <div className="relative group">
+          <div className="relative group" ref={profileDropdownRef}>
             <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="w-8 h-8 rounded-full bg-gray-400 overflow-hidden hover:ring-2 hover:ring-gray-300 transition-all duration-200 flex items-center justify-center"
+              onClick={handleProfileToggle}
+              className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-orange transition-all duration-200 flex items-center justify-center"
               aria-label="User menu"
               aria-expanded={isProfileOpen}
             >
@@ -407,18 +613,33 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
               Profile
-            </div>
+            </div>  
 
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-55.5 bg-gray-800 rounded-md shadow-lg py-0 z-50 border border-gray-700">
+              <div 
+                ref={profileDropdownContentRef}
+                className="absolute right-0 mt-2 w-57 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+              >
                 <ProfileDropdown onClose={() => setIsProfileOpen(false)} />
               </div>
             )}
           </div>
         ) : (
-          <div className="flex items-center space-x-2">
-            <button className="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Login</button>
-            <button className="px-4 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Sign Up</button>
+          <div className="flex items-center space-x-3">
+            <button 
+              ref={el => loginButtonsRef.current[0] = el}
+              onClick={() => navigate('/login')}
+              className="px-4 py-2 bg-white border border-primary-orange text-primary-orange rounded-md hover:bg-primary-orange hover:text-white transition-colors font-medium"
+            >
+              Login
+            </button>
+            <button 
+              ref={el => loginButtonsRef.current[1] = el}
+              onClick={() => navigate('/signup')}
+              className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta text-white rounded-md hover:shadow-md transition-all font-medium"
+            >
+              Sign Up
+            </button>
           </div>
         )}
       </div>

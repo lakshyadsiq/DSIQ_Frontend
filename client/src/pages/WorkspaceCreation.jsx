@@ -23,8 +23,8 @@ import clsx from "clsx"
 // Import Redux actions and selectors
 import {
   fetchRetailers,
-  fetchCategories,
-  fetchBrands,
+  fetchCategoriesByRetailers,
+  fetchBrandsByCategories, 
   createWorkspace,
   nextStep as nextStepAction,
   prevStep as prevStepAction,
@@ -40,8 +40,6 @@ import {
   setRetailerSearch,
   setCategorySearch,
   setBrandSearch,
-  resetWorkspaceForm,
-  // Selectors
   selectRetailers,
   selectAllCategories,
   selectAllBrands,
@@ -64,7 +62,9 @@ import {
   selectIsCreatingWorkspace,
   selectCreateWorkspaceError,
   selectCategoriesByRetailer,
-  selectAllSelectedCategoriesFlat
+  selectAllSelectedCategoriesFlat,
+  selectIsFetchingCategories,
+  selectIsFetchingBrands,
 } from "../redux/slices/workspaceSlice" 
 
 export default function WorkspaceCreation({}) {
@@ -72,7 +72,7 @@ export default function WorkspaceCreation({}) {
   const navigate = useNavigate()
 
   // Redux state selectors
-  const retailers = useSelector(selectRetailers) || [] // Provide default empty array
+  const retailers = useSelector(selectRetailers) || []
   const allCategories = useSelector(selectAllCategories) || []
   const allBrands = useSelector(selectAllBrands) || []
   const step = useSelector(selectStep)
@@ -94,13 +94,46 @@ export default function WorkspaceCreation({}) {
   const isCreatingWorkspace = useSelector(selectIsCreatingWorkspace)
   const createWorkspaceError = useSelector(selectCreateWorkspaceError)
   const selectedCategoriesFlat = useSelector(selectAllSelectedCategoriesFlat) || []
+  const isFetchingCategories = useSelector(selectIsFetchingCategories) || false
+  const isFetchingBrands = useSelector(selectIsFetchingBrands) || false
 
-  // Fetch data on component mount
+  // Fetch retailers on component mount
   useEffect(() => {
     dispatch(fetchRetailers())
-    dispatch(fetchCategories())
-    dispatch(fetchBrands())
   }, [dispatch])
+
+  // Fetch categories when retailers are selected and moving to step 2
+  useEffect(() => {
+    if (step === 2 && selectedRetailers.length > 0) {
+      dispatch(fetchCategoriesByRetailers(selectedRetailers))
+    }
+  }, [step, selectedRetailers, dispatch])
+
+  // Fixed: Fetch brands when categories are selected and moving to step 3
+  useEffect(() => {
+    if (step === 3) {
+      // Calculate flat categories array directly
+      const flatCategories = []
+      Object.values(selectedCategories).forEach(categoryIds => {
+        categoryIds.forEach(id => {
+          if (!flatCategories.includes(id)) {
+            flatCategories.push(id)
+          }
+        })
+      })
+      
+      console.log('Step 3 - Selected categories flat:', flatCategories) // Debug log
+      
+      if (flatCategories.length > 0) {
+        dispatch(fetchBrandsByCategories(flatCategories))
+        
+        // Set the first available category as active brand category if none is set
+        if (!activeBrandCategory && flatCategories.length > 0) {
+          dispatch(setActiveBrandCategory(flatCategories[0]))
+        }
+      }
+    }
+  }, [step, selectedCategories, dispatch, activeBrandCategory])
 
   // Helper function to check if retailer has incomplete categories (for step 2)
   const hasIncompleteCategories = (retailerId) => {
@@ -247,20 +280,20 @@ export default function WorkspaceCreation({}) {
       { number: 1, label: "Retailers", icon: <FiShoppingCart /> },
       { number: 2, label: "Categories", icon: <FiGrid /> },
       { number: 3, label: "My Brands", icon: <FiTag /> },
-    ]
+    ];
 
     return (
       <div className="relative pb-8">
         {/* Progress line */}
-        <div className="absolute top-6 w-full ml-1 h-1 bg-gray-200 rounded">
+        <div className="absolute top-6 left-0 right-0 mx-auto h-1 bg-gray-200 rounded" style={{ width: 'calc(100% - 3rem)' }}>
           <div 
             className="h-full bg-blue-500 rounded transition-all duration-500 ease-in-out" 
-            style={{ width: `${(step - 1) * 49}%` }}
+            style={{ width: `${(step - 1) * (100 / (steps.length - 1))}%` }}
           ></div>
         </div>
         
         {/* Steps */}
-        <div className="flex justify-between relative z-10">
+        <div className="flex justify-between relative z-10 px-4">
           {steps.map((s) => (
             <div key={s.number} className="flex flex-col items-center">
               <div 
@@ -283,8 +316,8 @@ export default function WorkspaceCreation({}) {
           ))}
         </div>
       </div>
-    )
-  }
+    );
+};
 
   // Tag component for selected items
   const SelectionTag = ({ label, onRemove }) => (
@@ -366,6 +399,17 @@ export default function WorkspaceCreation({}) {
     if (selectedRetailers.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one retailer to proceed.</p>
     }
+
+    // Show loading state while fetching categories
+    if (isFetchingCategories) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-gray-600">Loading categories...</span>
+        </div>
+      )
+    }
+
     return (
       <div className="flex space-x-8">
         {/* Left Panel: Selected Retailers List with Dropdown */}
@@ -489,11 +533,26 @@ export default function WorkspaceCreation({}) {
     )
   }
 
-
   const renderBrandStep = () => {
     if (selectedCategoriesFlat.length === 0) {
       return <p className="text-sm text-gray-500 py-2">Please select at least one category to proceed.</p>
     }
+
+    // Show loading state while fetching brands
+    if (isFetchingBrands) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-gray-600">Loading brands...</span>
+        </div>
+      )
+    }
+
+    // Debug: Log the brands data
+    console.log('All brands:', allBrands)
+    console.log('Active brand category:', activeBrandCategory)
+    console.log('Selected categories flat:', selectedCategoriesFlat)
+
     // Get all categories that have brands
     const categoriesWithBrands = Array.isArray(selectedCategoriesFlat) ? 
       selectedCategoriesFlat.filter(id => {
@@ -595,12 +654,12 @@ export default function WorkspaceCreation({}) {
         {activeBrandCategory && (
           <div className="w-2/3">
             {/* Header for the current category */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <h4 className="text-lg font-medium text-gray-700">
                 Select brands for {Array.isArray(allCategories) ? 
                   allCategories.find((c) => c.id === activeBrandCategory)?.name || "category" : "category"}
               </h4>
-            </div>
+            </div> */}
             
             {/* Selected brands tags */}
             <div className="flex flex-wrap mb-4">
@@ -627,7 +686,7 @@ export default function WorkspaceCreation({}) {
             </div> 
 
             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto scrollbar-thin">
-              {Array.isArray(allBrands) ?
+              {Array.isArray(allBrands) && allBrands.length > 0 ? (
                 allBrands
                   .filter(brand => brand.categoryId === activeBrandCategory)
                   .filter((brand) =>
@@ -651,8 +710,14 @@ export default function WorkspaceCreation({}) {
                       </div>
                     );
                   })
-                : <p>Loading brands...</p>
-              }
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No brands available for this category</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    This might be because brands haven't loaded yet or there are no brands for the selected category.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -666,10 +731,6 @@ export default function WorkspaceCreation({}) {
         @keyframes slideDown {
           from {
             opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
             transform: translateY(0);
           }
         }
@@ -738,13 +799,12 @@ export default function WorkspaceCreation({}) {
         {step === 1 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
-            {(selectedRetailers.length === 0 || !workspaceName) && (
+            {(selectedRetailers.length === 0) && (
               <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
             )}
             {renderRetailerStep()}
           </>
         )}
-
         {step === 2 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
@@ -757,7 +817,6 @@ export default function WorkspaceCreation({}) {
             {renderCategoryStep()}
           </>
         )}
-
         {step === 3 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Your Brands</h2>
@@ -782,7 +841,6 @@ export default function WorkspaceCreation({}) {
           ) : (
             <div></div>
           )}
-
           {step < 3 ? (
             <button 
               onClick={handleNextStep}
@@ -881,13 +939,12 @@ export default function WorkspaceCreation({}) {
         {step === 1 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Online Retailers</h2>
-            {(selectedRetailers.length === 0 || !workspaceName) && (
+            {(selectedRetailers.length === 0 ) && (
               <p className="text-sm text-red-500">**Please select at least one retailer to proceed.**</p>
             )}
             {renderRetailerStep()}
           </>
         )}
-
         {step === 2 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Categories</h2>
@@ -900,7 +957,6 @@ export default function WorkspaceCreation({}) {
             {renderCategoryStep()}
           </>
         )}
-
         {step === 3 && (
           <>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Your Brands</h2>
@@ -925,7 +981,6 @@ export default function WorkspaceCreation({}) {
           ) : (
             <div></div>
           )}
-
           {step < 3 ? (
             <button 
               onClick={handleNextStep}

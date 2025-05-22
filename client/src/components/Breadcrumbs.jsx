@@ -20,10 +20,10 @@ const Breadcrumbs = () => {
   // If we're on the root path
   if (pathSegments.length === 0) {
     return (
-      <nav className="flex px-5 py-3 text-gray-300 bg-gray-800">
-        <ol className="flex items-center space-x-1 md:space-x-3">
+      <nav className="flex px-5 py-3 bg-peach ">
+        <ol className="flex items-center">
           <li className="flex items-center">
-            <span className="text-sm font-medium text-gray-300">Dashboard</span>
+            <span className="text-small font-medium text-dark-gray">Dashboard</span>
           </li>
         </ol>
       </nav>
@@ -31,11 +31,14 @@ const Breadcrumbs = () => {
   }
 
   return (
-    <nav className="flex px-5 py-3 text-gray-300 bg-gray-800">
-      <ol className="flex items-center space-x-1 md:space-x-3">
+    <nav className="flex px-5 py-3 bg-peach">
+      <ol className="flex items-center space-x-2">
         {/* Home link is always present */}
         <li className="flex items-center">
-          <Link to="/" className="text-sm font-medium text-blue-400 hover:text-blue-300">
+          <Link 
+            to="/" 
+            className="text-small font-medium text-primary-orange hover:text-accent-magenta transition-colors duration-200"
+          >
             Dashboard
           </Link>
         </li>
@@ -46,8 +49,8 @@ const Breadcrumbs = () => {
           if (segment.match(/^\d+$/) && index > 0 && pathSegments[index - 1] === 'ModifyWorkspace') {
             return (
               <li key={index} className="flex items-center">
-                <ChevronRight className="w-4 h-4 text-gray-500" />
-                <span className="ml-1 text-sm font-medium text-gray-300">
+                <ChevronRight className="w-4 h-4 text-gray" />
+                <span className="ml-2 text-small font-medium text-dark-gray">
                   {`Workspace ${segment}`}
                 </span>
               </li>
@@ -62,13 +65,16 @@ const Breadcrumbs = () => {
           
           return (
             <li key={index} className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <ChevronRight className="w-4 h-4 text-gray" />
               {isLast ? (
-                <span className="ml-1 text-sm font-medium text-gray-300">
+                <span className="ml-2 text-small font-medium text-dark-gray">
                   {pathNames[segment] || segment}
                 </span>
               ) : (
-                <Link to={path} className="ml-1 text-sm font-medium text-blue-400 hover:text-blue-300">
+                <Link 
+                  to={path} 
+                  className="ml-2 text-small font-medium text-primary-orange hover:text-accent-magenta transition-colors duration-200"
+                >
                   {pathNames[segment] || segment}
                 </Link>
               )}

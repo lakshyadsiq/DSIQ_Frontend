@@ -6,10 +6,10 @@ const Dashboard = ({isLoggedIn}) => {
   const greeting = useTimeGreeting();
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
+    <div className="flex flex-col h-screen bg-peach text-gray-700">
       {/* Main content with properly hidden scrollbar */}
       <div className="flex-grow overflow-y-auto px-4 py-6 scrollbar-hide">
-        <div className="text-center text-amber-200 space-y-2 mb-6">
+        <div className="text-center text-gray-800 space-y-2 mb-6">
           <h2 className="text-3xl font-semibold">
             {greeting}
           </h2>
