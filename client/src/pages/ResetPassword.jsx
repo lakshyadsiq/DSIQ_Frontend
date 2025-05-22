@@ -5,7 +5,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import {resetPassword} from '../redux/slices/authSlice';
 
+
+const dispatch = useDispatch();
+const { token } = useParams();
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -47,7 +53,7 @@ const ResetPasswordPage = () => {
 
   const validatePassword = () => {
     const { password, confirmPassword } = formData;
-    
+
     if (!password) {
       toast.error('Please enter a password');
       return false;
@@ -82,11 +88,16 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validatePassword()) {
       try {
-        // Simulating password reset logic
-        // In a real app, you would call an API here
+        // Use token here
+        console.log('Reset token:', token);
+        dispatch(resetPassword({ token, password: formData.password }));
+        // Simulating API call with token and new password
+        // Example:
+        // await resetPasswordAPI({ token, password: formData.password });
+
         toast.success('Password reset successfully');
         setTimeout(() => {
           navigate('/login');
@@ -97,14 +108,15 @@ const ResetPasswordPage = () => {
     }
   };
 
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-100 to-white px-4">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <div className="bg-white rounded-xl shadow-lg p-10 w-full max-w-md transition-all duration-300 hover:shadow-xl">
         <div className="flex flex-col items-center mb-8">
-          <img 
-            src="/icon.png" 
-            alt="DSIQ Logo" 
+          <img
+            src="/icon.png"
+            alt="DSIQ Logo"
             className="h-16 w-auto mx-auto mb-4"
             onError={(e) => {
               e.target.onerror = null;

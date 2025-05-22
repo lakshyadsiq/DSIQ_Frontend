@@ -7,38 +7,34 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { registerAdmin } from '../redux/slices/authSlice';
 import { Eye, EyeOff } from 'lucide-react';
+import emojiFlags from 'emoji-flags';
+import countryData from '../assets/countries.json'; 
 
-const countries = [ 
-  { id: 'us', name: 'United States', flag: '🇺🇸', phoneCode: '+1' },
-  { id: 'ca', name: 'Canada', flag: '🇨🇦', phoneCode: '+1' },
-  { id: 'gb', name: 'United Kingdom', flag: '🇬🇧', phoneCode: '+44' },
-  { id: 'au', name: 'Australia', flag: '🇦🇺', phoneCode: '+61' },
-  { id: 'in', name: 'India', flag: '🇮🇳', phoneCode: '+91' },
-  { id: 'de', name: 'Germany', flag: '🇩🇪', phoneCode: '+49' },
-  { id: 'fr', name: 'France', flag: '🇫🇷', phoneCode: '+33' },
-  { id: 'jp', name: 'Japan', flag: '🇯🇵', phoneCode: '+81' },
-  { id: 'cn', name: 'China', flag: '🇨🇳', phoneCode: '+86' },
-  { id: 'br', name: 'Brazil', flag: '🇧🇷', phoneCode: '+55' },
-  { id: 'ru', name: 'Russia', flag: '🇷🇺', phoneCode: '+7' },
-  { id: 'vn', name: 'Vietnam', flag: '🇻🇳', phoneCode: '+84' },
-  { id: 'ye', name: 'Yemen', flag: '🇾🇪', phoneCode: '+967' },
-  { id: 'zm', name: 'Zambia', flag: '🇿🇲', phoneCode: '+260' },
-  { id: 'zw', name: 'Zimbabwe', flag: '🇿🇼', phoneCode: '+263' }
-];
+
+// Transform the country data to match your expected format
+const countries = countryData.country.map(c => ({
+  id: c.id,
+  name: c.nicename, 
+  flag : emojiFlags.countryCode(c.iso)?.emoji || '',
+  phoneCode: `+${c.phonecode}`,
+  iso: c.iso,
+  iso3: c.iso3
+}));
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    companyName: '',
+    first_name: '',
+    last_name: '',
+    name: '',
     companyEmail: '',
     address: '',
     contactNumber: '',
     password: '',
     confirmPassword: '',
-    countryId: '',
+    country_id: '',
   });
 
   const [filteredCountries, setFilteredCountries] = useState(countries);
@@ -47,26 +43,35 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    const defaultCountry = countries.find(c => c.id === 'us');
-    setFormData(prev => ({ 
-      ...prev, 
-      countryId: 'us',
-      contactNumber: defaultCountry ? defaultCountry.phoneCode + ' ' : ''
-    }));
+    // Set default country (you might want to choose a different default)
+    const defaultCountry = countries.find(c => c.iso === 'US');
+    if (defaultCountry) {
+      setFormData(prev => ({ 
+        ...prev, 
+        country_id: defaultCountry.id,
+        contactNumber: defaultCountry.phoneCode + ' '
+      }));
+    }
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'contactNumber') {
+      const numericValue = value.replace(/[^0-9+\s]/g, '');
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleCountryChange = (e) => {
     const selectedCountry = e.value;
-    const countryId = selectedCountry && selectedCountry.id ? selectedCountry.id : '';
+    const country_id = selectedCountry && selectedCountry.id ? selectedCountry.id : '';
     
     setFormData(prev => ({ 
       ...prev, 
-      countryId 
+      country_id 
     }));
     
     if (selectedCountry && selectedCountry.phoneCode) {
@@ -83,10 +88,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { fullName, companyName, companyEmail, address, contactNumber, password, confirmPassword, countryId } = formData;
+    const { first_name, last_name, name, companyEmail, address, contactNumber, password, confirmPassword, country_id } = formData;
 
-    if (!fullName || !companyName || !companyEmail || !address || !contactNumber || !password || !confirmPassword || !countryId) {
-      toast.error('Please fill in all fields');
+    // Check required fields only
+    if (!first_name || !name || !companyEmail || !password || !confirmPassword || !country_id) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -96,11 +102,14 @@ const RegisterPage = () => {
       return;
     }
 
-    const phoneRegex = /^\+\d+[\s\d]{5,14}$/;
-    if (!phoneRegex.test(contactNumber)) {
-      toast.error('Please enter a valid contact number with country code');
-      return;
-    }
+    // Validate contact number only if provided
+    // if (contactNumber && contactNumber.trim() !== '') {
+    //   const phoneRegex = /^\+\d+[\s\d]{5,14}$/;
+    //   if (!phoneRegex.test(contactNumber)) {
+    //     toast.error('Please enter a valid contact number with country code');
+    //     return;
+    //   }
+    // }
 
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters');
@@ -113,16 +122,29 @@ const RegisterPage = () => {
     }
 
     try {
+      // const fullName = `${first_name} ${last_name}`.trim();
       await dispatch(registerAdmin({ 
-        fullName, 
-        companyName, 
+        first_name, 
+        last_name,
+        name, 
         email: companyEmail, 
-        address,
         contactNumber,
         password, 
-        countryId, 
-        userType: 'admin' 
+        country_id, 
+        role_id: 'admin' 
       }));
+      console.log({ 
+        first_name, 
+        last_name,
+        name, 
+        email: companyEmail, 
+        contactNumber,
+        password, 
+        country_id, 
+        role_id: 'admin' 
+      });
+      
+      
       toast.success('Admin account created successfully!');
       navigate('/workspaceCreate');
     } catch (error) {
@@ -130,7 +152,7 @@ const RegisterPage = () => {
     }
   };
 
-  const selectedCountry = countries.find(c => c.id === formData.countryId) || null;
+  const selectedCountry = countries.find(c => c.id === formData.country_id) || null;
 
   const handleFilterChange = (event) => {
     const value = event.filter.value || '';
@@ -181,32 +203,53 @@ const RegisterPage = () => {
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-light-gray p-8 w-full">
             <h2 className="text-h3 text-dark-gray mb-6 font-medium">Register your company to get started</h2>
             
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Full Name</label>
-              <Input 
-                type="text" 
-                name="fullName" 
-                value={formData.fullName} 
-                onChange={handleChange} 
-                placeholder="John Doe" 
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
-              />
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1">
+                <label className="block text-body font-medium text-dark-gray mb-2">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <Input 
+                  type="text" 
+                  name="first_name" 
+                  value={formData.first_name} 
+                  onChange={handleChange} 
+                  placeholder="John" 
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                  required
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-body font-medium text-dark-gray mb-2">Last Name</label>
+                <Input 
+                  type="text" 
+                  name="last_name" 
+                  value={formData.last_name} 
+                  onChange={handleChange} 
+                  placeholder="Doe" 
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                />
+              </div>
             </div>
 
             <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Company Name</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">
+                Organization Name <span className="text-red-500">*</span>
+              </label>
               <Input 
                 type="text" 
-                name="companyName" 
-                value={formData.companyName} 
+                name="name" 
+                value={formData.name} 
                 onChange={handleChange} 
                 placeholder="Acme Inc." 
                 className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                required
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Company Email ID</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">
+                Contact Email <span className="text-red-500">*</span>
+              </label>
               <Input 
                 type="email" 
                 name="companyEmail" 
@@ -214,23 +257,14 @@ const RegisterPage = () => {
                 onChange={handleChange} 
                 placeholder="admin@acme.com" 
                 className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                required
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Address</label>
-              <Input 
-                type="text" 
-                name="address" 
-                value={formData.address} 
-                onChange={handleChange} 
-                placeholder="123 Business St, City, State" 
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Country</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">
+                Country <span className="text-red-500">*</span>
+              </label>
               <ComboBox
                 data={filteredCountries}
                 textField="name"
@@ -243,6 +277,7 @@ const RegisterPage = () => {
                 valueRender={countryValueRender}
                 placeholder="Select Country"
                 className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                required
               />
             </div>
 
@@ -253,13 +288,15 @@ const RegisterPage = () => {
                 name="contactNumber" 
                 value={formData.contactNumber} 
                 onChange={handleChange} 
-                placeholder="Phone number" 
+                placeholder="Phone number (optional)" 
                 className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Password</label>
+            <div className="mb-4">  
+              <label className="block text-body font-medium text-dark-gray mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
@@ -268,6 +305,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   placeholder="••••••••"
                   className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
+                  required
                 />
                 <button 
                   type="button" 
@@ -280,7 +318,9 @@ const RegisterPage = () => {
             </div>
 
             <div className="mb-6">
-              <label className="block text-body font-medium text-dark-gray mb-2">Confirm Password</label>
+              <label className="block text-body font-medium text-dark-gray mb-2">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -289,6 +329,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   placeholder="••••••••"
                   className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
+                  required
                 />
                 <button 
                   type="button" 
