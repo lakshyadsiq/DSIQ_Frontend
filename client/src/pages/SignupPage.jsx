@@ -102,14 +102,6 @@ const RegisterPage = () => {
       return;
     }
 
-    // Validate contact number only if provided
-    // if (contactNumber && contactNumber.trim() !== '') {
-    //   const phoneRegex = /^\+\d+[\s\d]{5,14}$/;
-    //   if (!phoneRegex.test(contactNumber)) {
-    //     toast.error('Please enter a valid contact number with country code');
-    //     return;
-    //   }
-    // }
 
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters');
@@ -191,80 +183,73 @@ const RegisterPage = () => {
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       
       {/* Left Side - Registration Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-cream">
         <div className="w-full max-w-md">
           <div className="mb-6 text-center">
             <div className="h-16 w-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-sm">
               <img src="/icon.png" alt="DSIQ Logo" className="h-12 w-auto" />
             </div>
-            <h1 className="text-h2 text-dark-gray mb-2 font-medium">Admin Registration</h1>
+            <span className="bg-primary-orange/10 text-primary-orange text-sm font-medium px-3 py-1 rounded-full">
+              Admin Registration
+            </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-light-gray p-8 w-full">
-            <h2 className="text-h3 text-dark-gray mb-6 font-medium">Register your company to get started</h2>
+
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg space-y-4 shadow-sm border border-light-gray p-8 w-full">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-dark-gray mb-2">Create your account</h1>
+              <p className="text-gray-600 text-sm">Get started with your DSIQ platform admin account</p>
+            </div>
             
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1">
-                <label className="block text-body font-medium text-dark-gray mb-2">
-                  First Name <span className="text-red-500">*</span>
-                </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Input 
                   type="text" 
                   name="first_name" 
                   value={formData.first_name} 
                   onChange={handleChange} 
-                  placeholder="John" 
-                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                  placeholder="First name *" 
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"
                   required
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-body font-medium text-dark-gray mb-2">Last Name</label>
+              <div>
                 <Input 
                   type="text" 
                   name="last_name" 
                   value={formData.last_name} 
                   onChange={handleChange} 
-                  placeholder="Doe" 
-                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                  placeholder="Last name" 
+                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"
                 />
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">
-                Organization Name <span className="text-red-500">*</span>
-              </label>
+            <div>
               <Input 
                 type="text" 
                 name="name" 
                 value={formData.name} 
                 onChange={handleChange} 
-                placeholder="Acme Inc." 
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                placeholder="Organization name *" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"
                 required
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">
-                Contact Email <span className="text-red-500">*</span>
-              </label>
+            <div>
               <Input 
                 type="email" 
                 name="companyEmail" 
                 value={formData.companyEmail} 
                 onChange={handleChange} 
-                placeholder="admin@acme.com" 
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                placeholder="Company email *" 
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"
                 required
               />
-            </div>
+            </div>  
 
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">
-                Country <span className="text-red-500">*</span>
-              </label>
+            <div>
               <ComboBox
                 data={filteredCountries}
                 textField="name"
@@ -275,83 +260,72 @@ const RegisterPage = () => {
                 onFilterChange={handleFilterChange}
                 itemRender={countryItemRender}
                 valueRender={countryValueRender}
-                placeholder="Select Country"
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                placeholder="Select country *"
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-1 !px-3"
                 required
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-body font-medium text-dark-gray mb-2">Contact Number</label>
+            <div>
               <Input 
                 type="tel" 
                 name="contactNumber" 
                 value={formData.contactNumber} 
                 onChange={handleChange} 
                 placeholder="Phone number (optional)" 
-                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none"
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"
               />
             </div>
 
-            <div className="mb-4">  
-              <label className="block text-body font-medium text-dark-gray mb-2">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
-                  required
-                />
-                <button 
-                  type="button" 
-                  className="absolute inset-y-0 right-0 px-3 text-gray hover:text-dark-gray transition-colors"
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
+             <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password *"
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3 !pr-10"
+                required
+              />
+              <button 
+                type="button" 
+                className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-dark-gray transition-colors"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-body font-medium text-dark-gray mb-2">
-                Confirm Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !pr-10"
-                  required
-                />
-                <button 
-                  type="button" 
-                  className="absolute inset-y-0 right-0 px-3 text-gray hover:text-dark-gray transition-colors"
-                  onClick={toggleConfirmPasswordVisibility}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm password *"
+                className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3 !pr-10"
+                required
+              />
+              <button 
+                type="button" 
+                className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-dark-gray transition-colors"
+                onClick={toggleConfirmPasswordVisibility}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
 
             <button
               type="submit"
               className="w-full bg-primary-orange text-white py-3 px-4 rounded-md hover:bg-accent-magenta transition-all duration-200 text-button font-medium"
             >
-              Register
+              Sign Up
             </button>
 
-            <p className="mt-6 pt-6 border-t border-light-gray text-center text-body text-gray">
+            <p className="mt-3 pt-6 border-t border-light-gray text-center text-body text-gray">
               Already registered?{' '}
               <a href="/login" className="text-primary-orange hover:text-accent-magenta hover:underline transition-colors">
-                Log in
+                Sign in
               </a>
             </p>
           </form>

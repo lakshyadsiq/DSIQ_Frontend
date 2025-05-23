@@ -66,6 +66,7 @@ import {
   selectIsFetchingCategories,
   selectIsFetchingBrands,
 } from "../redux/slices/workspaceSlice" 
+import { debounce } from 'lodash';
 
 export default function WorkspaceCreation({}) {
   const dispatch = useDispatch()
@@ -96,6 +97,18 @@ export default function WorkspaceCreation({}) {
   const selectedCategoriesFlat = useSelector(selectAllSelectedCategoriesFlat) || []
   const isFetchingCategories = useSelector(selectIsFetchingCategories) || false
   const isFetchingBrands = useSelector(selectIsFetchingBrands) || false
+
+  const debouncedCheckName = debounce(async (name, dispatch) => {
+  if (name.trim()) {
+    await dispatch(checkWorkspaceName(name));
+  }
+}, 500);
+
+  useEffect(() => {
+  if (workspaceName) {
+    debouncedCheckName(workspaceName, dispatch);
+  }
+}, [workspaceName]);
 
   // Fetch retailers on component mount
   useEffect(() => {
