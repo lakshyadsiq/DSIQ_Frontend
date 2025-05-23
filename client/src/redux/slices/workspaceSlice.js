@@ -128,7 +128,29 @@ const API_ENDPOINTS = {
   BRANDS: '/api/brands',
   BRANDS_BY_CATEGORIES: '/api/brands/by-categories',
   CREATE_WORKSPACE: '/api/workspaces',
+  CHECK_WORKSPACE_NAME: '/api/workspaces/check-name',
 };
+
+export const checkWorkspaceName = createAsyncThunk(
+  'workspace/checkWorkspaceName',
+  async (workspaceName, { rejectWithValue }) => {
+    try {
+      if (USE_DUMMY_DATA) {
+        const exists = DUMMY_DATA.existingWorkspaces.some(
+          ws => ws.toLowerCase() === workspaceName.toLowerCase()
+        );
+        return { available: !exists };
+      }
+      
+      const response = await axios.post(API_ENDPOINTS.CHECK_WORKSPACE_NAME, { 
+        name: workspaceName 
+      });
+      return response.data; // { available: true/false }
+    } catch (error) {
+      return rejectWithValue('Failed to check workspace name');
+    }
+  }
+);
 
 // Async thunks for API calls
 export const fetchRetailers = createAsyncThunk(

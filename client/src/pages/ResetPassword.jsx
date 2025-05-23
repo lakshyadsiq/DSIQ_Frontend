@@ -10,9 +10,9 @@ import { useDispatch } from 'react-redux';
 import {resetPassword} from '../redux/slices/authSlice';
 
 
-const dispatch = useDispatch();
-const { token } = useParams();
 const ResetPasswordPage = () => {
+  const dispatch = useDispatch();
+  const { token } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     password: '',
