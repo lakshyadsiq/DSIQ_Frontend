@@ -21,7 +21,10 @@
   --color-danger-red: #DE241E;
   --color-peach: #FDE2CF;
   --color-cream: #FFF8F4;
-
+  --z-index-navbar: 50;
+  --z-index-dropdown: 60;
+  --z-index-tooltip: 70;
+  --z-index-modal: 100;
   /* Background images */
   --bg-image-brand-gradient: linear-gradient(135deg, var(--color-gradient-from) 0%, var(--color-gradient-to) 100%);
   --bg-image-light-gradient: linear-gradient(135deg, var(--color-peach) 0%, var(--color-cream) 100%);

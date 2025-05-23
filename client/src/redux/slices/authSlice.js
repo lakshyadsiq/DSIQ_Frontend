@@ -21,7 +21,7 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('hasWorkspace', 'true');
         return dummyData;
       }
-
+      
       const response = await axios.post('/login', { email, password });
       const data = response.data;
       // console.log('Login response:', data);
@@ -46,12 +46,12 @@ export const registerAdmin = createAsyncThunk(
   ) => {
     try {
       // Development mock
-      if (email === 'a@a.com') {
-        await new Promise((res) => setTimeout(res, 500));
+      if (email == 'a@a.com') {
+        // await new Promise((res) => setTimeout(res, 500));
         const dummyData = {
           accessToken: 'mock-access-token-signup',
           refreshToken: 'mock-refresh-token-signup',
-          user: { email, name: fullName },
+          user: { email, name: first_name },
         };
         localStorage.setItem('authToken', dummyData.accessToken);
         localStorage.setItem('refreshToken', dummyData.refreshToken);

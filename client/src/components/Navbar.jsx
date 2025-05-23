@@ -56,7 +56,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const [pinnedApp, setPinnedApp] = useState(null);
   const [apps, setApps] = useState([...initialApps]);
   const [activeApp, setActiveApp] = useState(null);
-  
+
   // Refs for GSAP animations
   const navRef = useRef(null);
   const workspaceDropdownRef = useRef(null);
@@ -71,27 +71,27 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const createButtonRef = useRef(null);
   const navButtonsRef = useRef([]);
   const loginButtonsRef = useRef([]);
-  
+
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
   const isSettingOrHelp = location.pathname === '/settings' || location.pathname === '/help';
   const showMainNav = !isLoggedIn || isSettingOrHelp;
 
   // GSAP Animation Functions
   const animateDropdownOpen = (element) => {
-    gsap.fromTo(element, 
-      { 
-        opacity: 0, 
-        y: -10, 
+    gsap.fromTo(element,
+      {
+        opacity: 0,
+        y: -10,
         scale: 0.95,
         transformOrigin: "top center"
       },
-      { 
-        opacity: 1, 
-        y: 0, 
+      {
+        opacity: 1,
+        y: 0,
         scale: 1,
-        duration: 0.3, 
+        duration: 0.3,
         ease: "back.out(1.7)"
       }
     );
@@ -161,10 +161,10 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
       if (button) {
         const handleMouseEnter = () => animateButtonHover(button, true);
         const handleMouseLeave = () => animateButtonHover(button, false);
-        
+
         button.addEventListener('mouseenter', handleMouseEnter);
         button.addEventListener('mouseleave', handleMouseLeave);
-        
+
         return () => {
           button.removeEventListener('mouseenter', handleMouseEnter);
           button.removeEventListener('mouseleave', handleMouseLeave);
@@ -177,10 +177,10 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
       if (button) {
         const handleMouseEnter = () => animateButtonHover(button, true);
         const handleMouseLeave = () => animateButtonHover(button, false);
-        
+
         button.addEventListener('mouseenter', handleMouseEnter);
         button.addEventListener('mouseleave', handleMouseLeave);
-        
+
         return () => {
           button.removeEventListener('mouseenter', handleMouseEnter);
           button.removeEventListener('mouseleave', handleMouseLeave);
@@ -201,7 +201,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
         localStorage.removeItem('selectedApp');
       }
     }
-    
+
     const fetchPinnedApp = async () => {
       try {
         const response = { success: true, data: null };
@@ -216,7 +216,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
         console.error('Error fetching pinned app:', error);
       }
     };
-    
+
     fetchPinnedApp();
   }, []);
 
@@ -377,9 +377,10 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   const displayApp = activeApp || pinnedApp || { name: "Apps", icon: "" };
 
   return (
-    <nav 
+    <nav
       ref={navRef}
-      className={`flex h-16 items-center justify-between ${showMainNav ? "pr-4" : "px-6"} bg-peach hover:bg-white transition-colors duration-300`}
+      className={`flex h-16 items-center justify-between ${showMainNav ? "pr-4" : "px-6"} bg-peach hover:bg-white transition-colors duration-300 z-50 relative`}
+    // Added z-50 and relative here
     >
       {/* Left Section */}
       <div className="flex items-center space-x-6">
@@ -411,7 +412,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   </button>
 
                   {isAppDropdownOpen && (
-                    <div 
+                    <div
                       ref={appDropdownContentRef}
                       className="absolute left-0 mt-2 w-72 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-200"
                     >
@@ -424,9 +425,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                         return (
                           <div
                             key={app.id}
-                            className={`w-full text-left px-4 py-3 hover:bg-peach flex items-start space-x-3 cursor-pointer transition-colors duration-300 ${
-                              isActive ? 'bg-peach' : ''
-                            }`}
+                            className={`w-full text-left px-4 py-3 hover:bg-peach flex items-start space-x-3 cursor-pointer transition-colors duration-300 ${isActive ? 'bg-peach' : ''
+                              }`}
                             onClick={() => selectApp(app)}
                           >
                             <span className="text-xl">{app.icon}</span>
@@ -434,13 +434,13 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                               <div className="font-medium text-dark-gray">{app.name}</div>
                               <div className="text-xs text-gray-500">{app.description}</div>
                             </div>
-                            <button 
+                            <button
                               onClick={(e) => togglePinApp(app, e)}
                               className="p-1 text-gray-400 hover:text-primary-orange transition-colors duration-300"
                               title={isPinned ? "Unpin app" : "Pin app"}
                             >
-                              {isPinned ? 
-                                <Pin size={16} className="fill-primary-orange text-primary-orange" /> : 
+                              {isPinned ?
+                                <Pin size={16} className="fill-primary-orange text-primary-orange" /> :
                                 <PinOff size={16} />
                               }
                             </button>
@@ -479,7 +479,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   </div>
 
                   {isWorkspaceDropdownOpen && (
-                    <div 
+                    <div
                       ref={workspaceDropdownContentRef}
                       className="absolute left-0 top-12 w-72 bg-white rounded-md shadow-lg z-50 border border-gray-200 flex flex-col"
                     >
@@ -510,9 +510,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                             <button
                               key={workspace.id}
                               onClick={() => selectWorkspace(workspace)}
-                              className={`w-full text-left px-4 py-3 hover:bg-peach flex items-center transition-colors duration-300 ${
-                                currentWorkspace.id === workspace.id ? 'bg-peach font-medium' : ''
-                              }`}
+                              className={`w-full text-left px-4 py-3 hover:bg-peach flex items-center transition-colors duration-300 ${currentWorkspace.id === workspace.id ? 'bg-peach font-medium' : ''
+                                }`}
                             >
                               <span className="text-dark-gray">{workspace.name}</span>
                             </button>
@@ -577,9 +576,9 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             </div>
 
             <div className="relative group">
-              <button 
+              <button
                 ref={el => navButtonsRef.current[1] = el}
-                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300" 
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300"
                 aria-label="Settings"
                 onClick={() => navigate('/settings')}
               >
@@ -591,9 +590,9 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             </div>
 
             <div className="relative group">
-              <button 
+              <button
                 ref={el => navButtonsRef.current[2] = el}
-                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300 relative" 
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300 relative"
                 aria-label="Notifications"
               >
                 <Bell size={20} />
@@ -625,7 +624,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             </div>
 
             {isProfileOpen && (
-              <div 
+              <div
                 ref={profileDropdownContentRef}
                 className="absolute right-0 mt-2 w-57 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
               >
@@ -635,14 +634,14 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
           </div>
         ) : (
           <div className="flex items-center space-x-3">
-            <button 
+            <button
               ref={el => loginButtonsRef.current[0] = el}
               onClick={() => navigate('/login')}
               className="px-4 py-2 bg-white border border-primary-orange text-primary-orange rounded-md hover:bg-primary-orange hover:text-white transition-colors duration-300 font-medium"
             >
               Login
             </button>
-            <button 
+            <button
               ref={el => loginButtonsRef.current[1] = el}
               onClick={() => navigate('/signup')}
               className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta text-white rounded-md hover:shadow-md transition-all duration-300 font-medium"
