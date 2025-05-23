@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { forgotPassword } from '../redux/slices/authSlice';
 import { toast } from 'react-toastify';
 
+
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -100,10 +101,10 @@ const LoginPage = () => {
                     onClick={handleResetSubmit}
                     disabled={resetStatus !== 'idle'}
                     className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all duration-200 ${resetStatus === 'sending'
-                        ? 'bg-gray cursor-not-allowed'
-                        : resetStatus === 'sent'
-                          ? 'bg-success-green cursor-not-allowed'
-                          : 'bg-primary-orange hover:bg-accent-magenta'
+                      ? 'bg-gray cursor-not-allowed'
+                      : resetStatus === 'sent'
+                        ? 'bg-success-green cursor-not-allowed'
+                        : 'bg-primary-orange hover:bg-accent-magenta'
                       }`}
                   >
                     {resetStatus === 'sending'
@@ -217,17 +218,22 @@ const LoginPage = () => {
         <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
           <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
             <div className="text-center">
-              <h2 className="text-h1 font-bold mb-8">DSIQ Platform</h2>
+              <h2 className="text-h1 font-bold mb-8">Hello !!</h2>
               <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
                 <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
               </div>
 
-              <h3 className="text-h3 font-semibold mb-6">Coming Soon</h3>
+              <h3 className="text-h3 font-semibold mb-6">DSIQ Platform</h3>
               <p className="text-body-lg mb-8 leading-relaxed">
                 Our revolutionary data analytics platform will transform how your business makes decisions.
               </p>
-              <div className="h-1 w-24 bg-white opacity-30 mx-auto mb-8"></div>
-              <p className="text-small opacity-80">
+              <button
+                onClick={() => navigate('/register')}
+                className="px-6 py-2 bg-transparent border-2 border-peach text-peach rounded-md hover:bg-peach hover:text-primary-orange hover:bg-opacity-10 transition-all duration-200 font-medium"
+              >
+                Sign Up
+              </button>
+              <p className="text-small opacity-80 mt-6">
                 Unlock the power of your data with intelligent insights
               </p>
             </div>

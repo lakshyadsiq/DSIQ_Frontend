@@ -10,7 +10,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import emojiFlags from 'emoji-flags';
 import countryData from '../assets/countries.json';
 
-
 // Transform the country data to match your expected format
 const countries = countryData.country.map(c => ({
   id: c.id,
@@ -24,7 +23,7 @@ const countries = countryData.country.map(c => ({
 const RegisterPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -122,7 +121,7 @@ const RegisterPage = () => {
     }
 
     try {
-      
+
       const test = await dispatch(registerAdmin({
         first_name,
         last_name,
@@ -132,7 +131,7 @@ const RegisterPage = () => {
         password,
         country_id,
         role_id: 'admin'
-      })).unwrap(); 
+      })).unwrap();
       toast.success('Admin account created successfully!');
       navigate('/workspaceCreate');
     } catch (error) {
@@ -184,7 +183,33 @@ const RegisterPage = () => {
     <div className="flex min-h-screen bg-cream font-sans">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 
-      {/* Left Side - Registration Form */}
+      {/* Left Side - Brand Section*/}
+      <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
+        <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-h1 font-bold mb-8">Welcome Back !!</h2>
+            <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+              <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
+            </div>
+
+            <h3 className="text-h3 font-semibold mb-6">DSIQ Platform</h3>
+            <p className="text-body-lg mb-8 leading-relaxed">
+              Our revolutionary data analytics platform will transform how your business makes decisions.
+            </p>
+            <button
+              onClick={() => navigate('/login')}
+              className="px-6 py-2 bg-transparent border-2 border-peach text-peach rounded-md hover:bg-peach hover:text-primary-orange hover:bg-opacity-10 transition-all duration-200 font-medium"
+            >
+              Sign In
+            </button>
+            <p className="text-small opacity-80 mt-6">
+              Unlock the power of your data with intelligent insights
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Registration Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-cream">
         <div className="w-full max-w-md">
           <div className="mb-6 text-center">
@@ -338,27 +363,6 @@ const RegisterPage = () => {
               © 2025 DSIQ, Inc. All rights reserved. |{' '}
               <a href="#" className="hover:underline">Privacy</a>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Brand Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-brand-gradient text-white p-12">
-        <div className="flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
-          <div className="text-center">
-            <h2 className="text-h1 font-bold mb-8">DSIQ Platform</h2>
-            <div className="h-40 w-40 mx-auto mb-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-              <img src="/icon.png" alt="DSIQ Logo" className="h-28 w-auto" />
-            </div>
-
-            <h3 className="text-h3 font-semibold mb-6">Coming Soon</h3>
-            <p className="text-body-lg mb-8 leading-relaxed">
-              Our revolutionary data analytics platform will transform how your business makes decisions.
-            </p>
-            <div className="h-1 w-24 bg-white opacity-30 mx-auto mb-8"></div>
-            <p className="text-small opacity-80">
-              Unlock the power of your data with intelligent insights
-            </p>
           </div>
         </div>
       </div>
