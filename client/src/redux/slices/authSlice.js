@@ -29,7 +29,8 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('authToken', data.access_token);
       localStorage.setItem('refreshToken', data.refresh_token);
       localStorage.setItem('isLoggedIn', 'true');
-
+      localStorage.setItem('hasWorkspace', 'true');
+      
       return data;
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please try again.';
@@ -40,7 +41,7 @@ export const loginUser = createAsyncThunk(
 export const registerAdmin = createAsyncThunk(
   'auth/registerAdmin',
   async (
-    { first_name, last_name, name, email, contactNumber, password, country_id, role_id },
+    { first_name, last_name, name, email, phone, password, country_id, role_id },
     { rejectWithValue }
   ) => {
     try {
@@ -64,7 +65,7 @@ export const registerAdmin = createAsyncThunk(
         first_name,
         last_name,
         email,
-        // contactNumber,
+        phone,
         password,
         country_id,
         // role_id

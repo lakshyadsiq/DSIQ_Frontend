@@ -10,7 +10,10 @@ import {
   Search,
   X,
   Pin,
-  PinOff
+  PinOff,
+  User,
+  LogOut,
+  ChevronRight,
 } from 'lucide-react';
 import ProfileDropdown from './ProfileDropdown';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -122,10 +125,12 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   };
 
   const animateNavbarEntry = () => {
-    gsap.fromTo(navRef.current,
-      { y: -100, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
-    );
+    if (navRef.current) {
+      gsap.fromTo(navRef.current,
+        { y: -100, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }
+      );
+    }
   };
 
   const animateButtonPress = (element) => {
@@ -136,7 +141,6 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
       yoyo: true,
       repeat: 1
     });
-    
   };
 
   const animatePinIcon = (element, isPinned) => {
@@ -226,21 +230,21 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (workspaceDropdownRef.current && !workspaceDropdownRef.current.contains(event.target)) {
-        if (isWorkspaceDropdownOpen) {
+        if (isWorkspaceDropdownOpen && workspaceDropdownContentRef.current) {
           animateDropdownClose(workspaceDropdownContentRef.current, () => {
             setIsWorkspaceDropdownOpen(false);
           });
         }
       }
       if (appDropdownRef.current && !appDropdownRef.current.contains(event.target)) {
-        if (isAppDropdownOpen) {
+        if (isAppDropdownOpen && appDropdownContentRef.current) {
           animateDropdownClose(appDropdownContentRef.current, () => {
             setIsAppDropdownOpen(false);
           });
         }
       }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
-        if (isProfileOpen) {
+        if (isProfileOpen && profileDropdownContentRef.current) {
           animateDropdownClose(profileDropdownContentRef.current, () => {
             setIsProfileOpen(false);
           });
@@ -275,18 +279,22 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
 
   const selectWorkspace = (workspace) => {
     setCurrentWorkspace(workspace);
-    animateDropdownClose(workspaceDropdownContentRef.current, () => {
-      setIsWorkspaceDropdownOpen(false);
-    });
+    if (workspaceDropdownContentRef.current) {
+      animateDropdownClose(workspaceDropdownContentRef.current, () => {
+        setIsWorkspaceDropdownOpen(false);
+      });
+    }
   };
 
   const selectApp = (app) => {
     setSelectedApp(app);
     setActiveApp(app);
     localStorage.setItem('selectedApp', JSON.stringify(app));
-    animateDropdownClose(appDropdownContentRef.current, () => {
-      setIsAppDropdownOpen(false);
-    });
+    if (appDropdownContentRef.current) {
+      animateDropdownClose(appDropdownContentRef.current, () => {
+        setIsAppDropdownOpen(false);
+      });
+    }
   };
 
   const reorderApps = (pinned) => {
@@ -366,12 +374,12 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
     setIsProfileOpen(!isProfileOpen);
   };
 
-  const displayApp = activeApp || (pinnedApp || { name: "Apps" });
+  const displayApp = activeApp || pinnedApp || { name: "Apps", icon: "" };
 
   return (
     <nav 
       ref={navRef}
-      className={`flex h-16 items-center justify-between ${showMainNav ? "pr-4" : "px-6"} bg-peach hover:bg-white `}
+      className={`flex h-16 items-center justify-between ${showMainNav ? "pr-4" : "px-6"} bg-peach hover:bg-white transition-colors duration-300`}
     >
       {/* Left Section */}
       <div className="flex items-center space-x-6">
@@ -383,7 +391,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                 <button
                   ref={sidebarToggleRef}
                   onClick={handleSidebarToggle}
-                  className="p-2 rounded-md text-gray-600 hover:bg-primary-orange hover:text-white transition-colors"
+                  className="p-2 rounded-md text-gray-600 hover:bg-primary-orange hover:text-white transition-colors duration-300"
                 >
                   {isSidebarOpen ? <TableOfContents size={20} /> : <ArrowRightFromLine size={20} />}
                 </button>
@@ -393,7 +401,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   <button
                     ref={appButtonRef}
                     onClick={handleAppDropdownToggle}
-                    className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta rounded-md flex items-center justify-between min-w-40 text-white shadow-md hover:shadow-lg transition-all"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta rounded-md flex items-center justify-between min-w-40 text-white shadow-md hover:shadow-lg transition-all duration-300"
                   >
                     <div className="flex items-center space-x-2">
                       {displayApp.icon && <span>{displayApp.icon}</span>}
@@ -416,7 +424,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                         return (
                           <div
                             key={app.id}
-                            className={`w-full text-left px-4 py-3 hover:bg-peach flex items-start space-x-3 cursor-pointer transition-colors ${
+                            className={`w-full text-left px-4 py-3 hover:bg-peach flex items-start space-x-3 cursor-pointer transition-colors duration-300 ${
                               isActive ? 'bg-peach' : ''
                             }`}
                             onClick={() => selectApp(app)}
@@ -428,7 +436,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                             </div>
                             <button 
                               onClick={(e) => togglePinApp(app, e)}
-                              className="p-1 text-gray-400 hover:text-primary-orange transition-colors"
+                              className="p-1 text-gray-400 hover:text-primary-orange transition-colors duration-300"
                               title={isPinned ? "Unpin app" : "Pin app"}
                             >
                               {isPinned ? 
@@ -448,7 +456,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   <button
                     ref={workspaceButtonRef}
                     onClick={handleWorkspaceDropdownToggle}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-md flex items-center justify-between min-w-40 text-dark-gray hover:border-primary-orange transition-colors"
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-md flex items-center justify-between min-w-40 text-dark-gray hover:border-primary-orange transition-colors duration-300"
                   >
                     <div className="flex items-center space-x-2">
                       <span className="truncate max-w-32 font-medium">
@@ -460,9 +468,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                   <div className="relative group">
                     <button
                       ref={createButtonRef}
-                      className="ml-2 p-2 bg-primary-orange text-white rounded-md hover:bg-accent-magenta transition-colors shadow-md"
+                      className="ml-2 p-2 bg-primary-orange text-white rounded-md hover:bg-accent-magenta transition-colors duration-300 shadow-md"
                       onClick={handleCreateButtonClick}
-                      
                     >
                       <Plus size={16} />
                     </button>
@@ -503,7 +510,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                             <button
                               key={workspace.id}
                               onClick={() => selectWorkspace(workspace)}
-                              className={`w-full text-left px-4 py-3 hover:bg-peach flex items-center transition-colors ${
+                              className={`w-full text-left px-4 py-3 hover:bg-peach flex items-center transition-colors duration-300 ${
                                 currentWorkspace.id === workspace.id ? 'bg-peach font-medium' : ''
                               }`}
                             >
@@ -520,12 +527,14 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
                       <div className="mt-auto border-t border-gray-200 bg-cream">
                         <button
                           onClick={() => {
-                            animateDropdownClose(workspaceDropdownContentRef.current, () => {
-                              setIsWorkspaceDropdownOpen(false);
-                            });
+                            if (workspaceDropdownContentRef.current) {
+                              animateDropdownClose(workspaceDropdownContentRef.current, () => {
+                                setIsWorkspaceDropdownOpen(false);
+                              });
+                            }
                             navigate('/viewWorkspace');
                           }}
-                          className="w-full text-center py-3 text-primary-orange hover:text-accent-magenta font-medium transition-colors"
+                          className="w-full text-center py-3 text-primary-orange hover:text-accent-magenta font-medium transition-colors duration-300"
                         >
                           See all workspaces
                         </button>
@@ -551,12 +560,12 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
 
       {/* Right Section */}
       <div className="flex items-center space-x-4">
-        { !isSettingOrHelp && isLoggedIn && (
+        {!isSettingOrHelp && isLoggedIn && (
           <>
             <div className="relative group">
               <button
                 ref={el => navButtonsRef.current[0] = el}
-                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors"
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300"
                 aria-label="Help"
                 onClick={() => navigate('/help')}
               >
@@ -570,7 +579,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             <div className="relative group">
               <button 
                 ref={el => navButtonsRef.current[1] = el}
-                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors" 
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300" 
                 aria-label="Settings"
                 onClick={() => navigate('/settings')}
               >
@@ -584,7 +593,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             <div className="relative group">
               <button 
                 ref={el => navButtonsRef.current[2] = el}
-                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors relative" 
+                className="p-2 rounded-md text-gray-600 hover:text-primary-orange hover:bg-peach transition-colors duration-300 relative" 
                 aria-label="Notifications"
               >
                 <Bell size={20} />
@@ -601,7 +610,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
           <div className="relative group" ref={profileDropdownRef}>
             <button
               onClick={handleProfileToggle}
-              className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-orange transition-all duration-200 flex items-center justify-center"
+              className="w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-orange transition-all duration-300 flex items-center justify-center"
               aria-label="User menu"
               aria-expanded={isProfileOpen}
             >
@@ -613,7 +622,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             </button>
             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50">
               Profile
-            </div>  
+            </div>
 
             {isProfileOpen && (
               <div 
@@ -629,14 +638,14 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen, isLoggedIn, selectedApp, setS
             <button 
               ref={el => loginButtonsRef.current[0] = el}
               onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-white border border-primary-orange text-primary-orange rounded-md hover:bg-primary-orange hover:text-white transition-colors font-medium"
+              className="px-4 py-2 bg-white border border-primary-orange text-primary-orange rounded-md hover:bg-primary-orange hover:text-white transition-colors duration-300 font-medium"
             >
               Login
             </button>
             <button 
               ref={el => loginButtonsRef.current[1] = el}
               onClick={() => navigate('/signup')}
-              className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta text-white rounded-md hover:shadow-md transition-all font-medium"
+              className="px-4 py-2 bg-gradient-to-r from-primary-orange to-accent-magenta text-white rounded-md hover:shadow-md transition-all duration-300 font-medium"
             >
               Sign Up
             </button>

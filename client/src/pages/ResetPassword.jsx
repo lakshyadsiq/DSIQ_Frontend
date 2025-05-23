@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import {resetPassword} from '../redux/slices/authSlice';
+import { resetPassword } from '../redux/slices/authSlice';
+
 
 
 const ResetPasswordPage = () => {

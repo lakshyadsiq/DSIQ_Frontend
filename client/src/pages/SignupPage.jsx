@@ -31,7 +31,7 @@ const RegisterPage = () => {
     name: '',
     companyEmail: '',
     address: '',
-    contactNumber: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     country_id: '',
@@ -49,7 +49,7 @@ const RegisterPage = () => {
       setFormData(prev => ({ 
         ...prev, 
         country_id: defaultCountry.id,
-        contactNumber: defaultCountry.phoneCode + ' '
+        phone: defaultCountry.phoneCode + ' '
       }));
     }
   }, []);
@@ -57,7 +57,7 @@ const RegisterPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    if (name === 'contactNumber') {
+    if (name === 'phone') {
       const numericValue = value.replace(/[^0-9+\s]/g, '');
       setFormData(prev => ({ ...prev, [name]: numericValue }));
     } else {
@@ -75,10 +75,10 @@ const RegisterPage = () => {
     }));
     
     if (selectedCountry && selectedCountry.phoneCode) {
-      const currentNumber = formData.contactNumber.replace(/^\+\d+\s*/, '');
+      const currentNumber = formData.phone.replace(/^\+\d+\s*/, '');
       setFormData(prev => ({ 
         ...prev, 
-        contactNumber: `${selectedCountry.phoneCode} ${currentNumber}`.trim() 
+        phone: `${selectedCountry.phoneCode} ${currentNumber}`.trim() 
       }));
     }
   };
@@ -88,7 +88,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { first_name, last_name, name, companyEmail, address, contactNumber, password, confirmPassword, country_id } = formData;
+    const { first_name, last_name, name, companyEmail, address, phone, password, confirmPassword, country_id } = formData;
 
     // Check required fields only
     if (!first_name || !name || !companyEmail || !password || !confirmPassword || !country_id) {
@@ -101,6 +101,14 @@ const RegisterPage = () => {
       toast.error('Please enter a valid company email');
       return;
     }
+    // Validate contact number only if provided
+    // if (phone && phone.trim() !== '') {
+    //   const phoneRegex = /^\+\d+[\s\d]{5,14}$/;
+    //   if (!phoneRegex.test(phone)) {
+    //     toast.error('Please enter a valid contact number with country code');
+    //     return;
+    //   }
+    // }
 
 
     if (password.length < 8) {
@@ -120,7 +128,7 @@ const RegisterPage = () => {
         last_name,
         name, 
         email: companyEmail, 
-        contactNumber,
+        phone,
         password, 
         country_id, 
         role_id: 'admin' 
@@ -130,7 +138,7 @@ const RegisterPage = () => {
         last_name,
         name, 
         email: companyEmail, 
-        contactNumber,
+        phone,
         password, 
         country_id, 
         role_id: 'admin' 
@@ -269,8 +277,8 @@ const RegisterPage = () => {
             <div>
               <Input 
                 type="tel" 
-                name="contactNumber" 
-                value={formData.contactNumber} 
+                name="phone" 
+                value={formData.phone} 
                 onChange={handleChange} 
                 placeholder="Phone number (optional)" 
                 className="w-full !border-light-gray !rounded-md focus:!ring-2 focus:!ring-primary-orange focus:!outline-none !text-sm !py-2 !px-3"

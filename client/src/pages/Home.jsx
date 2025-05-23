@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
+import { gsap } from 'gsap';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -7,6 +8,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 function Home({ isLoggedIn }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
+  const mainRef = useRef(null);
 
   useEffect(() => {
     const storedSelectedApp = localStorage.getItem('selectedApp');
@@ -33,6 +35,16 @@ function Home({ isLoggedIn }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (mainRef.current) {
+      gsap.fromTo(
+        mainRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', delay: 0.3 }
+      );
+    }
+  }, []);
+
   return (
     <>
       <style>{`
@@ -46,7 +58,7 @@ function Home({ isLoggedIn }) {
           scrollbar-width: none;  /* Firefox */
         }
       `}</style>
-      <div className="flex h-screen overflow-hidden bg-gray-900 transition-colors duration-300">
+      <div className="flex h-screen overflow-hidden bg-peach transition-colors duration-300">
         {selectedApp && (
           <>
             <Sidebar isOpen={isSidebarOpen} selectedApp={selectedApp} />
@@ -61,7 +73,7 @@ function Home({ isLoggedIn }) {
               <div className="p-0">
                 {isLoggedIn && <Breadcrumbs />}
               </div>
-              <div className="flex-1 overflow-auto p-0 scrollable">
+              <div ref={mainRef} className="flex-1 overflow-auto p-0 scrollable">
                 <Outlet />
               </div>
             </div>
@@ -73,4 +85,3 @@ function Home({ isLoggedIn }) {
 }
 
 export default Home;
-
