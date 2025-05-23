@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { gsap } from "gsap";
 import {
   BarChart,
   Briefcase,
@@ -31,6 +32,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
   const expandedHeightsRef = useRef({});
   const subMenuRefs = useRef({});
   const [mainMenuItems, setMainMenuItems] = useState([]);
+  const menuItemsRef = useRef([]);
 
   const handleSectionHover = (section, event) => {
     if (isOpen || !section.isDropdown) return;
@@ -81,10 +83,33 @@ const Sidebar = ({ isOpen, selectedApp }) => {
   useEffect(() => {
     Object.keys(subMenuRefs.current).forEach((key) => {
       if (subMenuRefs.current[key]) {
-        expandedHeightsRef.current[key] = subMenuRefs.current[key].scrollHeight;
+        expandedHeightsRef.current[key] = subMenuRefs.current[key].scrollHeight || 0;
       }
     });
   }, [expanded, mainMenuItems]);
+
+  // GSAP animations for menu items
+  useEffect(() => {
+    if (menuItemsRef.current.length > 0) {
+      gsap.fromTo(
+        menuItemsRef.current,
+        {
+          opacity: 0,
+          x: isOpen ? -20 : 0,
+          y: !isOpen ? -20 : 0,
+        },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          stagger: 0.05,
+          duration: 0.5,
+          ease: "power3.out",
+          delay: 0.2,
+        }
+      );
+    }
+  }, [isOpen, mainMenuItems]);
 
   const getMainMenuItems = () => {
     if (!selectedApp) return [];
@@ -198,7 +223,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
         <div className="py-1 flex-grow">
           <div className="mb-1 py-1">
             {mainMenuItems.map((item, index) => (
-              <div key={index}>
+              <div key={index} ref={(el) => (menuItemsRef.current[index] = el)}>
                 {isOpen ? (
                   <>
                     <div
@@ -216,19 +241,14 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                       onClick={() => (item.isDropdown ? toggleSection(item.label) : handleItemClick(item.label))}
                     >
                       {(activeItem === item.label ||
-                        (item.isDropdown &&
-                          item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
+                        (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
                         <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                       )}
                       <div
                         className={`
                         flex items-center p-2
                         transition-all duration-300 ease-in-out
-                        ${isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
                       `}
-                        style={{
-                          transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                        }}
                       >
                         <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                           {item.icon}
@@ -283,7 +303,6 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                                 className={`
                                   pl-12 pr-4 py-2 text-gray-600 hover:bg-peach cursor-pointer flex items-center group
                                   transition-all duration-200 ease-in-out
-                                  ${isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
                                 `}
                                 onClick={() => handleItemClick(item.label, subItem.label)}
                               >
@@ -304,8 +323,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                     onMouseLeave={handleSectionLeave}
                   >
                     {(activeItem === item.label ||
-                      (item.isDropdown &&
-                        item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
+                      (item.isDropdown && item.items.some((sub) => activeItem === `${item.label}-${sub.label}`))) && (
                       <div className="absolute left-0 top-0 h-full w-1 bg-primary-orange rounded-r"></div>
                     )}
                     <div
@@ -342,7 +360,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
         {/* Bottom Menu */}
         <div className="pb-4">
           {bottomMenuItems.map((item, index) => (
-            <div key={index}>
+            <div key={index} ref={(el) => (menuItemsRef.current[mainMenuItems.length + index] = el)}>
               {isOpen ? (
                 <div
                   className={`
@@ -360,11 +378,7 @@ const Sidebar = ({ isOpen, selectedApp }) => {
                     className={`
                     flex items-center p-2
                     transition-all duration-300 ease-in-out
-                    ${isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"}
                   `}
-                    style={{
-                      transition: "opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                    }}
                   >
                     <span className="mr-2 transition-transform duration-200 ease-in-out group-hover:scale-110 text-primary-orange">
                       {item.icon}
@@ -416,8 +430,6 @@ const Sidebar = ({ isOpen, selectedApp }) => {
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left + 1}px`,
-            animation: "fadeIn 0.2s ease-out forwards",
-            transformOrigin: "left center",
           }}
           onMouseEnter={() => setHoveredSection(hoveredSection)}
           onMouseLeave={handleSectionLeave}
